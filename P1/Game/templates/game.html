@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+<!-- START Content Pane -->
+<div class="contents">
+
+    <div class="game-header">
+        <h1 id="round">Round: 2 of 20</h1>
+        <h1 id="time-remaining">Time: 00:42:19</h1>
+    </div>
+
+    {% for i in "1234"  %}
+    <!-- START Player Quadrant -->
+    <div class="col-md-6 quadrant">
+
+        <!-- START Player Header -->
+        <div class="player-header">
+            <h4 id="username"> Player: <b>bynarron</b> </h4>
+            <h4 id="score">Score: <b>44</b></h4>
+        </div>
+        <!-- END Player Header -->
+
+
+        <!-- START Health Bar -->
+        <div class="health">
+            <div class="section-header">
+                <h3>PC Health:</h3>
+            </div>
+            <div class="progress">
+                <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100" style="width: 90%">
+                    90%
+                </div> <!-- Close "progress-bar" div -->
+            </div> <!-- Close "progress" div -->
+        </div><!-- Close "health" div -->
+        <hr>
+        <!-- END Health Bar -->
+
+        <!-- START Cards -->
+        <div class="tasks">
+            <div class="section-header">
+                <h3> Research Tasks: </h3>
+                <button type="button" class="new-task btn btn-default" aria-label="Left Align">
+                    <span class="glyphicon glyphicon-plus" aria-hidden:"true"></span> New Task
+                </button>
+            </div>
+            {% for item in "12"%}
+            <section class="card-list">
+                <h4 class="research-category">Publication:</h4>
+                <ul>
+                    <li>
+                        <div class="resource-card" id="complete">
+                            <span class="centerer"></span><span class='centered'>Test Resource Complete</span>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="resource-card" id="incomplete">
+                            <span class="centerer"></span><span class='centered'>Test Resource Incomplete</span>
+                        </div>
+                    </li>
+                </ul>
+            </section>
+            {% endfor %}
+        </div>
+        <hr>
+        <!-- END Cards -->
+
+        <!-- START Security Tasks -->
+        <div class="tasks">
+            <div class="section-header">
+                <h3>Security Tasks:</h3>
+                <button type="button" class="new-task btn btn-default" aria-label="Left Align">
+                    <span class="glyphicon glyphicon-plus" aria-hidden:"true"></span> New Task
+                </button>
+            </div>
+        </div>
+        <section class="card-list">
+            <ul>
+                <li>
+                    <div class="security-card" id="complete">
+                        <span class="centerer"></span><span class='centered'>Test Resource Complete</span>
+                    </div>
+                </li>
+                <li>
+                    <div  class="security-card" id="incomplete">
+                        <span class="centerer"></span><span class='centered'>Test Resource Incomplete</span>
+                    </div>
+                </li>
+            </ul>
+        </section>
+
+
+        <!-- END Security Tasks -->
+
+
+    </div>
+    {% endfor %}
+    <!-- END Player Quadrant -->
+
+</div>
+
+<div class="sidebar">
+<h3 style="text-align:center;"> THIS IS WHERE CHAT WILL GO! </h3>
+</div>
+
+{% endblock %}

@@ -1,0 +1,326 @@
+/* === START Base Stylesheet === */
+
+
+body {
+    background: snow;
+}
+
+
+/* === START Game Header Style === */
+
+.game-header {
+    width: 100%;
+    float: left;
+    margin: auto;
+    margin-bottom: 1em;
+}
+
+.game-header #round {
+    float: left;
+}
+
+.game-header #time-remaining {
+    float:right;
+}
+
+/*===END Game Header Style===*/
+
+/*========================================*/
+
+/*===START Resources Pane Style===*/
+
+#title {
+    float:left;
+}
+
+#remaining {
+    float:right;
+    clear:right;
+}
+
+table {
+    margin-left:auto;
+    margin-right:auto;
+}
+
+.resource {
+    width:50px;
+    height:50px;
+    display:inline-block;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    border: thin solid;
+    z-index:2;
+    cursor: crosshair;
+}
+
+#blue {
+    background-color: blue;
+}
+
+#red {
+    background-color: red;
+}
+
+#yellow {
+    background-color: yellow;
+}
+
+/*===END Resources Pane Style===*/
+
+/*========================================*/
+
+/*===START Player Pane Style===*/
+
+.content {
+    padding: 1em;
+}
+
+.bordered-pane{
+    border: thin solid gray;
+    background-color: white;
+
+    -webkit-box-shadow: 3px 3px 0px -1px rgba(97,93,97,0.63);
+    -moz-box-shadow: 3px 3px 0px -1px rgba(97,93,97,0.63);
+    box-shadow: 3px 3px 0px -1px rgba(97,93,97,0.63);
+}
+
+.equal, .equal > div[class*='col-'] {
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  flex:1 0 auto;
+}
+
+.section-header {
+    width:100%;
+    margin-bottom: 20px;
+    display:inline-block;
+}
+
+.section-header h3 {
+    margin:0;
+    float:left;
+}
+
+.section-header .new-task{
+    float:right;
+}
+
+.objectives {
+    min-height:180px;
+}
+
+/*=== END Playe Pane Style ===*/
+
+
+/*========================================*/
+
+/*=== START Player Header Style ===*/
+
+.player-header {
+    height: 30px;
+    margin-bottom:0px;
+}
+
+.player-header #username {
+    float: left;
+}
+
+.player-header #score {
+    float: right;
+}
+
+/*=== END Player Header Style ===*/
+
+/*========================================*/
+
+/*=== START Player Health Style ===*/
+ .health {
+    margin-top: 40px;
+    padding-top: 20px;
+    height: 300px;
+    border-left: 1px inset;
+ }
+
+.progress.vertical {
+    position: relative;
+    width: 20px;
+    min-height: 240px;
+    float: left;
+    margin-right: 20px;
+    background: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    border: none;
+}
+
+/*=== END Player Health Style ===*/
+
+/*========================================*/
+
+/*=== START Resource List Style ===*/
+
+.card-list  li {
+    display: inline-block;
+    list-style-type: none;
+    padding-right: 5px;
+    vertical-align: middle;
+    text-align: left;
+/*    width: 100px;
+height: 100px;*/
+}
+
+.card-list .objective-category {
+    float:left;
+    display:inline-block;
+    padding-right: 8px;
+    vertical-align:middle;
+}
+
+/*=== END Resource List Style ===*/
+
+/*=== START Resource Container Style ===*/
+
+.resource-container {
+    width: 50px;
+    height: 50px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    broder: thin dashed black;
+}
+
+.resource-container .centered {
+    text-align: center;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.resource-container .centerer {
+    display: inline-block;
+    height: 100%;
+    vertical-align: middle;
+}
+
+.complete {
+    border: thin solid;
+}
+
+.complete .centered {
+    color: black;
+}
+
+.incomplete {
+    border: thin dashed;
+}
+
+.incomplete .centered {
+    color: black;
+}
+
+.resource-container #blue {
+    rgba(0,0,255, 0.6);
+}
+
+.resource-container #red {
+    rgba(255,0,0, 0.6);
+}
+
+.resource-container #yellow {
+    rgba(255,255,0, 0.6);
+}
+
+/*=== END  Resource Container Style ===*/
+
+
+/*=== START Game Information Style ===*/
+
+ul.game-info {
+    list-style-type: none;
+    padding: 0px;
+}
+
+li.bordered-pane {
+    margin-bottom: 1em;
+}
+
+.info-text {
+    font-weight:bold;
+}
+
+.player-scores {
+    padding-bottom: 1em;
+    padding-left: 1em;
+
+}
+
+/*=== END Game Information Style ===*/
+
+/*=== START Group Chat Style ===*/
+
+.chat
+{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.chat li
+{
+    margin-bottom: 10px;
+    padding-bottom: 5px;
+    border-bottom: 1px dotted #B3A9A9;
+}
+
+.chat li.left .chat-body
+{
+    margin-left: 60px;
+}
+
+.chat li.right .chat-body
+{
+    margin-right: 60px;
+}
+
+
+.chat li .chat-body p
+{
+    margin: 0;
+    color: #777777;
+}
+
+.panel .slidedown .glyphicon, .chat .glyphicon
+{
+    margin-right: 5px;
+}
+
+.chat .panel-body
+{
+    overflow-y: scroll;
+    max-height: 500px;
+}
+
+::-webkit-scrollbar-track
+{
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    background-color: #F5F5F5;
+}
+
+::-webkit-scrollbar
+{
+    width: 12px;
+    background-color: #F5F5F5;
+}
+
+::-webkit-scrollbar-thumb
+{
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    background-color: #555;
+}
+
+/*=== END Group Chat Style ===*/
