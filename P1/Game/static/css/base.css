@@ -15,7 +15,7 @@ body {
     margin-bottom: 1em;
 }
 
-.game-header #round {
+.game-header #game-number {
     float: left;
 }
 

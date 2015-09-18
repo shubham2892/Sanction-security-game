@@ -8,9 +8,11 @@ import random
 
 # A Player
 class Player(models.Model):
+    user  = models.OneToOneField(User)
     first_name = models.CharField(max_length=50, default=None)
     last_name = models.CharField(max_length=50, default=None)
     email = models.CharField(max_length=50, default=None, unique=True)
+
 
     def __unicode__(self):
         return u'%s %s (%s)' % (self.first_name, self.last_name, self.email)
