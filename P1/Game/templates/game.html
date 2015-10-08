@@ -1,11 +1,16 @@
         {% extends 'base.html' %}
 
+        {% block tabs %}
+         <li class="active">
+            <a href="#"><b>Game#:&nbsp; {{ game.game_key }}</b></a>
+        </li>
+        {% endblock %}
 
         {% block content %}
 
         <div class="game-header">
             <!-- <h1 id="round">Round: 2 of 20</h1> -->
-            <h1 id="game-number">Game # {{ game.game_key }}</h1>
+<!--             <h1 id="game-number">Game # {{ game.game_key }}</h1> -->
             <h1 id="time-remaining">Remaining Moves: 100</h1>
         </div>
 
@@ -72,14 +77,14 @@
                             Score:
                     </div>
                     <div class="panel-body">
-                            <span class="info-text">player two: 29</span> </br>
-                            <span class="info-text">player three: 51</span> </br>
-                            <span class="info-text">player four: 35</span>
+                            <span class="info-text">player two: 0</span> </br>
+                            <span class="info-text">player three: 0</span> </br>
+                            <span class="info-text">player four: 0</span>
                     </div>
                 </div>
                 <div class="panel panel-primary">
                     <div class="panel-heading">
-                            <div><span class="glyphicon glyphicon-user"></span>&nbsp;Player </div>
+                            <div><span class="glyphicon glyphicon-user"></span>&nbsp;Player Two</div>
                     </div>
                     <div class="panel-body">
                             <span class="info-text">Some info here</span> </br>
@@ -140,12 +145,12 @@
                                                 <h4 class="objective-category">Conference: &nbsp;</h4>
                                                 <ul>
                                                     <li>
-                                                        <div class="resource-container incomplete">
+                                                        <div  id="blue" class="resource-container incomplete">
                                                             <span class="centerer"></span><span class='centered'></span>
                                                         </div>
                                                     </li>
                                                     <li>
-                                                        <div class="resource-container incomplete">
+                                                        <div id="yellow" class="resource-container incomplete">
                                                             <span class="centerer"></span><span class='centered'></span>
                                                         </div>
                                                     </li>
@@ -169,12 +174,7 @@
                                                 <h4 class="objective-category">Change Password: &nbsp;</h4>
                                                 <ul>
                                                     <li>
-                                                        <div class="resource-container incomplete">
-                                                            <span class="centerer"></span><span class='centered'></span>
-                                                        </div>
-                                                    </li>
-                                                    <li>
-                                                        <div class="resource-container incomplete">
+                                                        <div id="blue" class="resource-container incomplete">
                                                             <span class="centerer"></span><span class='centered'></span>
                                                         </div>
                                                     </li>
@@ -190,10 +190,20 @@
 
                                     <div class="col-md-3">
                                         <div class="health">
-                                        <div class="progress vertical">
-                                                <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="90"></div>
+                                            <h5>PC Health: 57%</h5>
+                                            <div class="outer">
+                                                <div class="inner" data-progress="57%">
+                                                    <div></div>
+                                                </div>
                                             </div>
-                                        </div><!-- close health -->
+                                            <h5>Score: 80 points</h5>
+                                            <div class="outer">
+                                                <div class="inner" data-progress="57%">
+                                                    <div></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div><!-- close health -->
                                     </div><!-- close .col-md-3 -->
 
                                     <!-- END Health Bar -->

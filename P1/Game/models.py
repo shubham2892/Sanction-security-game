@@ -8,7 +8,6 @@ import random
 
 # A Player
 class Player(models.Model):
-    user  = models.OneToOneField(User)
     first_name = models.CharField(max_length=50, default=None)
     last_name = models.CharField(max_length=50, default=None)
     email = models.CharField(max_length=50, default=None, unique=True)
@@ -20,6 +19,7 @@ class Player(models.Model):
     @property
     def name(self):
         return "{} {}".format(self.first_name, self.last_name)
+
 
 
 # Resource classifications by color

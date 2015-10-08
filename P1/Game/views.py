@@ -5,11 +5,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.views.generic import TemplateView
 from django.http import Http404
 from models import Player, Game
-
-
-# Create your views here.
-
-
 from django.contrib.auth import authenticate, login
 
 def home(request):
@@ -35,5 +30,4 @@ class GameView(TemplateView):
 
         context['game'] = game
         return context
-
 
