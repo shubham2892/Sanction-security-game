@@ -12,6 +12,9 @@ class Player(models.Model):
     last_name = models.CharField(max_length=50, default=None)
     email = models.CharField(max_length=50, default=None, unique=True)
 
+    # class Meta:
+    #     model = User
+
 
     def __unicode__(self):
         return u'%s %s (%s)' % (self.first_name, self.last_name, self.email)

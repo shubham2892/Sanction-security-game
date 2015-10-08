@@ -9,9 +9,51 @@ $(document).ready(function(){
 
 // Function for PC Health and Points vertical progress bars
 $(document).ready(function(){
-    var skillBar = $('.health').children().find('.inner');
-    var skillVal = skillBar.attr("data-progress");
-    $(skillBar).animate({
-        height: skillVal
+    var healthBar = $('.health').children().find('.inner');
+    var healthVal = healthBar.attr("data-progress");
+    var healthInt = parseInt(healthVal);
+
+    // Add the appropriate color to the bar
+    if (healthInt > 80) {
+      healthBar.addClass("high");
+    }
+    else if (healthInt < 20) {
+      healthBar.addClass("low");
+    }
+    else {
+      healthBar.addClass("middle");
+    }
+
+    // Animate bar
+    $(healthBar).animate({
+        height: healthVal
     }, 1500);
 });
+
+// Handle for in-game changes to PC Health
+
+// $('.inner').attr("data-progress").change(function(){
+//     alert( "Handler for .change() called." );
+//     var healthBar = $('.health').children().find('.inner');
+//     var healthVal = healthBar.attr("data-progress");
+//     var healthInt = parseInt(healthVal);
+
+//     // Add the appropriate color to the bar
+//     if (healthInt > 80) {
+//       healthBar.addClass("high");
+//     }
+//     else if (healthInt < 20) {
+//       healthBar.addClass("low");
+//     }
+//     else {
+//       healthBar.addClass("middle");
+//     }
+
+//     // Animate bar
+//     $(healthBar).animate({
+//         height: healthVal
+//     }, 1500);
+// });
+
+
+// Wipe Research Objective upon completion, and replace it with a new one.

@@ -3,7 +3,7 @@ from django.contrib.auth import authenticate, login
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist
 from django.views.generic import TemplateView
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from models import Player, Game
 from django.contrib.auth import authenticate, login
 
@@ -16,7 +16,12 @@ def home(request):
 
 
 class GameView(TemplateView):
+
     template_name = "game.html"
+
+    # def get(self, request):
+    #     if not request.user.is_authenticated():
+    #         return HttpResponse('login')
 
     def get_context_data(self, **kwargs):
 

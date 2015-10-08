@@ -1,8 +1,16 @@
+/*========================================*/
+
 /* === START Base Stylesheet === */
 
 
 body {
     background: snow;
+}
+
+.centered {
+    margin-left:auto;
+    margin-right:auto;
+    vertical-align:center;
 }
 
 
@@ -12,7 +20,6 @@ body {
     width: 100%;
     float: left;
     margin: auto;
-    margin-bottom: 1em;
 }
 
 .game-header #game-number {
@@ -27,60 +34,10 @@ body {
 
 /*========================================*/
 
-/*===START Resources Pane Style===*/
-
-#title {
-    float:left;
-}
-
-#remaining {
-    float:right;
-    clear:right;
-}
-
-table {
-    margin-left:auto;
-    margin-right:auto;
-}
-
-.resource {
-    width:50px;
-    height:50px;
-    display:inline-block;
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
-    border-radius: 10px;
-    border: thin solid;
-    z-index:2;
-    cursor: crosshair;
-}
-
-/*===END Resources Pane Style===*/
-
-/*========================================*/
-
 /*===START Player Pane Style===*/
 
 .content {
-    padding: 1em;
-}
-
-.bordered-pane{
-    border: thin solid gray;
-    background-color: white;
-
-    -webkit-box-shadow: 3px 3px 0px -1px rgba(97,93,97,0.63);
-    -moz-box-shadow: 3px 3px 0px -1px rgba(97,93,97,0.63);
-    box-shadow: 3px 3px 0px -1px rgba(97,93,97,0.63);
-}
-
-.equal, .equal > div[class*='col-'] {
-  display: -webkit-box;
-  display: -moz-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
-  flex:1 0 auto;
+    padding-top: 1em;
 }
 
 .section-header {
@@ -104,39 +61,44 @@ table {
 
 /*=== END Playe Pane Style ===*/
 
-
 /*========================================*/
 
-/*=== START Player Header Style ===*/
+/*=== START Game Information Header Style ===*/
 
-.player-header {
-    height: 30px;
-    margin-bottom:0px;
-}
-
-.player-header #username {
-    float: left;
-}
-
-.player-header #score {
+.panel-heading #score {
     float: right;
 }
 
-/*=== END Player Header Style ===*/
+#sanction {
+    float:right;
+}
+
+.info-text {
+    font-weight:bold;
+}
+
+.attack-warning {
+    text-align:center;
+}
+
+/*=== END Game Information Header Style ===*/
 
 /*========================================*/
 
 /*=== START Player Health Style ===*/
  .health {
-    margin-top: 40px;
-    height: 300px;
+    height: 350px;
     border-left: 1px solid #f2f2f2;
-    text-align:center;
+    text-align: center;
+ }
+
+ .health #health-header {
+    padding-bottom: 1em;
  }
 
 .outer {
-    width: 30px;
-    height: 140px;
+    width: 40px;
+    height: 100%;
     border: 2px solid #ccc;
     overflow: hidden;
     margin-left:auto;
@@ -155,10 +117,28 @@ table {
     position: absolute;
 }
 
-.inner {
+.inner.high {
     border: 2px solid green;
     border-top-width: 0;
     background-color: green;
+
+    bottom: 0;
+    height: 0%;
+}
+
+.inner.middle {
+    border: 2px solid yellow;
+    border-top-width: 0;
+    background-color: yellow;
+
+    bottom: 0;
+    height: 0%;
+}
+
+.inner.low {
+    border: 2px solid red;
+    border-top-width: 0;
+    background-color: red;
 
     bottom: 0;
     height: 0%;
@@ -171,24 +151,25 @@ table {
 
 /*=== START Resource List Style ===*/
 
-.card-list  li {
-    display: inline-block;
-    list-style-type: none;
-    padding-right: 5px;
-    vertical-align: middle;
-    text-align: left;
-/*    width: 100px;
-height: 100px;*/
+.category-list {
+    margin-left: 1em;
 }
 
-.card-list .objective-category {
+.category-list  td{
+    padding: 1em;
+    text-align:left;
+}
+
+.category-list .objective-category {
     float:left;
     display:inline-block;
-    padding-right: 8px;
+    padding-right: 2em;
     vertical-align:middle;
 }
 
 /*=== END Resource List Style ===*/
+
+/*========================================*/
 
 /*=== START Resource Container Style ===*/
 
@@ -251,93 +232,68 @@ height: 100px;*/
 
 #yellow.complete {
     background: rgb(255,255,0);
+}
 
 /*=== END  Resource Container Style ===*/
 
-
-/*=== START Game Information Style ===*/
-
-ul.game-info {
-    list-style-type: none;
-    padding: 0px;
-}
-
-li.bordered-pane {
-    margin-bottom: 1em;
-}
-
-.info-text {
-    font-weight:bold;
-}
-
-.player-scores {
-    padding-bottom: 1em;
-    padding-left: 1em;
-
-}
-
-/*=== END Game Information Style ===*/
+/*========================================*/
 
 /*=== START Group Chat Style ===*/
 
-.chat
-{
+.chat {
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-.chat li
-{
+.chat li {
     margin-bottom: 10px;
     padding-bottom: 5px;
     border-bottom: 1px dotted #B3A9A9;
 }
 
-.chat li.left .chat-body
-{
+.chat li.left .chat-body {
     margin-left: 60px;
 }
 
-.chat li.right .chat-body
-{
+.chat li.right .chat-body {
     margin-right: 60px;
 }
 
 
-.chat li .chat-body p
-{
+.chat li .chat-body p {
     margin: 0;
     color: #777777;
 }
 
-.panel .slidedown .glyphicon, .chat .glyphicon
-{
+.panel .slidedown .glyphicon, .chat .glyphicon {
     margin-right: 5px;
 }
 
-.chat .panel-body
-{
+.chat .panel-body {
     overflow-y: scroll;
     max-height: 500px;
 }
 
-::-webkit-scrollbar-track
-{
+::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
     background-color: #F5F5F5;
 }
 
-::-webkit-scrollbar
-{
+::-webkit-scrollbar {
     width: 12px;
     background-color: #F5F5F5;
 }
 
-::-webkit-scrollbar-thumb
-{
+::-webkit-scrollbar-thumb {
     -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
     background-color: #555;
 }
 
 /*=== END Group Chat Style ===*/
+
+/*========================================*/
+
+/*=== END Base Stylesheet === */
+
+/*========================================*/
