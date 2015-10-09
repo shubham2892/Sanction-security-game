@@ -24,25 +24,36 @@ $(document).ready(function(){
 
 // Function for PC Health and Points vertical progress bars
 $(document).ready(function(){
-    var healthBar = $('.health').children().find('.inner');
-    var healthVal = healthBar.attr("data-progress");
-    var healthInt = parseInt(healthVal);
 
-    // Add the appropriate color to the bar
-    if (healthInt > 80) {
-      healthBar.addClass("high");
-    }
-    else if (healthInt < 20) {
-      healthBar.addClass("low");
-    }
-    else {
-      healthBar.addClass("middle");
-    }
+    // Get blue threat
+    var blueBar = $('.attack-threat').find('.inner.blue');
+    var blueThreat = blueBar.attr("blue-threat");
 
     // Animate bar
-    $(healthBar).animate({
-        height: healthVal
+    $(blueBar).animate({
+        height: blueThreat
     }, 1500);
+
+     // Get blue threat
+    var redBar = $('.attack-threat').find('.inner.red');
+    var redThreat = parseInt(redBar.attr("red-threat")) + parseInt(blueThreat);
+    var redCent = redThreat + "%";
+
+    // Animate bar
+    $(redBar).animate({
+        height: redCent
+    }, 1500);
+
+    // Get blue threat
+    var yellowBar = $('.attack-threat').find('.inner.yellow');
+    var yellowThreat = parseInt(yellowBar.attr("yellow-threat")) + redThreat;
+    var yellowCent = yellowThreat + "%";
+
+    // Animate bar
+    $(yellowBar).animate({
+        height: yellowCent
+    }, 1500);
+
 });
 
 // Handle for in-game changes to PC Health

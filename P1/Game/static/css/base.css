@@ -126,31 +126,35 @@ body {
     position: absolute;
 }
 
-.inner.high {
-    border: 2px solid green;
+.inner.blue{
+    border: 2px solid blue;
     border-top-width: 0;
-    background-color: green;
+    background-color: blue;
 
     bottom: 0;
     height: 0%;
+    z-index:3;
 }
 
-.inner.middle {
-    border: 2px solid yellow;
-    border-top-width: 0;
-    background-color: yellow;
-
-    bottom: 0;
-    height: 0%;
-}
-
-.inner.low {
+.inner.red{
     border: 2px solid red;
     border-top-width: 0;
     background-color: red;
 
     bottom: 0;
     height: 0%;
+    z-index:2;
+
+}
+
+.inner.yellow{
+    border: 2px solid yellow;
+    border-top-width: 0;
+    background-color: yellow;
+
+    bottom: 0;
+    height: 0%;
+    z-index:1;
 }
 
 
