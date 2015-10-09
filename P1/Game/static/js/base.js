@@ -1,9 +1,24 @@
 
 // Function for changing "incomplete" resources to "complete" on click
 $(document).ready(function(){
+
+    // When incomplete resource is clicked...
     $(".resource-container.incomplete").one( "click", function(){
-        console.log("click event");
+
+        // Change class from .incomplete to .complete
         $( this ).removeClass("incomplete").addClass("complete");
+
+        // Remove objective if complete
+        var resourceList = $( this ).closest('.resource-list');
+
+
+        // If all children objects are complete, remove resource list
+        if (resourceList.find(".incomplete").length === 0) {
+            resourceList.find('.resource-container').fadeOut("slow", function(){
+              this.remove();
+            });
+        }
+
     });
 });
 
@@ -55,5 +70,8 @@ $(document).ready(function(){
 //     }, 1500);
 // });
 
+// Prompt player if s/he tries to reload page
+window.onbeforeunload = function() {
+    return "Refreshing the page during the game may lead to undesired consequences.  Please return to the page. Thanks!";
+}
 
-// Wipe Research Objective upon completion, and replace it with a new one.

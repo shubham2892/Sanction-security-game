@@ -42,6 +42,7 @@ body {
 
 .section-header {
     width:100%;
+    margin-top: 20px;
     margin-bottom: 20px;
     display:inline-block;
 }
@@ -55,6 +56,10 @@ body {
     float:right;
 }
 
+.gameboard {
+    height: 550px;
+}
+
 .objectives {
     min-height:180px;
 }
@@ -65,12 +70,13 @@ body {
 
 /*=== START Game Information Header Style ===*/
 
-.panel-heading #score {
-    float: right;
+.panel-heading #sanction {
+    position: relative;
+    top: -5px;
 }
 
-#sanction {
-    float:right;
+.panel-heading #score {
+    float: right;
 }
 
 .info-text {
@@ -81,19 +87,22 @@ body {
     text-align:center;
 }
 
+.panel-heading.attack-heading {
+    background-color: red;
+}
+
 /*=== END Game Information Header Style ===*/
 
 /*========================================*/
 
-/*=== START Player Health Style ===*/
- .health {
-    height: 350px;
-    border-left: 1px solid #f2f2f2;
-    text-align: center;
- }
+/*=== START Attack Information Style ===*/
 
- .health #health-header {
-    padding-bottom: 1em;
+.attack-active {
+    height:84px;
+}
+
+ .attack-threat {
+    height: 400px;
  }
 
 .outer {
@@ -145,7 +154,7 @@ body {
 }
 
 
-/*=== END Player Health Style ===*/
+/*=== END Attack Information Style ===*/
 
 /*========================================*/
 
@@ -156,14 +165,15 @@ body {
 }
 
 .category-list  td{
-    padding: 1em;
+    padding-bottom: 1em;
+    padding-right:1em;
     text-align:left;
 }
 
 .category-list .objective-category {
     float:left;
     display:inline-block;
-    padding-right: 2em;
+    padding-right: 1em;
     vertical-align:middle;
 }
 
@@ -240,7 +250,11 @@ body {
 
 /*=== START Group Chat Style ===*/
 
-.chat {
+.panel-body.chat {
+    height: 500px;
+}
+
+ul.chat {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -272,7 +286,7 @@ body {
 
 .chat .panel-body {
     overflow-y: scroll;
-    max-height: 500px;
+    max-height: 455px;
 }
 
 ::-webkit-scrollbar-track {
