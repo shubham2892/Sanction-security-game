@@ -56,33 +56,31 @@ $(document).ready(function(){
 
 });
 
-// Handle for in-game changes to PC Health
+// Player Score Horizontal Bars
+$(document).ready(function() {
+    $( ".progressbar" ).progressbar({
+      value: 60
+    });
+});
 
-// $('.inner').attr("data-progress").change(function(){
-//     alert( "Handler for .change() called." );
-//     var healthBar = $('.health').children().find('.inner');
-//     var healthVal = healthBar.attr("data-progress");
-//     var healthInt = parseInt(healthVal);
+// $(".progressbar").bind('progressbarchange', function(event, ui) {
+//         var selector = "#" + this.id + " > div";
+//         var value = this.getAttribute( "aria-valuenow" );
+//         if (value < 10){
+//             $(selector).css({ 'background': 'Red' });
+//         } else if (value < 30){
+//             $(selector).css({ 'background': 'Orange' });
+//         } else if (value < 50){
+//             $(selector).css({ 'background': 'Yellow' });
+//         } else{
+//             $(selector).css({ 'background': 'LightGreen' });
+//         }
+//     });
 
-//     // Add the appropriate color to the bar
-//     if (healthInt > 80) {
-//       healthBar.addClass("high");
-//     }
-//     else if (healthInt < 20) {
-//       healthBar.addClass("low");
-//     }
-//     else {
-//       healthBar.addClass("middle");
-//     }
 
-//     // Animate bar
-//     $(healthBar).animate({
-//         height: healthVal
-//     }, 1500);
-// });
 
 // Prompt player if s/he tries to reload page
-window.onbeforeunload = function() {
-    return "Refreshing the page during the game may lead to undesired consequences.  Please return to the page. Thanks!";
-}
+// window.onbeforeunload = function() {
+//     return "Refreshing the page during the game may lead to undesired consequences.  Please return to the page. Thanks!";
+// }
 

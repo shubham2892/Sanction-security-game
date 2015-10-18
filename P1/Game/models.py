@@ -5,7 +5,6 @@ from random import choice
 from django.db import IntegrityError
 import random
 
-
 # A Player
 class Player(models.Model):
     user = models.OneToOneField(User)
@@ -16,8 +15,6 @@ class Player(models.Model):
     @property
     def name(self):
         return "{} {}".format(self.first_name, self.last_name)
-
-
 
 # Resource classifications by color
 RESOURCE_CLASSIFICATIONS = (
@@ -103,6 +100,25 @@ class Game(models.Model):
             else:
                  success = True
 
+
+class Message(models.Model):
+    game = models.ForeignKey(Game, null=True)
+    speaker = models.ForeignKey(Player, null=True)
+    content = models.TextField(max_length=500)
+
+    # Used for anonymizing players in chat
+    @property
+    def player_number(self):
+        player_list = [player for player in self.game.players.all()]
+        player_number = player_list.index(self.speaker) + 1
+        return player_number
+
+
+    def __unicode__(self):
+        content = (self.content[:75] + '..') if len(self.content) > 25 else self.content
+        return u'Game #%s: %s said, \"%s\"' % (self.game.game_key,
+                                                                        self.speaker.user.username,
+                                                                        content)
 
 
 

@@ -1,294 +1,329 @@
-        {% extends 'base.html' %}
-        {% load humanize %}
-        {% load staticfiles %}
+{% extends 'base.html' %}
+{% load humanize %}
+{% load staticfiles %}
+{% load bootstrap_tags %}
 
-        {% block head_css %}
-            <link href="{% static 'css/game.css' %}" rel="stylesheet">
-        {% endblock %}
+{% block head_css %}
+<link href="{% static 'css/game.css' %}" rel="stylesheet">
+{% endblock %}
 
-        {% block navbar %}
-        <div class="game-header">
-            <h3 id="game-number">Game#:&nbsp; {{ game.game_key }}</h3>
-            <h3 id="time-remaining">Remaining Moves: 100</h3>
+{% block navbar %}
+<div class="game-header">
+    <h3 id="game-number">Game#:&nbsp; {{ view.game.game_key }}</h3>
+    <h3 id="time-remaining">Remaining Moves: {{ view.game.ticks }}</h3>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<!-- START Fluid Scaffold -->
+<div class="row">
+
+    <!-- START Game Information -->
+
+    <div class="col-md-3">
+        {% for player in view.game.players.all %}
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <div>
+                    {% if player.user == request.user %}
+                    <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ forloop.counter|apnumber|capfirst}} (Me)
+                    {% else %}
+                    <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ forloop.counter|apnumber|capfirst }}
+                    <button id="sanction" type="button" class="btn btn-sm btn-danger pull-right">Sanction</button>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="panel-body">
+                <table class="info-text">
+                    <tr id="score">
+                        <td>
+                            Score:
+                        </td>
+                        <td colspan="3">
+                            <div class="progressbar"></div>
+                        </td>
+                        <tr>
+                            <td>
+                                Vulnerabilities:
+                            </td>
+                            <!-- Blue Security Resource -->
+                            <td>
+                                <div id="blue" class="resource-container vulnerable">
+                                    <span class="centerer"></span><span class='centered'></span>
+                                </div>
+                            </td>
+
+                            <!-- Red Security Resource -->
+                            <td>
+                                <div id="red" class="resource-container vulnerable">
+                                    <span class="centerer"></span><span class='centered'></span>
+                                </div>
+                            </td>
+
+                            <!-- Yellow Security Resource -->
+                            <td>
+                                <div id="yellow" class="resource-container vulnerable">
+                                    <span class="centerer"></span><span class='centered'></span>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
         </div>
-        {% endblock %}
 
-        {% block content %}
+        <!-- END Game Information -->
 
-        <!-- START Fluid Scaffold -->
-        <div class="row">
+        <!-- START Player Pane -->
 
-            <!-- START Game Information -->
-
-            <div class="col-md-3">
-                {% for player in "1234" %}
-                <div class="panel panel-primary">
-                    <div class="panel-heading">
-                        <div>
-                            <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player|apnumber|capfirst }}
-                            <button id="sanction" type="button" class="btn btn-sm btn-danger pull-right">Sanction</button>
-                        </div>
-                    </div>
-                    <div class="panel-body">
-                        <span class="info-text">
-                            Score: 83 </br>
-                            PC Health:  22% </br>
-                            Security: 2 out of 3
+        <div class="col-md-4">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <div>
+                        <span><span class="glyphicon glyphicon-user"></span>
+                        &nbsp;Me</span>
+                        <span id="score">
+                            &nbsp;Score: <b> 57 Points</b>
                         </span>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
+                <div class="panel-body gameboard">
 
-            <!-- END Game Information -->
-
-            <!-- START Player Pane -->
-
-            <div class="col-md-4">
-                <div class="panel panel-primary">
-                    <div class="panel-heading">
-                        <div>
-                            <span><span class="glyphicon glyphicon-user"></span>
-                            &nbsp;Player One</span>
-                            <span id="score">
-                                &nbsp;Score: <b> 57 Points</b>
-                            </span>
+                    <!-- START Resource Objectives -->
+                    <div class="objectives">
+                        <div class="section-header">
+                            <h3> Research Objectives: </h3>
                         </div>
+
+                        <table class="category-list">
+                            <tbody>
+
+                                <!-- START Workshop Objective -->
+                                <tr class="resource-list">
+                                    <td>
+                                        <h4 class="objective-category">Workshop:</h4>
+                                    </td>
+                                    <td>
+                                        <div id="yellow" class="resource-container incomplete">
+                                            <span class="centerer"></span><span class='centered'></span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- END Workshop Objective -->
+
+                                <!-- START Conference Objective -->
+                                <tr class="resource-list">
+                                    <td>
+                                        <h4 class="objective-category">Conference:</h4>
+                                    </td>
+                                    <td>
+                                        <div  id="blue" class="resource-container incomplete">
+                                            <span class="centerer"></span><span class='centered'></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div id="yellow" class="resource-container incomplete">
+                                            <span class="centerer"></span><span class='centered'></span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- END Conference Objective -->
+
+                                <!-- START Journal Objective -->
+                                <tr class="resource-list">
+                                    <td>
+                                        <h4 class="objective-category">Journal:</h4>
+                                    </td>
+                                    <td>
+                                        <div  id="blue" class="resource-container incomplete">
+                                            <span class="centerer"></span><span class='centered'></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div id="yellow" class="resource-container incomplete">
+                                            <span class="centerer"></span><span class='centered'></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div id="red" class="resource-container incomplete">
+                                            <span class="centerer"></span><span class='centered'></span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- END Journal Objective -->
+
+                            </tbody>
+                        </table>
+
                     </div>
-                    <div class="panel-body gameboard">
+                    <hr>
+                    <!-- END Resource Objectives -->
 
-                        <!-- START Resource Objectives -->
-                        <div class="objectives">
-                            <div class="section-header">
-                                <h3> Research Objectives: </h3>
-                            </div>
 
-                            <table class="category-list">
-                                <tbody>
+                    <!-- START Security Features -->
 
-                                    <!-- START Workshop Objective -->
-                                    <tr class="resource-list">
-                                        <td>
-                                            <h4 class="objective-category">Workshop:</h4>
-                                        </td>
-                                        <td>
-                                            <div id="yellow" class="resource-container incomplete">
-                                                <span class="centerer"></span><span class='centered'></span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <!-- END Workshop Objective -->
-
-                                    <!-- START Conference Objective -->
-                                    <tr class="resource-list">
-                                        <td>
-                                            <h4 class="objective-category">Conference:</h4>
-                                        </td>
-                                        <td>
-                                            <div  id="blue" class="resource-container incomplete">
-                                                <span class="centerer"></span><span class='centered'></span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div id="yellow" class="resource-container incomplete">
-                                                <span class="centerer"></span><span class='centered'></span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <!-- END Conference Objective -->
-
-                                    <!-- START Journal Objective -->
-                                    <tr class="resource-list">
-                                        <td>
-                                            <h4 class="objective-category">Journal:</h4>
-                                        </td>
-                                        <td>
-                                            <div  id="blue" class="resource-container incomplete">
-                                                <span class="centerer"></span><span class='centered'></span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div id="yellow" class="resource-container incomplete">
-                                                <span class="centerer"></span><span class='centered'></span>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div id="red" class="resource-container incomplete">
-                                                <span class="centerer"></span><span class='centered'></span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <!-- END Journal Objective -->
-
-                                </tbody>
-                            </table>
-
+                    <div class="objectives">
+                        <div class="section-header">
+                            <h3>Security Objectives:</h3>
                         </div>
-                        <hr>
-                        <!-- END Resource Objectives -->
+                        <table class="category-list">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <h4 class="objective-category">Vulnerabilities:</h4>
+                                    </td>
+                                    <!-- Blue Security Resource -->
+                                    <td>
+                                        <div id="blue" class="resource-container vulnerable">
+                                            <span class="centerer"></span><span class='centered'></span>
+                                        </div>
+                                    </td>
 
+                                    <!-- Red Security Resource -->
+                                    <td>
+                                        <div id="red" class="resource-container vulnerable">
+                                            <span class="centerer"></span><span class='centered'></span>
+                                        </div>
+                                    </td>
 
-                        <!-- START Security Features -->
+                                    <!-- Yellow Security Resource -->
+                                    <td>
+                                        <div id="yellow" class="resource-container vulnerable">
+                                            <span class="centerer"></span><span class='centered'></span>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                        <div class="objectives">
-                            <div class="section-header">
-                                <h3>Security Objectives:</h3>
-                            </div>
-                            <table class="category-list">
-                                <tbody>
-                                    <tr>
-                                        <td>
-                                            <h4 class="objective-category">Vulnerabilities:</h4>
-                                        </td>
-                                        <!-- Blue Security Resource -->
-                                        <td>
-                                            <div id="blue" class="resource-container incomplete">
-                                                <span class="centerer"></span><span class='centered'></span>
-                                            </div>
-                                        </td>
+                                <tr>
+                                    <td>
+                                        <h4 class="objective-category">Capabilities:</h4>
+                                    </td>
+                                    <!-- Blue Security Resource -->
+                                    <td>
+                                        <div id="blue" class="resource-container capable">
+                                            <span class="centerer"></span><span class='centered'></span>
+                                        </div>
+                                    </td>
 
-                                        <!-- Red Security Resource -->
-                                        <td>
-                                            <div id="red" class="resource-container incomplete">
-                                                <span class="centerer"></span><span class='centered'></span>
-                                            </div>
-                                        </td>
+                                    <!-- Red Security Resource -->
+                                    <td>
+                                        <div id="red" class="resource-container capable">
+                                            <span class="centerer"></span><span class='centered'></span>
+                                        </div>
+                                    </td>
 
-                                        <!-- Yellow Security Resource -->
-                                        <td>
-                                            <div id="yellow" class="resource-container incomplete">
-                                                <span class="centerer"></span><span class='centered'></span>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                    <!-- Yellow Security Resource -->
+                                    <td>
+                                        <div id="yellow" class="resource-container capable">
+                                            <span class="centerer"></span><span class='centered'></span>
+                                        </div>
+                                    </td>
+                                </tr>
 
-                                    <tr>
-                                        <td>
-                                            <h4 class="objective-category">Capabilities:</h4>
-                                        </td>
-                                        <!-- Blue Security Resource -->
-                                        <td>
-                                            <div id="blue" class="resource-container incomplete">
-                                                <span class="centerer"></span><span class='centered'></span>
-                                            </div>
-                                        </td>
+                            </tbody>
+                        </table>
+                    </div><!--- close .objectives -->
+                </div><!--- close .panel-body-->
+            </div><!-- close .panel .panel-primary -->
+        </div><!-- close col-md-4 -->
 
-                                        <!-- Red Security Resource -->
-                                        <td>
-                                            <div id="red" class="resource-container incomplete">
-                                                <span class="centerer"></span><span class='centered'></span>
-                                            </div>
-                                        </td>
+        <!-- END Security Tasks -->
 
-                                        <!-- Yellow Security Resource -->
-                                        <td>
-                                            <div id="yellow" class="resource-container incomplete">
-                                                <span class="centerer"></span><span class='centered'></span>
-                                            </div>
-                                        </td>
-                                    </tr>
+        <!-- START Attack Information -->
 
-                                </tbody>
-                            </table>
-                        </div><!--- close .objectives -->
-                    </div><!--- close .panel-body-->
-                </div><!-- close .panel .panel-primary -->
-            </div><!-- close col-md-4 -->
-
-            <!-- END Security Tasks -->
-
-            <!-- START Attack Information -->
-
-            <div class="col-md-2 attack">
-                <div class="panel panel-primary">
-                    <div class="panel-heading attack-heading">
-                        <div>
-                            <span class="glyphicon glyphicon-screenshot"></span>&nbsp; Attack
-                        </div>
-                    </div>
-                    <div class="panel-body attack-active">
-                        <div id="yellow" class="resource-container complete centered">
-                            <span class="centerer"></span><span class='centered'></span>
-                        </div>
+        <div class="col-md-2 attack">
+            <div class="panel panel-primary">
+                <div class="panel-heading attack-heading">
+                    <div>
+                        <span class="glyphicon glyphicon-screenshot"></span>&nbsp; Attack
                     </div>
                 </div>
+                <div class="panel-body attack-active">
+                    <div id="yellow" class="resource-container complete centered">
+                        <span class="centerer"></span><span class='centered'></span>
+                    </div>
+                </div>
+            </div>
 
 
 
-                <div class="panel panel-primary">
-                    <div class="panel-heading attack-heading">
-                        <div>
-                            <span class="glyphicon glyphicon-screenshot"></span>&nbsp; Threat
+            <div class="panel panel-primary">
+                <div class="panel-heading attack-heading">
+                    <div>
+                        <span class="glyphicon glyphicon-screenshot"></span>&nbsp; Threat
+                    </div>
+                </div>
+                <div class="panel-body attack-threat">
+                    <div class="outer">
+                        <div class="inner blue" blue-threat="20%">
+                            <div></div>
+                        </div>
+                        <div class="inner red" red-threat="20%">
+                            <div></div>
+                        </div>
+                        <div class="inner yellow" yellow-threat="60%">
+                            <div></div>
                         </div>
                     </div>
-                    <div class="panel-body attack-threat">
-                        <div class="outer">
-                            <div class="inner blue" blue-threat="20%">
-                                <div></div>
-                            </div>
-                            <div class="inner red" red-threat="20%">
-                                <div></div>
-                            </div>
-                            <div class="inner yellow" yellow-threat="60%">
-                                <div></div>
-                            </div>
-                        </div>
-                    </div> <!-- close panel-body -->
-                </div> <!-- close panel panel-primary -->
-            </div><!-- close .col-md-2 -->
+                </div> <!-- close panel-body -->
+            </div> <!-- close panel panel-primary -->
+        </div><!-- close .col-md-2 -->
 
-            <!-- END Attack Information -->
+        <!-- END Attack Information -->
 
-            <!-- END Player Pane -->
+        <!-- END Player Pane -->
 
 
-            <!-- START Chat Window -->
+        <!-- START Chat Window -->
 
-            <div class="col-md-3">
-                <div class="panel panel-primary">
-                    <div class="panel-heading">
-                        <span class="glyphicon glyphicon-comment"></span>&nbsp;Group Chat
-                    </div>
-                    <div class="panel-body chat">
-                        <ul class="chat">
-                            {% for player in "12341234" %}
-                            <li class="clearfix">
-                                <div class="chat-body clearfix">
-                                    <div class="header">
-                                        <strong class="primary-font">Player {{player|apnumber|capfirst }}</strong>
-                                    </div>
-                                    <p>
-                                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur bibendum ornare
-                                        dolor, quis ullamcorper ligula sodales.
-                                    </p>
+        <div class="col-md-3">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <span class="glyphicon glyphicon-comment"></span>&nbsp;Group Chat
+                </div>
+                <div class="panel-body chat">
+                    <ul class="chat">
+                        {% for message in view.game.message_set.all %}
+                        <li class="clearfix">
+                            <div class="chat-body clearfix">
+                                <div class="header">
+                                    {% if message.speaker.user == request.user %}
+                                    <strong class="primary-font">Player {{ message.player_number|apnumber|capfirst }} (Me)</strong>
+                                    {% else %}
+                                    <strong class="primary-font">Player {{ message.player_number|apnumber|capfirst }}</strong>
+                                    {% endif %}
                                 </div>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="panel-footer">
-                        <div class="input-group">
-                            <input id="btn-input" type="text" class="form-control input-sm" placeholder="Type your message here..." />
-                            <span class="input-group-btn">
-                                <button class="btn btn-warning btn-sm" id="btn-chat">
-                                    Send</button>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- END Chat Window -->
-
-                </div>
+                                <p>
+                                 {{ message.content }}
+                             </p>
+                         </div>
+                     </li>
+                     {% endfor %}
+                 </ul>
+             </div>
+             <div class="panel-footer">
+                <form class="form-inline" action="" method="POST">
+                    {% csrf_token %}
+                    {{ message | as_bootstrap }}
+                    <input class="btn btn-warning btn-sm" id="btn-chat" type="submit" value="Send"></input>
+                </form>
             </div>
-            <!-- END Fluid Scaffold -->
+        </div>
 
-            {% endblock %}
+        <!-- END Chat Window -->
 
-            {% block footer %}
-            <hr>
-            {% endblock %}
+    </div>
+</div>
+<!-- END Fluid Scaffold -->
 
-            {% block body_js %}
-            <script src="{% static 'js/game.js' %}"></script>
-            {% endblock %}
+{% endblock %}
+
+{% block footer %}
+<hr>
+{% endblock %}
+
+{% block body_js %}
+    <script src="{% static 'js/game.js' %}"></script>
+{% endblock %}

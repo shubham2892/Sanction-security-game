@@ -8,4 +8,5 @@ admin.site.register(ResearchObjective)
 admin.site.register(SecurityResource)
 admin.site.register(AttackResource)
 admin.site.register(Game)
+admin.site.register(Message)
 

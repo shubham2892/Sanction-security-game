@@ -68,8 +68,32 @@
     float: right;
 }
 
-.info-text {
+.info-text td {
     font-weight:bold;
+    padding-right:1em;
+}
+
+.info-text #score > td {
+    padding-bottom:1em;
+}
+
+.info-text .progressbar {
+    height: 20px;
+    background: transparent;
+}
+
+.info-text .progressbar > div {
+    background: LightGreen;
+}
+
+.info-text .resource-container {
+    width: 25px;
+    height: 25px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    broder: thin dashed black;
+
 }
 
 .attack-warning {
@@ -197,43 +221,43 @@
     vertical-align: middle;
 }
 
-.complete {
+.complete, .capable {
     border: thin solid;
 }
 
-.complete .centered {
+.complete .centered, .capable .centered {
     color: black;
 }
 
-.incomplete {
+.incomplete, .vulnerable {
     border: thin dashed;
 }
 
-.incomplete .centered {
+.incomplete .centered, .vulnerable .centered{
     color: black;
 }
 
-#blue.incomplete {
+#blue.incomplete, #blue.vulnerable {
     background: rgba(0,0,255, 0.5);
 }
 
-#red.incomplete {
+#red.incomplete, #red.vulnerable{
     background: rgba(255,0,0, 0.5);
 }
 
-#yellow.incomplete {
+#yellow.incomplete, #yellow.vulnerable {
     background: rgba(255,255,0, 0.5);
 }
 
-#blue.complete {
+#blue.complete, #blue.capable {
     background: rgb(0,0,255);
 }
 
-#red.complete {
+#red.complete, #red.capable {
     background: rgb(255,0,0);
 }
 
-#yellow.complete {
+#yellow.complete, #yellow.capable {
     background: rgb(255,255,0);
 }
 

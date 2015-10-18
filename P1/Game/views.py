@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from models import Player, Game
-from forms import RegistrationForm
+from forms import RegistrationForm, CreateMessageForm
 
 
 class MultipleFormView(FormView):
@@ -66,6 +66,7 @@ class LoginOrRegisterView(MultipleFormView):
 
     def registration_form_valid(self, form):
         form.save()
+        # Login the new User
         login(self.request, self.authenticate_user(form))
         return HttpResponseRedirect(self.get_success_url())
 
@@ -74,7 +75,11 @@ class LoginOrRegisterView(MultipleFormView):
 
     def authenticate_user(self, form):
         username = form.cleaned_data['username']
-        password = form.cleaned_data['password']
+        try:
+            password = form.cleaned_data['password']
+        except KeyError:
+            password = form.cleaned_data['password1']
+
         return authenticate(username=username, password=password)
 
 
@@ -82,20 +87,34 @@ class GameView(TemplateView):
 
     template_name = "game.html"
 
-    # def get(self, request):
-    #     if not request.user.is_authenticated():
-    #         return HttpResponse('login')
+    def post(self, request, *args, **kwargs):
+
+        context = self.get_context_data()
+        # if context["message"].is_valid():
+        # message.speaker = request.user
+        # message.game = Game.objects.get(game_key=kwargs['game_key'])
+
+        return super(TemplateView, self).render_to_response(context)
 
     def get_context_data(self, **kwargs):
 
+        message = CreateMessageForm()
+
         context = super(GameView, self).get_context_data(**kwargs)
-        # player = Player.objects.get(user=self.request.user)
+        context["message"] = message
+
+        return context
+
+    def game(self):
 
         try:
-            game = Game.objects.get(game_key=kwargs['game_key'])
+            game = Game.objects.get(game_key=self.kwargs['game_key'])
         except ObjectDoesNotExist:
             raise Http404
 
-        context['game'] = game
-        return context
+        return game
+
+
+
+
 
