@@ -103,23 +103,25 @@ class Game(models.Model):
 
 class Message(models.Model):
     game = models.ForeignKey(Game, null=True)
-    speaker = models.ForeignKey(Player, null=True)
+    created_by = models.ForeignKey(Player, null=True)
     content = models.TextField(max_length=500)
 
     # Used for anonymizing players in chat
     @property
-    def player_number(self):
+    def anonymize(self):
         player_list = [player for player in self.game.players.all()]
-        player_number = player_list.index(self.speaker) + 1
-        return player_number
+        created_by = player_list.index(self.created_by) + 1
+        return created_by
 
 
     def __unicode__(self):
-        content = (self.content[:75] + '..') if len(self.content) > 25 else self.content
-        return u'Game #%s: %s said, \"%s\"' % (self.game.game_key,
-                                                                        self.speaker.user.username,
+        content = (self.content[:75] + '...') if len(self.content) > 25 else self.content
+        if self.game and self.created_by:
+            return u'Game #%s: %s said, \"%s\"' % (self.game.game_key,
+                                                                        self.created_by.user.username,
                                                                         content)
-
+        else:
+            return u'%s' % content
 
 
 

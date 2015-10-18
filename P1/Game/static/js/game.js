@@ -63,24 +63,8 @@ $(document).ready(function() {
     });
 });
 
-// $(".progressbar").bind('progressbarchange', function(event, ui) {
-//         var selector = "#" + this.id + " > div";
-//         var value = this.getAttribute( "aria-valuenow" );
-//         if (value < 10){
-//             $(selector).css({ 'background': 'Red' });
-//         } else if (value < 30){
-//             $(selector).css({ 'background': 'Orange' });
-//         } else if (value < 50){
-//             $(selector).css({ 'background': 'Yellow' });
-//         } else{
-//             $(selector).css({ 'background': 'LightGreen' });
-//         }
-//     });
 
-
-
-// Prompt player if s/he tries to reload page
-// window.onbeforeunload = function() {
-//     return "Refreshing the page during the game may lead to undesired consequences.  Please return to the page. Thanks!";
-// }
+$(document).ready(function() {
+        $(".panel-body.chat").scrollTop($(".panel-body.chat")[0].scrollHeight);
+});
 

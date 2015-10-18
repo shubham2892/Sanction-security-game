@@ -1,13 +1,15 @@
-from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
-from django.core.urlresolvers import reverse
-from django.core.exceptions import ObjectDoesNotExist
-from django.views.generic import TemplateView, FormView
-from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from models import Player, Game
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
+from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.shortcuts import render, redirect
+from django.views.generic import TemplateView, FormView
+from django.views.generic.edit import CreateView
+
+from models import Player, Game, Message
 from forms import RegistrationForm, CreateMessageForm
 
 
@@ -87,32 +89,36 @@ class GameView(TemplateView):
 
     template_name = "game.html"
 
+    # Overwritten "POST" method
     def post(self, request, *args, **kwargs):
-
         context = self.get_context_data()
-        # if context["message"].is_valid():
-        # message.speaker = request.user
-        # message.game = Game.objects.get(game_key=kwargs['game_key'])
+
+        # Create a new message
+        message = context["message"]
+        if message.is_valid():
+            m = message.save()
+            m.created_by = Player.objects.get(user=request.user)
+            m.game = Game.objects.get(game_key=self.kwargs['game_key'])
+            m.save()
+            return HttpResponseRedirect('')
 
         return super(TemplateView, self).render_to_response(context)
 
     def get_context_data(self, **kwargs):
-
-        message = CreateMessageForm()
-
         context = super(GameView, self).get_context_data(**kwargs)
+
+        message = CreateMessageForm(self.request.POST or None)  # instance= None
         context["message"] = message
-
-        return context
-
-    def game(self):
 
         try:
             game = Game.objects.get(game_key=self.kwargs['game_key'])
         except ObjectDoesNotExist:
             raise Http404
 
-        return game
+        context["game"] = game
+
+        return context
+
 
 
 

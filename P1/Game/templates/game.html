@@ -9,8 +9,8 @@
 
 {% block navbar %}
 <div class="game-header">
-    <h3 id="game-number">Game#:&nbsp; {{ view.game.game_key }}</h3>
-    <h3 id="time-remaining">Remaining Moves: {{ view.game.ticks }}</h3>
+    <h3 id="game-number">Game#:&nbsp; {{ game.game_key }}</h3>
+    <h3 id="time-remaining">Remaining Moves: {{ game.ticks }}</h3>
 </div>
 {% endblock %}
 
@@ -22,7 +22,7 @@
     <!-- START Game Information -->
 
     <div class="col-md-3">
-        {% for player in view.game.players.all %}
+        {% for player in game.players.all %}
         <div class="panel panel-primary">
             <div class="panel-heading">
                 <div>
@@ -285,25 +285,25 @@
                 </div>
                 <div class="panel-body chat">
                     <ul class="chat">
-                        {% for message in view.game.message_set.all %}
+                        {% for message in game.message_set.all %}
                         <li class="clearfix">
                             <div class="chat-body clearfix">
                                 <div class="header">
                                     {% if message.speaker.user == request.user %}
-                                    <strong class="primary-font">Player {{ message.player_number|apnumber|capfirst }} (Me)</strong>
+                                    <strong class="primary-font">Player {{ message.anonymize | apnumber | capfirst }} (Me)</strong>
                                     {% else %}
-                                    <strong class="primary-font">Player {{ message.player_number|apnumber|capfirst }}</strong>
+                                    <strong class="primary-font">Player {{ message.anonymize | apnumber | capfirst }}</strong>
                                     {% endif %}
                                 </div>
                                 <p>
-                                 {{ message.content }}
-                             </p>
-                         </div>
-                     </li>
-                     {% endfor %}
-                 </ul>
-             </div>
-             <div class="panel-footer">
+                                   {{ message.content }}
+                               </p>
+                           </div>
+                       </li>
+                       {% endfor %}
+                   </ul>
+               </div>
+               <div class="panel-footer">
                 <form class="form-inline" action="" method="POST">
                     {% csrf_token %}
                     {{ message | as_bootstrap }}
@@ -325,5 +325,5 @@
 {% endblock %}
 
 {% block body_js %}
-    <script src="{% static 'js/game.js' %}"></script>
+<script src="{% static 'js/game.js' %}"></script>
 {% endblock %}

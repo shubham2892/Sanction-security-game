@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
-from django.forms import ModelForm
+import django.forms as forms
 from models import Player, Message
 
 class RegistrationForm(UserCreationForm):
@@ -33,23 +33,11 @@ class RegistrationForm(UserCreationForm):
         return user
 
 
-class CreateMessageForm(ModelForm):
-
-    content = forms.CharField(required=True, label='')
+class CreateMessageForm(forms.ModelForm):
+    content = forms.CharField(max_length=500, label='')
 
     class Meta:
-      model = Message
-      fields = ("content",)
+        model = Message
+        fields = ['content']
 
-      def save(self, commit=True):
-
-        # Create User object from cleaned data
-        message = super(CreateMessageForm, self).save(commit=False)
-        message.content = self.cleaned_data["content"]
-
-        if commit:
-            message.save()
-
-
-        return message
 
