@@ -13,6 +13,15 @@ from models import Player, Game, Message
 from forms import RegistrationForm, CreateMessageForm
 
 
+
+class HomeView(TemplateView):
+    template_name = "home.html"
+
+    def games(self):
+        return Game.objects.all()
+
+
+
 class MultipleFormView(FormView):
     form_class = None
     form_name = None
@@ -107,17 +116,33 @@ class GameView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(GameView, self).get_context_data(**kwargs)
 
+        # Create message form for group messaging
         message = CreateMessageForm(self.request.POST or None)  # instance= None
         context["message"] = message
 
+        # Get game object that matches URL, else 404
         try:
             game = Game.objects.get(game_key=self.kwargs['game_key'])
         except ObjectDoesNotExist:
             raise Http404
-
         context["game"] = game
 
+        # Get current player from player view
+        me = Player.objects.get(user=self.request.user)
+        context["me"] = me
+
         return context
+
+    def threats(self):
+
+        threats = {"yellow": 20,
+                        "red": 40,
+                        "blue": 40
+                        }
+
+        return threats
+
+
 
 
 

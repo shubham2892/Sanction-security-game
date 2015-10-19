@@ -25,11 +25,6 @@ class RegistrationForm(UserCreationForm):
         if commit:
             user.save()
 
-            # Create Player object from User object
-            player = Player()
-            player.user = user
-            player.save()
-
         return user
 
 

@@ -1,6 +1,6 @@
 
-// Function for changing "incomplete" resources to "complete" on click
-$(document).ready(function(){
+// Function for changing "incomplete" research resources to "complete" on click
+$(function(){
 
     // When incomplete resource is clicked...
     $(".resource-container.incomplete").one( "click", function(){
@@ -22,8 +22,24 @@ $(document).ready(function(){
     });
 });
 
-// Function for PC Health and Points vertical progress bars
-$(document).ready(function(){
+// Function for changing "incomplete" security vulnerabilities to "complete" on click
+$(function(){
+
+    // When incomplete resource is clicked...
+    $(".resource-container.vulnerable").one( "click", function(){
+
+        // Change class from .incomplete to .complete
+        $( this ).removeClass("vulnerable").addClass("capable");
+        $()
+
+        // Remove objective if complete
+        var resourceList = $( this ).closest('.resource-list');
+
+    });
+});
+
+// Function for Attack Threat vertical bar
+$(function(){
 
     // Get blue threat
     var blueBar = $('.attack-threat').find('.inner.blue');
@@ -56,15 +72,23 @@ $(document).ready(function(){
 
 });
 
-// Player Score Horizontal Bars
-$(document).ready(function() {
-    $( ".progressbar" ).progressbar({
-      value: 60
-    });
+// Player Score Horizontal Bars, needs to be normalized to highest score
+// Maybe change to Bootstrap progress bar?
+$(function() {
+
+    var table = document.getElementById("player-info");
+    for (var i = 0, row; row = table.rows[i]; i++) {
+        var score = parseInt($('tr#score').attr("player-score"));
+        var progressbar = (".progressbar." + (i + 1).toString());
+        console.log(progressbar);
+        $( progressbar ).progressbar({
+             value: score
+        });
+    }
 });
 
 
-$(document).ready(function() {
+$(function() {
         $(".panel-body.chat").scrollTop($(".panel-body.chat")[0].scrollHeight);
 });
 

@@ -5,9 +5,10 @@ from random import choice
 from django.db import IntegrityError
 import random
 
-# A Player
+# A Player - How do we make it so that a player may only play once?
 class Player(models.Model):
-    user = models.OneToOneField(User)
+    user = models.ForeignKey(User)
+    score = models.IntegerField(default=0)
 
     def __unicode__(self):
         return u'%s %s (%s)' % (self.user.first_name, self.user.last_name, self.user.email)
@@ -25,15 +26,25 @@ RESOURCE_CLASSIFICATIONS = (
 
 # A Research Resource for completing a Research Task
 class ResearchResource(models.Model):
-    classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS)
+    classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS, null=True, blank=True)
+    complete = models.BooleanField(default=False)
 
     def __unicode__(self):
-        return u'%s Research Resource' % (self.classification)
+        if self.complete:
+            return u'Completed %s Resource' % (self.classification)
+        else:
+            return u'Incomplete %s Resource' % (self.classification)
+
+    # If no resource classification is specified before saving, a random classification is selected
+    def save(self, *args, **kwargs):
+        if not self.classification:
+            self.classification = random.randint(1,3)
 
 
 # A Security Resource for protecting against an Attack
 class SecurityResource(models.Model):
     classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS)
+    active = models.BooleanField(default=False)
 
     def __unicode__(self):
         return u'%s Security Resource' % (self.classification)
@@ -57,15 +68,15 @@ class ResearchObjective(models.Model):
     )
 
     name = models.IntegerField(choices=RESEARCH_TASKS, default=None)
-    required_resources = models.ManyToManyField(ResearchResource)
+    required_resources = models.ManyToManyField(ResearchResource, blank=True)
     value = models.IntegerField(null=True, blank=True)
     deadline = models.IntegerField(null=True, blank=True)
+    complete = models.BooleanField(default=False)
 
     def __unicode__(self):
         return u'%s Objective' % (self.name)
 
-    def save(self, *args, **kwargs):
-        pass
+
 
 
 class Game(models.Model):

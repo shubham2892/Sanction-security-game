@@ -9,7 +9,7 @@
 
 {% block navbar %}
 <div class="game-header">
-    <h3 id="game-number">Game#:&nbsp; {{ game.game_key }}</h3>
+    <h3 id="game-number">Game&nbsp;#{{ game.game_key }}</h3>
     <h3 id="time-remaining">Remaining Moves: {{ game.ticks }}</h3>
 </div>
 {% endblock %}
@@ -35,13 +35,13 @@
                 </div>
             </div>
             <div class="panel-body">
-                <table class="info-text">
-                    <tr id="score">
+                <table id="player-info" class="info-text">
+                    <tr id="score" player-score="{{ player.score }}">
                         <td>
-                            Score:
+                            Score: {{ player.score }}
                         </td>
                         <td colspan="3">
-                            <div class="progressbar"></div>
+                            <div class="progressbar  {{ forloop.counter }}"></div>
                         </td>
                         <tr>
                             <td>
@@ -85,7 +85,7 @@
                         <span><span class="glyphicon glyphicon-user"></span>
                         &nbsp;Me</span>
                         <span id="score">
-                            &nbsp;Score: <b> 57 Points</b>
+                            &nbsp;Score: <b> {{ me.score }}</b>
                         </span>
                     </div>
                 </div>
@@ -257,13 +257,13 @@
                 </div>
                 <div class="panel-body attack-threat">
                     <div class="outer">
-                        <div class="inner blue" blue-threat="20%">
+                        <div class="inner blue" blue-threat="{{ view.threats.blue }}%">
                             <div></div>
                         </div>
-                        <div class="inner red" red-threat="20%">
+                        <div class="inner red" red-threat="{{ view.threats.red}}%">
                             <div></div>
                         </div>
-                        <div class="inner yellow" yellow-threat="60%">
+                        <div class="inner yellow" yellow-threat="{{ view.threats.yellow }}%">
                             <div></div>
                         </div>
                     </div>

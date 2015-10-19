@@ -1,7 +1,15 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<h1>Games:</h1>
+<ul>
+  {% for game in view.games %}
 
-<h1> home. </h1>
+    <li>
+      <a href="{% url 'game' game.game_key %}"><h3>Game&nbsp;#{{ game.game_key }}</h3></a> </br>
+    </li>
+
+  {% endfor %}
+</ul>
 
 {% endblock %}
