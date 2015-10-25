@@ -23,6 +23,16 @@
 
 /*========================================*/
 
+/*===START Bootstrap Override Style===*/
+
+.progressbar {
+
+}
+
+/*===END Bootstrap Override Style===*/
+
+/*========================================*/
+
 /*===START Player Pane Style===*/
 
 .content {

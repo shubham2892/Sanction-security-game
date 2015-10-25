@@ -72,18 +72,19 @@ $(function(){
 
 });
 
-// Player Score Horizontal Bars, needs to be normalized to highest score
-// Maybe change to Bootstrap progress bar?
+//Player Score Horizontal Bars
 $(function() {
-
     var table = document.getElementById("player-info");
     for (var i = 0, row; row = table.rows[i]; i++) {
-        var score = parseInt($('tr#score').attr("player-score"));
-        var progressbar = (".progressbar." + (i + 1).toString());
-        console.log(progressbar);
-        $( progressbar ).progressbar({
-             value: score
-        });
+        var progressbar = $(".progress-bar." + i);
+        var score = parseInt(progressbar.attr("aria-valuenow"));
+        if(score > 80) {
+            progressbar.addClass("progress-bar-success");
+        } else if (score > 20) {
+            progressbar.addClass("progress-bar-warning");
+        } else {
+            progressbar.addClass("progress-bar-danger");
+        }
     }
 });
 

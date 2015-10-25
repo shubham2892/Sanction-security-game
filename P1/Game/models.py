@@ -9,6 +9,7 @@ import random
 class Player(models.Model):
     user = models.ForeignKey(User)
     score = models.IntegerField(default=0)
+    number = models.IntegerField(default=0)
 
     def __unicode__(self):
         return u'%s %s (%s)' % (self.user.first_name, self.user.last_name, self.user.email)
@@ -67,6 +68,7 @@ class ResearchObjective(models.Model):
         (3, "Journal"),
     )
 
+    owner = models.ForeignKey(Player)
     name = models.IntegerField(choices=RESEARCH_TASKS, default=None)
     required_resources = models.ManyToManyField(ResearchResource, blank=True)
     value = models.IntegerField(null=True, blank=True)
@@ -75,7 +77,6 @@ class ResearchObjective(models.Model):
 
     def __unicode__(self):
         return u'%s Objective' % (self.name)
-
 
 
 
@@ -93,6 +94,7 @@ class Game(models.Model):
         return ''.join(random.choice('0123456789ABCDEF') for i in range(length))
 
     def save(self, *args, **kwargs):
+        # Assign the game a unique game_key
         if not self.game_key:
             self.game_key = self.generate_random_alphanumeric()
             # using your function as above or anything else
@@ -111,6 +113,16 @@ class Game(models.Model):
             else:
                  success = True
 
+        # Assign persistent player numbers for the game
+        # need to ensure this happens only once
+        player_number = 1;
+
+        for player in self.players.all():
+            player.number = player_number
+            player.save()
+            player_number+=1
+
+
 
 class Message(models.Model):
     game = models.ForeignKey(Game, null=True)
@@ -123,7 +135,6 @@ class Message(models.Model):
         player_list = [player for player in self.game.players.all()]
         created_by = player_list.index(self.created_by) + 1
         return created_by
-
 
     def __unicode__(self):
         content = (self.content[:75] + '...') if len(self.content) > 25 else self.content

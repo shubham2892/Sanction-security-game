@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView, FormView
+from django.db.models import Max
 from django.views.generic.edit import CreateView
 
 from models import Player, Game, Message
@@ -130,6 +131,10 @@ class GameView(TemplateView):
         # Get current player from player view
         me = Player.objects.get(user=self.request.user)
         context["me"] = me
+
+        # Get current total score for bar normalization
+        highscore = Player.objects.all().aggregate(Max('score')).get("score__max")
+        context['highscore'] = highscore
 
         return context
 

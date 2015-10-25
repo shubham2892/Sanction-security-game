@@ -23,13 +23,14 @@
 
     <div class="col-md-3">
         {% for player in game.players.all %}
+        {% widthratio player.score highscore 100 as norm_score %}
         <div class="panel panel-primary">
             <div class="panel-heading">
                 <div>
                     {% if player.user == request.user %}
-                    <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ forloop.counter|apnumber|capfirst}} (Me)
+                    <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst}} (Me)
                     {% else %}
-                    <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ forloop.counter|apnumber|capfirst }}
+                    <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst }}
                     <button id="sanction" type="button" class="btn btn-sm btn-danger pull-right">Sanction</button>
                     {% endif %}
                 </div>
@@ -38,11 +39,15 @@
                 <table id="player-info" class="info-text">
                     <tr id="score" player-score="{{ player.score }}">
                         <td>
-                            Score: {{ player.score }}
+                            Score: {{ player.score }} {{score}}
                         </td>
                         <td colspan="3">
-                            <div class="progressbar  {{ forloop.counter }}"></div>
-                        </td>
+                            <div class="progress">
+                              <div class="progress-bar {{ forloop.counter0 }}" role="progressbar" aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ norm_score }}%;">
+                              <span class="sr-only">{{ norm_score }}% Complete</span>
+                            </div>
+                        </div>
+                    </td>
                         <tr>
                             <td>
                                 Vulnerabilities:
@@ -83,7 +88,7 @@
                 <div class="panel-heading">
                     <div>
                         <span><span class="glyphicon glyphicon-user"></span>
-                        &nbsp;Me</span>
+                        &nbsp;Player {{ me.number|apnumber|capfirst }} (Me)</span>
                         <span id="score">
                             &nbsp;Score: <b> {{ me.score }}</b>
                         </span>
