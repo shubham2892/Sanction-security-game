@@ -4,14 +4,17 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
+from django.db.models import Max
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, FormView
-from django.db.models import Max
 from django.views.generic.edit import CreateView
 
-from models import Player, Game, Message
+
 from forms import RegistrationForm, CreateMessageForm
+from models import Player, Game, Message
+import json
 
 
 
@@ -129,12 +132,17 @@ class GameView(TemplateView):
         context["game"] = game
 
         # Get current player from player view
-        me = Player.objects.get(user=self.request.user)
+        try:
+            me = Player.objects.get(user=self.request.user)
+        except ObjectDoesNotExist:
+            raise Http404
         context["me"] = me
 
         # Get current total score for bar normalization
         highscore = Player.objects.all().aggregate(Max('score')).get("score__max")
         context['highscore'] = highscore
+
+        # Get next threat
 
         return context
 
@@ -146,6 +154,10 @@ class GameView(TemplateView):
                         }
 
         return threats
+
+
+def message(request):
+    pass
 
 
 

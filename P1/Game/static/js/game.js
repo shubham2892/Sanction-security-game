@@ -3,7 +3,7 @@
 $(function(){
 
     // When incomplete resource is clicked...
-    $(".resource-container.incomplete").one( "click", function(){
+    $(".clickable.incomplete").one( "click", function(){
 
         // Change class from .incomplete to .complete
         $( this ).removeClass("incomplete").addClass("complete");
@@ -26,14 +26,10 @@ $(function(){
 $(function(){
 
     // When incomplete resource is clicked...
-    $(".resource-container.vulnerable").one( "click", function(){
+    $(".clickable.inactive").one( "click", function(){
 
-        // Change class from .incomplete to .complete
-        $( this ).removeClass("vulnerable").addClass("capable");
-        $()
-
-        // Remove objective if complete
-        var resourceList = $( this ).closest('.resource-list');
+        // Change class from .vulnerable to .capable
+        $( this ).removeClass("inactive").addClass("active");
 
     });
 });
@@ -88,8 +84,13 @@ $(function() {
     }
 });
 
-
+// Keeps chat scrolled to the bottom
 $(function() {
         $(".panel-body.chat").scrollTop($(".panel-body.chat")[0].scrollHeight);
 });
+
+
+function callback(data){
+    alert(data.message);
+}
 

@@ -1,8 +1,9 @@
 from django.conf.urls import url
-from django.views.generic import TemplateView
 from django.contrib.auth.decorators import login_required
-from P1 import settings
+from django.views.generic import TemplateView
+
 from . import views
+from P1 import settings
 
 urlpatterns = [
     url(r'^$', login_required(views.HomeView.as_view()), name='home'),

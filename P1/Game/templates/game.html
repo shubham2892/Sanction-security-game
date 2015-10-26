@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
-{% load humanize %}
 {% load staticfiles %}
+{% load humanize %}
 {% load bootstrap_tags %}
 
 {% block head_css %}
@@ -20,10 +20,8 @@
 <div class="row">
 
     <!-- START Game Information -->
-
     <div class="col-md-3">
         {% for player in game.players.all %}
-        {% widthratio player.score highscore 100 as norm_score %}
         <div class="panel panel-primary">
             <div class="panel-heading">
                 <div>
@@ -39,296 +37,262 @@
                 <table id="player-info" class="info-text">
                     <tr id="score" player-score="{{ player.score }}">
                         <td>
-                            Score: {{ player.score }} {{score}}
+                            Score: {{ player.score }}
                         </td>
                         <td colspan="3">
                             <div class="progress">
-                              <div class="progress-bar {{ forloop.counter0 }}" role="progressbar" aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ norm_score }}%;">
-                              <span class="sr-only">{{ norm_score }}% Complete</span>
+                                {% widthratio player.score highscore 100 as norm_score %}
+                                <div class="progress-bar {{ forloop.counter0 }}" role="progressbar" aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ norm_score }}%;">
+                                    <span class="sr-only">{{ norm_score }}% Complete</span>
+                                </div>
                             </div>
-                        </div>
-                    </td>
+                        </td>
                         <tr>
                             <td>
                                 Vulnerabilities:
                             </td>
-                            <!-- Blue Security Resource -->
+                            {% for vulnerability in player.vulnerabilities.security_resources.all %}
                             <td>
-                                <div id="blue" class="resource-container vulnerable">
-                                    <span class="centerer"></span><span class='centered'></span>
-                                </div>
-                            </td>
-
-                            <!-- Red Security Resource -->
-                            <td>
-                                <div id="red" class="resource-container vulnerable">
-                                    <span class="centerer"></span><span class='centered'></span>
-                                </div>
-                            </td>
-
-                            <!-- Yellow Security Resource -->
-                            <td>
-                                <div id="yellow" class="resource-container vulnerable">
-                                    <span class="centerer"></span><span class='centered'></span>
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-
-        <!-- END Game Information -->
-
-        <!-- START Player Pane -->
-
-        <div class="col-md-4">
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <div>
-                        <span><span class="glyphicon glyphicon-user"></span>
-                        &nbsp;Player {{ me.number|apnumber|capfirst }} (Me)</span>
-                        <span id="score">
-                            &nbsp;Score: <b> {{ me.score }}</b>
-                        </span>
-                    </div>
-                </div>
-                <div class="panel-body gameboard">
-
-                    <!-- START Resource Objectives -->
-                    <div class="objectives">
-                        <div class="section-header">
-                            <h3> Research Objectives: </h3>
-                        </div>
-
-                        <table class="category-list">
-                            <tbody>
-
-                                <!-- START Workshop Objective -->
-                                <tr class="resource-list">
-                                    <td>
-                                        <h4 class="objective-category">Workshop:</h4>
-                                    </td>
-                                    <td>
-                                        <div id="yellow" class="resource-container incomplete">
-                                            <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <!-- END Workshop Objective -->
-
-                                <!-- START Conference Objective -->
-                                <tr class="resource-list">
-                                    <td>
-                                        <h4 class="objective-category">Conference:</h4>
-                                    </td>
-                                    <td>
-                                        <div  id="blue" class="resource-container incomplete">
-                                            <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div id="yellow" class="resource-container incomplete">
-                                            <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <!-- END Conference Objective -->
-
-                                <!-- START Journal Objective -->
-                                <tr class="resource-list">
-                                    <td>
-                                        <h4 class="objective-category">Journal:</h4>
-                                    </td>
-                                    <td>
-                                        <div  id="blue" class="resource-container incomplete">
-                                            <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div id="yellow" class="resource-container incomplete">
-                                            <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div id="red" class="resource-container incomplete">
-                                            <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <!-- END Journal Objective -->
-
-                            </tbody>
-                        </table>
-
-                    </div>
-                    <hr>
-                    <!-- END Resource Objectives -->
-
-
-                    <!-- START Security Features -->
-
-                    <div class="objectives">
-                        <div class="section-header">
-                            <h3>Security Objectives:</h3>
-                        </div>
-                        <table class="category-list">
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <h4 class="objective-category">Vulnerabilities:</h4>
-                                    </td>
-                                    <!-- Blue Security Resource -->
-                                    <td>
-                                        <div id="blue" class="resource-container vulnerable">
-                                            <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-
-                                    <!-- Red Security Resource -->
-                                    <td>
-                                        <div id="red" class="resource-container vulnerable">
-                                            <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-
-                                    <!-- Yellow Security Resource -->
-                                    <td>
-                                        <div id="yellow" class="resource-container vulnerable">
-                                            <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td>
-                                        <h4 class="objective-category">Capabilities:</h4>
-                                    </td>
-                                    <!-- Blue Security Resource -->
-                                    <td>
-                                        <div id="blue" class="resource-container capable">
-                                            <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-
-                                    <!-- Red Security Resource -->
-                                    <td>
-                                        <div id="red" class="resource-container capable">
-                                            <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-
-                                    <!-- Yellow Security Resource -->
-                                    <td>
-                                        <div id="yellow" class="resource-container capable">
-                                            <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-                                </tr>
-
-                            </tbody>
-                        </table>
-                    </div><!--- close .objectives -->
-                </div><!--- close .panel-body-->
-            </div><!-- close .panel .panel-primary -->
-        </div><!-- close col-md-4 -->
-
-        <!-- END Security Tasks -->
-
-        <!-- START Attack Information -->
-
-        <div class="col-md-2 attack">
-            <div class="panel panel-primary">
-                <div class="panel-heading attack-heading">
-                    <div>
-                        <span class="glyphicon glyphicon-screenshot"></span>&nbsp; Attack
-                    </div>
-                </div>
-                <div class="panel-body attack-active">
-                    <div id="yellow" class="resource-container complete centered">
-                        <span class="centerer"></span><span class='centered'></span>
-                    </div>
-                </div>
-            </div>
-
-
-
-            <div class="panel panel-primary">
-                <div class="panel-heading attack-heading">
-                    <div>
-                        <span class="glyphicon glyphicon-screenshot"></span>&nbsp; Threat
-                    </div>
-                </div>
-                <div class="panel-body attack-threat">
-                    <div class="outer">
-                        <div class="inner blue" blue-threat="{{ view.threats.blue }}%">
-                            <div></div>
-                        </div>
-                        <div class="inner red" red-threat="{{ view.threats.red}}%">
-                            <div></div>
-                        </div>
-                        <div class="inner yellow" yellow-threat="{{ view.threats.yellow }}%">
-                            <div></div>
-                        </div>
-                    </div>
-                </div> <!-- close panel-body -->
-            </div> <!-- close panel panel-primary -->
-        </div><!-- close .col-md-2 -->
-
-        <!-- END Attack Information -->
-
-        <!-- END Player Pane -->
-
-
-        <!-- START Chat Window -->
-
-        <div class="col-md-3">
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <span class="glyphicon glyphicon-comment"></span>&nbsp;Group Chat
-                </div>
-                <div class="panel-body chat">
-                    <ul class="chat">
-                        {% for message in game.message_set.all %}
-                        <li class="clearfix">
-                            <div class="chat-body clearfix">
-                                <div class="header">
-                                    {% if message.speaker.user == request.user %}
-                                    <strong class="primary-font">Player {{ message.anonymize | apnumber | capfirst }} (Me)</strong>
+                                {% if vulnerability.active  %}
+                                <div id="{{ vulnerability.get_classification_display }}" class="resource-container active">
                                     {% else %}
-                                    <strong class="primary-font">Player {{ message.anonymize | apnumber | capfirst }}</strong>
-                                    {% endif %}
-                                </div>
-                                <p>
-                                   {{ message.content }}
-                               </p>
-                           </div>
-                       </li>
-                       {% endfor %}
-                   </ul>
-               </div>
-               <div class="panel-footer">
-                <form class="form-inline" action="" method="POST">
-                    {% csrf_token %}
-                    {{ message | as_bootstrap }}
-                    <input class="btn btn-warning btn-sm" id="btn-chat" type="submit" value="Send"></input>
-                </form>
+                                    <div id="{{ vulnerability.get_classification_display }}" class="resource-container inactive">
+                                        {% endif %}
+                                        <span class="centerer"></span><span class='centered'></span>
+                                    </div>
+                                </td>
+                                {% endfor %}
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
-        </div>
 
-        <!-- END Chat Window -->
+            <!-- END Game Information -->
 
-    </div>
-</div>
-<!-- END Fluid Scaffold -->
+            <!-- START Player Pane -->
 
-{% endblock %}
+            <div class="col-md-4">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <div>
+                            <span><span class="glyphicon glyphicon-user"></span>
+                            &nbsp;Player {{ me.number|apnumber|capfirst }} (Me)</span>
+                            <span id="score">
+                                &nbsp;Score: <b> {{ me.score }}</b>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="panel-body gameboard">
 
-{% block footer %}
-<hr>
-{% endblock %}
+                        <!-- START Resource Objectives -->
+                        <div class="objectives">
+                            <div class="section-header">
+                                <h3> Research Objectives: </h3>
+                            </div>
 
-{% block body_js %}
-<script src="{% static 'js/game.js' %}"></script>
-{% endblock %}
+                            <table class="category-list">
+                                <tbody>
+
+                                    <!-- START Workshop Objective -->
+                                    <tr class="resource-list">
+                                        <td>
+                                            <h4 class="objective-category">Workshop:</h4>
+                                        </td>
+                                        {% for resource in me.workshop.first.required_resources.all %}
+                                        <td>
+                                            <div id="{{ resource.get_classification_display }}" class="clickable resource-container incomplete">
+                                                <span class="centerer"></span><span class='centered'></span>
+                                            </div>
+                                        </td>
+                                        {%  endfor %}
+                                    </tr>
+                                    <!-- END Workshop Objective -->
+
+                                    <!-- START Conference Objective -->
+                                    <tr class="resource-list">
+                                        <td>
+                                            <h4 class="objective-category">Conference:</h4>
+                                        </td>
+                                        {% for resource in me.conference.first.required_resources.all %}
+                                        <td>
+                                            <div id="{{ resource.get_classification_display }}" class="clickable resource-container incomplete">
+                                                <span class="centerer"></span><span class='centered'></span>
+                                            </div>
+                                        </td>
+                                        {%  endfor %}
+                                    </tr>
+                                    <!-- END Conference Objective -->
+
+                                    <!-- START Journal Objective -->
+                                    <tr class="resource-list">
+                                        <td>
+                                            <h4 class="objective-category">Journal:</h4>
+                                        </td>
+                                        {% for resource in me.journal.first.required_resources.all %}
+                                        <td>
+                                            <div id="{{ resource.get_classification_display }}" class="clickable resource-container incomplete">
+                                                <span class="centerer"></span><span class='centered'></span>
+                                            </div>
+                                        </td>
+                                        {%  endfor %}
+                                    </tr>
+                                    <!-- END Journal Objective -->
+
+                                </tbody>
+                            </table>
+
+                        </div>
+                        <hr>
+                        <!-- END Resource Objectives -->
+
+
+                        <!-- START Security Features -->
+
+                        <div class="objectives">
+                            <div class="section-header">
+                                <h3>Security Objectives:</h3>
+                            </div>
+                            <table class="category-list">
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <h4 class="objective-category">Vulnerabilities:</h4>
+                                        </td>
+                                        {% for vulnerability in me.vulnerabilities.security_resources.all %}
+                                        <td>
+                                            {% if vulnerability.active  %}
+                                            <div id="{{ vulnerability.get_classification_display }}" class="resource-container active">
+                                                {% else %}
+                                                <div id="{{ vulnerability.get_classification_display }}" class="clickable resource-container inactive">
+                                                    {% endif %}
+                                                    <span class="centerer"></span><span class='centered'></span>
+                                                </div>
+                                            </td>
+                                            {% endfor %}
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <h4 class="objective-category">Capabilities:</h4>
+                                            </td>
+                                            {% for capability in me.capabilities.security_resources.all %}
+                                            <!-- Blue Security Resource -->
+                                            <td>
+                                                {% if capability.active  %}
+                                                <div id="{{ capability.get_classification_display }}" class="resource-container active">
+                                                    {% else %}
+                                                    <div id="{{ capability.get_classification_display }}" class="resource-container inactive">
+                                                        {% endif %}
+                                                        <span class="centerer"></span><span class='centered'></span>
+                                                    </div>
+                                                </td>
+                                                {% endfor %}
+                                            </tr>
+
+                                        </tbody>
+                                    </table>
+                                </div><!--- close .objectives -->
+                            </div><!--- close .panel-body-->
+                        </div><!-- close .panel .panel-primary -->
+                    </div><!-- close col-md-4 -->
+
+                    <!-- END Security Tasks -->
+
+                    <!-- START Attack Information -->
+
+                    <div class="col-md-2 attack">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading attack-heading">
+                                <div>
+                                    <span class="glyphicon glyphicon-screenshot"></span>&nbsp; Attack
+                                </div>
+                            </div>
+                            <div class="panel-body attack-active">
+                                <div id="yellow" class="resource-container complete centered">
+                                    <span class="centerer"></span><span class='centered'></span>
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <div class="panel panel-primary">
+                            <div class="panel-heading attack-heading">
+                                <div>
+                                    <span class="glyphicon glyphicon-screenshot"></span>&nbsp; Threat
+                                </div>
+                            </div>
+                            <div class="panel-body attack-threat">
+                                <div class="outer">
+                                    <div class="inner blue" blue-threat="{{ view.threats.blue }}%">
+                                        <div></div>
+                                    </div>
+                                    <div class="inner red" red-threat="{{ view.threats.red}}%">
+                                        <div></div>
+                                    </div>
+                                    <div class="inner yellow" yellow-threat="{{ view.threats.yellow }}%">
+                                        <div></div>
+                                    </div>
+                                </div>
+                            </div> <!-- close panel-body -->
+                        </div> <!-- close panel panel-primary -->
+                    </div><!-- close .col-md-2 -->
+
+                    <!-- END Attack Information -->
+
+                    <!-- END Player Pane -->
+
+
+                    <!-- START Chat Window -->
+
+                    <div class="col-md-3">
+                        <div class="panel panel-primary">
+                            <div class="panel-heading">
+                                <span class="glyphicon glyphicon-comment"></span>&nbsp;Group Chat
+                            </div>
+                            <div class="panel-body chat">
+                                <ul class="chat">
+                                    {% for message in game.message_set.all %}
+                                    <li class="clearfix">
+                                        <div class="chat-body clearfix">
+                                            <div class="header">
+                                                {% if message.speaker.user == request.user %}
+                                                <strong class="primary-font">Player {{ message.anonymize | apnumber | capfirst }} (Me)</strong>
+                                                {% else %}
+                                                <strong class="primary-font">Player {{ message.anonymize | apnumber | capfirst }}</strong>
+                                                {% endif %}
+                                            </div>
+                                            <p>
+                                             {{ message.content }}
+                                         </p>
+                                     </div>
+                                 </li>
+                                 {% endfor %}
+                             </ul>
+                         </div>
+                         <div class="panel-footer">
+                            <form class="form-inline" action="" method="POST">
+                                {% csrf_token %}
+                                {{ message | as_bootstrap }}
+                                <input class="btn btn-warning btn-sm" id="btn-chat" type="submit" value="Send"></input>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- END Chat Window -->
+
+                </div>
+            </div>
+            <!-- END Fluid Scaffold -->
+
+            {% endblock %}
+
+            {% block footer %}
+            <hr>
+            {% endblock %}
+
+            {% block body_js %}
+            <script src="{% static 'js/game.js' %}"></script>
+            {% endblock %}

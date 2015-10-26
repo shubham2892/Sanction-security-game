@@ -25,8 +25,8 @@
 
 /*===START Bootstrap Override Style===*/
 
-.progressbar {
-
+.progress {
+    margin:auto;
 }
 
 /*===END Bootstrap Override Style===*/
@@ -231,43 +231,43 @@
     vertical-align: middle;
 }
 
-.complete, .capable {
+.complete, .active {
     border: thin solid;
 }
 
-.complete .centered, .capable .centered {
+.complete .centered, .active .centered {
     color: black;
 }
 
-.incomplete, .vulnerable {
+.incomplete, .inactive {
     border: thin dashed;
 }
 
-.incomplete .centered, .vulnerable .centered{
+.incomplete .centered, .inactive .centered{
     color: black;
 }
 
-#blue.incomplete, #blue.vulnerable {
+#blue.incomplete, #blue.inactive {
     background: rgba(0,0,255, 0.5);
 }
 
-#red.incomplete, #red.vulnerable{
+#red.incomplete, #red.inactive{
     background: rgba(255,0,0, 0.5);
 }
 
-#yellow.incomplete, #yellow.vulnerable {
+#yellow.incomplete, #yellow.inactive {
     background: rgba(255,255,0, 0.5);
 }
 
-#blue.complete, #blue.capable {
+#blue.complete, #blue.active {
     background: rgb(0,0,255);
 }
 
-#red.complete, #red.capable {
+#red.complete, #red.active {
     background: rgb(255,0,0);
 }
 
-#yellow.complete, #yellow.capable {
+#yellow.complete, #yellow.active {
     background: rgb(255,255,0);
 }
 
