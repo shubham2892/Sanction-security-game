@@ -1,6 +1,5 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-import django.forms as forms
 
 from django import forms
 from models import Player, Message
@@ -35,5 +34,10 @@ class CreateMessageForm(forms.ModelForm):
     class Meta:
         model = Message
         fields = ['content']
+        widgets = {
+            'content': forms.TextInput(
+                attrs={ 'id': 'message-content', 'required': True, 'placeholder': 'Send a message...' },
+            ),
+        }
 
 

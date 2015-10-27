@@ -147,15 +147,38 @@ class Player(models.Model):
 
     @property
     def workshop(self):
-        return self.research_objectives.filter(name=ResearchObjective.WORKSHOP, complete=False)
+        objective = self.research_objectives.filter(name=ResearchObjective.WORKSHOP, complete=False).first()
+        if not objective:
+            objective = ResearchObjective.create(ResearchObjective.WORKSHOP)
+            objective.save()
+            self.research_objectives.add(objective)
+            self.save()
+
+        return objective
+
 
     @property
     def conference(self):
-        return self.research_objectives.filter(name=ResearchObjective.CONFERENCE, complete=False)
+        objective = self.research_objectives.filter(name=ResearchObjective.CONFERENCE, complete=False).first()
+        if not objective:
+            objective = ResearchObjective.create(ResearchObjective.CONFERENCE)
+            objective.save()
+            self.research_objectives.add(objective)
+            self.save()
+
+        return objective
 
     @property
     def journal(self):
-        return self.research_objectives.filter(name=ResearchObjective.JOURNAL, complete=False)
+        objective = self.research_objectives.filter(name=ResearchObjective.JOURNAL, complete=False).first()
+        if not objective:
+            objective = ResearchObjective.create(ResearchObjective.JOURNAL)
+            objective.save()
+            self.research_objectives.add(objective)
+            self.save()
+
+        return objective
+
 
     @classmethod
     def create(cls, user):
@@ -163,6 +186,10 @@ class Player(models.Model):
         player.save()
         for objective in ResearchObjective.get_set():
             player.research_objectives.add(objective)
+
+        for capability in player.capabilities.security_resources.all():
+            capability.active = True
+            capability.save()
 
         player.save()
         return player

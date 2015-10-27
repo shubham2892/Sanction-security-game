@@ -13,7 +13,7 @@ from django.views.generic.edit import CreateView
 
 
 from forms import RegistrationForm, CreateMessageForm
-from models import Player, Game, Message
+from models import Player, Game, Message, SecurityResource, ResearchResource
 import json
 
 
@@ -102,27 +102,10 @@ class GameView(TemplateView):
 
     template_name = "game.html"
 
-    # Overwritten "POST" method
-    def post(self, request, *args, **kwargs):
-        context = self.get_context_data()
-
-        # Create a new message
-        message = context["message"]
-        if message.is_valid():
-            m = message.save()
-            m.created_by = Player.objects.get(user=request.user)
-            m.game = Game.objects.get(game_key=self.kwargs['game_key'])
-            m.save()
-            return HttpResponseRedirect('')
-
-        return super(TemplateView, self).render_to_response(context)
-
     def get_context_data(self, **kwargs):
         context = super(GameView, self).get_context_data(**kwargs)
 
-        # Create message form for group messaging
-        message = CreateMessageForm(self.request.POST or None)  # instance= None
-        context["message"] = message
+        context["message"] = CreateMessageForm()
 
         # Get game object that matches URL, else 404
         try:
@@ -155,12 +138,97 @@ class GameView(TemplateView):
 
         return threats
 
+@csrf_exempt
+def create_message(request):
+    if request.method == 'POST':
+        message_text = request.POST.get('the_message')
+        response_data = {}
 
-def message(request):
-    pass
+        player = Player.objects.get(user=request.user)
+        game = player.game_set.all().first()
+        message = Message(content=message_text, created_by=player, game=game)
+        message.save()
+
+        response_data['result'] = 'Create post successful!'
+        response_data['message_pk'] = message.pk
+        response_data['content'] = message.content
+        response_data['game_key'] = game.game_key
+        response_data['created_by'] = message.created_by.user.username
+
+        return HttpResponse(
+            json.dumps(response_data),
+            content_type="application/json"
+        )
+    else:
+        return HttpResponse(
+            json.dumps({"nothing to see": "this isn't happening"}),
+            content_type="application/json"
+        )
 
 
+@csrf_exempt
+def security_resource_activate(request):
+        if request.method == 'POST':
+            pk = request.POST.get('pk')
+            response_data = {}
 
+            security_resource = SecurityResource.objects.get(pk=pk)
+            security_resource.active=True
+            security_resource.save()
+
+            response_data['result'] = 'Security Resource Activated!'
+            response_data['pk'] = security_resource.pk
+            response_data['active'] = security_resource.active
+
+
+            return HttpResponse(
+                json.dumps(response_data),
+                content_type="application/json"
+            )
+        else:
+            return HttpResponse(
+                json.dumps({"nothing to see": "this isn't happening"}),
+                content_type="application/json"
+            )
+
+@csrf_exempt
+def research_resource_complete(request):
+        if request.method == 'POST':
+            pk = request.POST.get('pk')
+            response_data = {}
+
+            research_resource = ResearchResource.objects.get(pk=pk)
+            research_resource.complete=True
+            research_resource.save()
+
+            objective_completed = True
+            objective = research_resource.researchobjective_set.all().first()
+            for resource in objective.required_resources.all():
+                if resource.complete == False:
+                    objective_completed = False
+
+            if objective_completed:
+                objective.complete = True
+                player = objective.player_set.all().first()
+                player.score += objective.value
+                player.save()
+                objective.save()
+                response_data['objective_complete'] = objective_completed
+
+            response_data['result'] = 'Research Resource Complete!'
+            response_data['pk'] = research_resource.pk
+            response_data['resource_complete'] = research_resource.complete
+
+
+            return HttpResponse(
+                json.dumps(response_data),
+                content_type="application/json"
+            )
+        else:
+            return HttpResponse(
+                json.dumps({"nothing to see": "this isn't happening"}),
+                content_type="application/json"
+            )
 
 
 

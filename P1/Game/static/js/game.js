@@ -1,39 +1,4 @@
 
-// Function for changing "incomplete" research resources to "complete" on click
-$(function(){
-
-    // When incomplete resource is clicked...
-    $(".clickable.incomplete").one( "click", function(){
-
-        // Change class from .incomplete to .complete
-        $( this ).removeClass("incomplete").addClass("complete");
-
-        // Remove objective if complete
-        var resourceList = $( this ).closest('.resource-list');
-
-
-        // If all children objects are complete, remove resource list
-        if (resourceList.find(".incomplete").length === 0) {
-            resourceList.find('.resource-container').fadeOut("slow", function(){
-              this.remove();
-            });
-        }
-
-    });
-});
-
-// Function for changing "incomplete" security vulnerabilities to "complete" on click
-$(function(){
-
-    // When incomplete resource is clicked...
-    $(".clickable.inactive").one( "click", function(){
-
-        // Change class from .vulnerable to .capable
-        $( this ).removeClass("inactive").addClass("active");
-
-    });
-});
-
 // Function for Attack Threat vertical bar
 $(function(){
 
@@ -84,13 +49,119 @@ $(function() {
     }
 });
 
-// Keeps chat scrolled to the bottom
 $(function() {
-        $(".panel-body.chat").scrollTop($(".panel-body.chat")[0].scrollHeight);
+    scrollChat();
 });
 
+// AJAX POST message for game chat
+$('#message-form').on('submit', function(event){
+    event.preventDefault();
+    console.log("form submitted!")  // sanity check
+    create_message();
+});
 
-function callback(data){
-    alert(data.message);
+function create_message() {
+    console.log("create message is working!") // sanity check
+    $.ajax({
+        url : "/message/create/", // the endpoint
+        type : "POST", // http method
+        data : { the_message : $('#id_content').val() }, // data sent with the post request
+
+        // handle a successful response
+        success : function(json) {
+            $('#id_content').val(''); // remove the value from the input
+            updateChat();
+            console.log(json); // log the returned json to the console
+            console.log("success"); // another sanity check
+        },
+
+        // handle a non-successful response
+        error : function(xhr,errmsg,err) {
+            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+        }
+    });
+};
+
+// Keeps chat scrolled to the bottom
+function scrollChat() {
+        var chatWindow = $(".panel-body.chat");
+        $(chatWindow).animate({scrollTop:$(chatWindow)[0].scrollHeight}, 1000);
+};
+
+function updateChat(){
+    $("#talk").load(document.URL +  ' #talk');
+    scrollChat();
 }
 
+// setInterval("updateChat()",1000);  //call updateChat() function every 1 seconds
+
+
+// AJAX POST activate security resource
+$(document).on('click', '.clickable.inactive',function(event){
+    var clicked_resource = $(this);
+    // Change class from .inactive to .active
+    clicked_resource.removeClass("inactive").addClass("active");
+    event.preventDefault();
+    console.log("resource clicked");  // sanity check
+    var color = clicked_resource.attr('id');
+    activate_security_resource(clicked_resource);
+});
+
+function activate_security_resource(clicked_resource) {
+    console.log("Security Resource Activated!") // sanity check
+    $.ajax({
+        url : "/resource/activate/", // the endpoint
+        type : "POST", // http method
+        data : { pk : $(clicked_resource).attr('value') }, // data sent with the post request
+
+        // handle a successful response
+        success : function(json) {
+            $("#vulnerabilities").load(location.href +" #vulnerabilities>*","");
+            console.log(json); // log the returned json to the console
+            console.log("success"); // another sanity check
+        },
+
+        // handle a non-successful response
+        error : function(xhr,errmsg,err) {
+            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+        }
+    });
+};
+
+// AJAX POST complete research resource
+$(document).on('click', '.clickable.incomplete', function(event){
+    var clicked_resource = $(this);
+    // Change class from .incomplete to .complete
+    clicked_resource.removeClass("incomplete").addClass("complete");
+    event.preventDefault();
+    console.log("resource clicked");  // sanity check
+    var color = clicked_resource.attr('id');
+    complete_research_resource(clicked_resource);
+});
+
+function complete_research_resource(clicked_resource) {
+    console.log("Research Resource Completed!") // sanity check
+    $.ajax({
+        url : "/resource/complete/", // the endpoint
+        type : "POST", // http method
+        data : { pk : $(clicked_resource).attr('value') }, // data sent with the post request
+
+        // handle a successful response
+        success : function(json) {
+            $("#research-objectives").load(location.href+" #research-objectives>*","");
+            console.log(json); // log the returned json to the console
+            console.log("success"); // another sanity check
+        },
+
+        // handle a non-successful response
+        error : function(xhr,errmsg,err) {
+            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+        }
+    });
+};

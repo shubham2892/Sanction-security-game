@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 {% load staticfiles %}
 {% load humanize %}
-{% load bootstrap_tags %}
 
 {% block head_css %}
 <link href="{% static 'css/game.css' %}" rel="stylesheet">
@@ -47,7 +46,12 @@
                                 </div>
                             </div>
                         </td>
+                    </tr>
+                        {% if player.user == request.user %}
+                        <tr id="vulnerabilities">
+                        {% else %}
                         <tr>
+                        {% endif %}
                             <td>
                                 Vulnerabilities:
                             </td>
@@ -92,17 +96,21 @@
                                 <h3> Research Objectives: </h3>
                             </div>
 
-                            <table class="category-list">
-                                <tbody>
+                            <table  class="category-list">
+                                <tbody id="research-objectives">
 
                                     <!-- START Workshop Objective -->
                                     <tr class="resource-list">
                                         <td>
                                             <h4 class="objective-category">Workshop:</h4>
                                         </td>
-                                        {% for resource in me.workshop.first.required_resources.all %}
+                                        {% for resource in me.workshop.required_resources.all %}
                                         <td>
-                                            <div id="{{ resource.get_classification_display }}" class="clickable resource-container incomplete">
+                                            {% if resource.complete %}
+                                                <div id="{{ resource.get_classification_display }}" class="clickable resource-container complete">
+                                            {% else %}
+                                                <div id="{{ resource.get_classification_display }}" class="clickable resource-container incomplete" value="{{ resource.pk }}">
+                                            {% endif %}
                                                 <span class="centerer"></span><span class='centered'></span>
                                             </div>
                                         </td>
@@ -115,9 +123,13 @@
                                         <td>
                                             <h4 class="objective-category">Conference:</h4>
                                         </td>
-                                        {% for resource in me.conference.first.required_resources.all %}
+                                        {% for resource in me.conference.required_resources.all %}
                                         <td>
-                                            <div id="{{ resource.get_classification_display }}" class="clickable resource-container incomplete">
+                                            {% if resource.complete %}
+                                                <div id="{{ resource.get_classification_display }}" class="clickable resource-container complete">
+                                            {% else %}
+                                                <div id="{{ resource.get_classification_display }}" class="clickable resource-container incomplete"  value="{{ resource.pk }}">
+                                            {% endif %}
                                                 <span class="centerer"></span><span class='centered'></span>
                                             </div>
                                         </td>
@@ -130,9 +142,13 @@
                                         <td>
                                             <h4 class="objective-category">Journal:</h4>
                                         </td>
-                                        {% for resource in me.journal.first.required_resources.all %}
+                                        {% for resource in me.journal.required_resources.all %}
                                         <td>
-                                            <div id="{{ resource.get_classification_display }}" class="clickable resource-container incomplete">
+                                            {% if resource.complete %}
+                                                <div id="{{ resource.get_classification_display }}" class="clickable resource-container complete">
+                                            {% else %}
+                                                <div id="{{ resource.get_classification_display }}" class="clickable resource-container incomplete"  value="{{ resource.pk }}">
+                                            {% endif %}
                                                 <span class="centerer"></span><span class='centered'></span>
                                             </div>
                                         </td>
@@ -163,15 +179,15 @@
                                         {% for vulnerability in me.vulnerabilities.security_resources.all %}
                                         <td>
                                             {% if vulnerability.active  %}
-                                            <div id="{{ vulnerability.get_classification_display }}" class="resource-container active">
-                                                {% else %}
-                                                <div id="{{ vulnerability.get_classification_display }}" class="clickable resource-container inactive">
-                                                    {% endif %}
+                                                <div id="{{ vulnerability.get_classification_display }}" class="resource-container active">
+                                            {% else %}
+                                                <div id="{{ vulnerability.get_classification_display }}" class="clickable resource-container inactive" value="{{ vulnerability.pk}}">
+                                            {% endif %}
                                                     <span class="centerer"></span><span class='centered'></span>
                                                 </div>
-                                            </td>
-                                            {% endfor %}
-                                        </tr>
+                                        </td>
+                                        {% endfor %}
+                                    </tr>
 
                                         <tr>
                                             <td>
@@ -253,7 +269,7 @@
                                 <span class="glyphicon glyphicon-comment"></span>&nbsp;Group Chat
                             </div>
                             <div class="panel-body chat">
-                                <ul class="chat">
+                                <ul id="talk" class="chat">
                                     {% for message in game.message_set.all %}
                                     <li class="clearfix">
                                         <div class="chat-body clearfix">
@@ -265,21 +281,29 @@
                                                 {% endif %}
                                             </div>
                                             <p>
-                                             {{ message.content }}
-                                         </p>
-                                     </div>
-                                 </li>
-                                 {% endfor %}
-                             </ul>
-                         </div>
-                         <div class="panel-footer">
-                            <form class="form-inline" action="" method="POST">
-                                {% csrf_token %}
-                                {{ message | as_bootstrap }}
-                                <input class="btn btn-warning btn-sm" id="btn-chat" type="submit" value="Send"></input>
-                            </form>
+                                                {{ message.content }}
+                                            </p>
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            <div class="panel-footer">
+                                <form action="/message/create/" class="form-inline"  method="POST"  id="message-form" >
+                                    {% csrf_token %}
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="fieldWrapper" id="the_message">
+                                            <input type="text" class="form-control" name="{{ message.content.name }}" id="id_{{ message.content.name }}"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input class="btn btn-warning btn-sm" id="btn-chat" type="submit" value="Send"></input>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
-                    </div>
 
                     <!-- END Chat Window -->
 
@@ -287,12 +311,10 @@
             </div>
             <!-- END Fluid Scaffold -->
 
+            <script src="{% static 'js/game.js' %}"></script>
+
             {% endblock %}
 
             {% block footer %}
             <hr>
-            {% endblock %}
-
-            {% block body_js %}
-            <script src="{% static 'js/game.js' %}"></script>
             {% endblock %}
