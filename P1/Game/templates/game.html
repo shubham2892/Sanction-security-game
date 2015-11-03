@@ -19,12 +19,12 @@
 <div class="row">
 
     <!-- START Game Information -->
-    <div class="col-md-3">
+    <div id="left-panel" class="col-md-3">
         {% for player in game.players.all %}
         <div class="panel panel-primary">
             <div class="panel-heading">
                 <div>
-                    {% if player.user == request.user %}
+                    {% if player == me %}
                     <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst}} (Me)
                     {% else %}
                     <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst }}
@@ -40,14 +40,23 @@
                         </td>
                         <td colspan="3">
                             <div class="progress">
-                                {% widthratio player.score highscore 100 as norm_score %}
-                                <div class="progress-bar {{ forloop.counter0 }}" role="progressbar" aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ norm_score }}%;">
-                                    <span class="sr-only">{{ norm_score }}% Complete</span>
-                                </div>
+                                <p style="display:none">{% widthratio player.score highscore 100 as norm_score %}</p>
+                                {% if norm_score|add:"0" <= 20 %}
+                                <div class="progress-bar progress-bar-danger" role="progressbar" aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ norm_score }}%;">
+                                <span class="sr-only">{{ norm_score }}% Complete</span>
+                                 </div>
+                                {% elif norm_score|add:"0" <= 80 %}
+                                <div class="progress-bar progress-bar-warning" role="progressbar" aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ norm_score }}%;">
+                                <span class="sr-only">{{ norm_score }}% Complete</span>
+                                 </div>
+                                {% else %}
+                                 <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ norm_score }}%;">
+                                <span class="sr-only">{{ norm_score }}% Complete</span>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
-                        {% if player.user == request.user %}
+                        {% if player == me%}
                         <tr id="vulnerabilities">
                         {% else %}
                         <tr>
@@ -274,7 +283,7 @@
                                     <li class="clearfix">
                                         <div class="chat-body clearfix">
                                             <div class="header">
-                                                {% if message.speaker.user == request.user %}
+                                                {% if message.created_by == me %}
                                                 <strong class="primary-font">Player {{ message.anonymize | apnumber | capfirst }} (Me)</strong>
                                                 {% else %}
                                                 <strong class="primary-font">Player {{ message.anonymize | apnumber | capfirst }}</strong>
