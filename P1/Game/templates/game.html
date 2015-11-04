@@ -20,7 +20,7 @@
 
     <!-- START Game Information -->
     <div id="left-panel" class="col-md-3">
-        {% for player in game.players.all %}
+        {% for player in players %}
         <div class="panel panel-primary">
             <div class="panel-heading">
                 <div>
@@ -113,7 +113,7 @@
                                         <td>
                                             <h4 class="objective-category">Workshop:</h4>
                                         </td>
-                                        {% for resource in me.workshop.required_resources.all %}
+                                        {% for resource in me.workshop.research_resources.all %}
                                         <td>
                                             {% if resource.complete %}
                                                 <div id="{{ resource.get_classification_display }}" class="clickable resource-container complete">
@@ -132,7 +132,7 @@
                                         <td>
                                             <h4 class="objective-category">Conference:</h4>
                                         </td>
-                                        {% for resource in me.conference.required_resources.all %}
+                                        {% for resource in me.conference.research_resources.all %}
                                         <td>
                                             {% if resource.complete %}
                                                 <div id="{{ resource.get_classification_display }}" class="clickable resource-container complete">
@@ -151,7 +151,7 @@
                                         <td>
                                             <h4 class="objective-category">Journal:</h4>
                                         </td>
-                                        {% for resource in me.journal.required_resources.all %}
+                                        {% for resource in me.journal.research_resources.all %}
                                         <td>
                                             {% if resource.complete %}
                                                 <div id="{{ resource.get_classification_display }}" class="clickable resource-container complete">
@@ -235,7 +235,7 @@
                                 </div>
                             </div>
                             <div class="panel-body attack-active">
-                                <div id="yellow" class="resource-container complete centered">
+                                <div id="{{ game.attack }}" class="resource-container complete centered">
                                     <span class="centerer"></span><span class='centered'></span>
                                 </div>
                             </div>
@@ -284,9 +284,9 @@
                                         <div class="chat-body clearfix">
                                             <div class="header">
                                                 {% if message.created_by == me %}
-                                                <strong class="primary-font">Player {{ message.anonymize | apnumber | capfirst }} (Me)</strong>
+                                                <strong class="primary-font">Player {{ message.created_by.number | apnumber | capfirst }} (Me)</strong>
                                                 {% else %}
-                                                <strong class="primary-font">Player {{ message.anonymize | apnumber | capfirst }}</strong>
+                                                <strong class="primary-font">Player {{ message.created_by.number | apnumber | capfirst }}</strong>
                                                 {% endif %}
                                             </div>
                                             <p>

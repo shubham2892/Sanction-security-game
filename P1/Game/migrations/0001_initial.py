@@ -16,55 +16,107 @@ class Migration(migrations.Migration):
             name='AttackResource',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('classification', models.IntegerField(choices=[(1, b'BLUE'), (2, b'RED'), (3, b'YELLOW')])),
+                ('classification', models.IntegerField(choices=[(1, b'blue'), (2, b'red'), (3, b'yellow')])),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Capabilities',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
             ],
         ),
         migrations.CreateModel(
             name='Game',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('ticks', models.IntegerField()),
+                ('_ticks', models.IntegerField()),
                 ('game_key', models.CharField(max_length=5, unique=True, null=True, editable=False, blank=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Message',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('content', models.TextField(max_length=500, editable=False)),
             ],
         ),
         migrations.CreateModel(
             name='Player',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
+                ('score', models.IntegerField(default=0, editable=False)),
+                ('number', models.IntegerField(default=0, editable=False)),
+                ('game', models.ForeignKey(to='Game.Game')),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
             name='ResearchObjective',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('name', models.IntegerField(default=None, choices=[(1, b'Workshop'), (2, b'Conference'), (3, b'Journal')])),
+                ('name', models.IntegerField(default=None, choices=[(1, b'workshop'), (2, b'conference'), (3, b'journal')])),
                 ('value', models.IntegerField(null=True, blank=True)),
                 ('deadline', models.IntegerField(null=True, blank=True)),
+                ('complete', models.BooleanField(default=False)),
+                ('player', models.ForeignKey(to='Game.Player')),
             ],
         ),
         migrations.CreateModel(
             name='ResearchResource',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('classification', models.IntegerField(choices=[(1, b'BLUE'), (2, b'RED'), (3, b'YELLOW')])),
+                ('classification', models.IntegerField(blank=True, null=True, choices=[(1, b'blue'), (2, b'red'), (3, b'yellow')])),
+                ('complete', models.BooleanField(default=False)),
             ],
         ),
         migrations.CreateModel(
             name='SecurityResource',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('classification', models.IntegerField(choices=[(1, b'BLUE'), (2, b'RED'), (3, b'YELLOW')])),
+                ('classification', models.IntegerField(choices=[(1, b'blue'), (2, b'red'), (3, b'yellow')])),
+                ('active', models.BooleanField(default=False)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Tick',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('complete', models.BooleanField(default=False)),
+                ('attack', models.OneToOneField(to='Game.AttackResource')),
+                ('game', models.ForeignKey(to='Game.Game')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Vulnerabilities',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('player', models.OneToOneField(to='Game.Player')),
+                ('security_resources', models.ManyToManyField(to='Game.SecurityResource')),
             ],
         ),
         migrations.AddField(
             model_name='researchobjective',
-            name='required_resources',
+            name='research_resources',
             field=models.ManyToManyField(to='Game.ResearchResource'),
         ),
         migrations.AddField(
-            model_name='game',
-            name='players',
-            field=models.ManyToManyField(to='Game.Player'),
+            model_name='message',
+            name='created_by',
+            field=models.ForeignKey(editable=False, to='Game.Player', null=True),
+        ),
+        migrations.AddField(
+            model_name='message',
+            name='game',
+            field=models.ForeignKey(editable=False, to='Game.Game', null=True),
+        ),
+        migrations.AddField(
+            model_name='capabilities',
+            name='player',
+            field=models.OneToOneField(to='Game.Player'),
+        ),
+        migrations.AddField(
+            model_name='capabilities',
+            name='security_resources',
+            field=models.ManyToManyField(to='Game.SecurityResource'),
         ),
     ]

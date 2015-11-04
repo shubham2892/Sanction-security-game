@@ -11,7 +11,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, FormView
 from django.views.generic.edit import CreateView
 
-
+from random import random
+from itertools import chain
 from forms import RegistrationForm, CreateMessageForm
 from models import Player, Game, Message, SecurityResource, ResearchResource
 import json
@@ -105,6 +106,7 @@ class GameView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(GameView, self).get_context_data(**kwargs)
 
+        # Add message form to context
         context["message"] = CreateMessageForm()
 
         # Get game object that matches URL, else 404
@@ -121,6 +123,10 @@ class GameView(TemplateView):
             raise Http404
         context["me"] = me
 
+        # Player list with "me" as the first object
+        players = [me] + [player for player in Player.objects.filter(game=game).exclude(user=me.user)]
+        context["players"] = players
+
         # Get current total score for bar normalization
         highscore = Player.objects.all().aggregate(Max('score')).get("score__max")
         context['highscore'] = highscore
@@ -131,11 +137,16 @@ class GameView(TemplateView):
 
     def threats(self):
 
-        threats = {"yellow": 20,
-                        "red": 40,
-                        "blue": 40
+        r = [random() for i in range(0,3)]
+        s = sum(r)
+        r = [ i/s*100 for i in r ]
+
+        threats = {"yellow": int(r[0]),
+                        "red": int(r[1]),
+                        "blue": int(r[2]),
                         }
 
+        print threats
         return threats
 
 @csrf_exempt
@@ -145,7 +156,7 @@ def create_message(request):
         response_data = {}
 
         player = Player.objects.get(user=request.user)
-        game = player.game_set.all().first()
+        game = player.game
         message = Message(content=message_text, created_by=player, game=game)
         message.save()
 
@@ -203,13 +214,13 @@ def research_resource_complete(request):
 
             objective_completed = True
             objective = research_resource.researchobjective_set.all().first()
-            for resource in objective.required_resources.all():
+            for resource in objective.research_resources.all():
                 if resource.complete == False:
                     objective_completed = False
 
             if objective_completed:
                 objective.complete = True
-                player = objective.player_set.all().first()
+                player = objective.player
                 player.score += objective.value
                 player.save()
                 objective.save()
