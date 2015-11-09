@@ -145,17 +145,6 @@ class GameView(TemplateView):
 
         return context
 
-    def threats(self):
-
-        r = [random() for i in range(0,3)]
-        s = sum(r)
-        r = [ i/s*100 for i in r ]
-
-        threats = {"yellow": int(r[0]),
-                        "red": int(r[1]),
-                        "blue": int(r[2]),
-                        }
-        return threats
 
 @csrf_exempt
 def create_message(request):
@@ -219,6 +208,21 @@ def security_resource_activate(request):
             )
 
 @csrf_exempt
+def security_resource_deactivate(request):
+        if request.method == 'POST':
+            response_data['WTF']
+
+            return HttpResponse(
+                json.dumps(response_data),
+                content_type="application/json"
+            )
+        else:
+            return HttpResponse(
+                json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game!"}),
+                content_type="application/json"
+            )
+
+@csrf_exempt
 def research_resource_complete(request):
         if request.method == 'POST':
             player = Player.objects.get(pk=request.POST.get('player_pk'))
@@ -261,6 +265,21 @@ def research_resource_complete(request):
         else:
             return HttpResponse(
                 json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
+                content_type="application/json"
+            )
+
+@csrf_exempt
+def research_resource_incomplete(request):
+        if request.method == 'POST':
+            response_data['WTF']
+
+            return HttpResponse(
+                json.dumps(response_data),
+                content_type="application/json"
+            )
+        else:
+            return HttpResponse(
+                json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game!"}),
                 content_type="application/json"
             )
 

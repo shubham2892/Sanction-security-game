@@ -40,7 +40,7 @@ class Game(models.Model):
 
 
     def generate_random_alphanumeric(self, length=GAME_KEY_LENGTH):
-        return str(Game.objects.count() + 1) + ''.join(random.choice('0123456789ABCDEF') for i in range(length))
+        return str(Game.objects.count() + 1) + "X" + ''.join(random.choice('0123456789ABCDEF') for i in range(length))
 
     def save(self, *args, **kwargs):
 
@@ -68,7 +68,7 @@ class Game(models.Model):
             Tick.create(game=self)
 
 
-''' A Player - How do we make it so that a player may only play once '''
+''' A Player objec to hold player state '''
 class Player(models.Model):
     user = models.ForeignKey(User)
     game = models.ForeignKey(Game)
@@ -84,7 +84,9 @@ class Player(models.Model):
 
     @property
     def workshop(self):
-        objective = self.researchobjective_set.filter(name=ResearchObjective.WORKSHOP, complete=False).first()
+        objective = self.researchobjective_set.filter(name=ResearchObjective.WORKSHOP,
+                                                                                    complete=False,
+                                                                                    research_resources__isnull=False).first()
         if not objective:
             objective = ResearchObjective.create(ResearchObjective.WORKSHOP, self)
             objective.save()
@@ -95,7 +97,9 @@ class Player(models.Model):
 
     @property
     def conference(self):
-        objective = self.researchobjective_set.filter(name=ResearchObjective.CONFERENCE, complete=False).first()
+        objective = self.researchobjective_set.filter(name=ResearchObjective.CONFERENCE,
+                                                                                    complete=False,
+                                                                                    research_resources__isnull=False).first()
         if not objective:
             objective = ResearchObjective.create(ResearchObjective.CONFERENCE, self)
             objective.save()
@@ -106,7 +110,9 @@ class Player(models.Model):
 
     @property
     def journal(self):
-        objective = self.researchobjective_set.filter(name=ResearchObjective.JOURNAL, complete=False).first()
+        objective = self.researchobjective_set.filter(name=ResearchObjective.JOURNAL,
+                                                                                    complete=False,
+                                                                                    research_resources__isnull=False).first()
         if not objective:
             objective = ResearchObjective.create(ResearchObjective.JOURNAL, self)
             objective.save()
@@ -212,10 +218,10 @@ class ResearchObjective(models.Model):
 
     # Returns a set of objects containing one of each Reserarch Objective types
     @classmethod
-    def get_initial_set(self, player):
+    def get_initial_set(cls, player):
         research_objective_set = []
-        for (x, y) in self.RESEARCH_OBJECTIVES:
-            new_objective = self.create(x, player)
+        for (x, y) in cls.RESEARCH_OBJECTIVES:
+            new_objective = cls.create(x, player)
             research_objective_set.append(new_objective)
 
         return research_objective_set
@@ -283,14 +289,47 @@ class Vulnerabilities(models.Model):
 
 ''' An Attack Resource for issuing an attack against a Research Resource '''
 class AttackResource(models.Model):
+
+    # Percent of attacks that are successful (should be between 1 and 100) MOVE TO PERCENT FIELD IN GAME OBJECT
+    ATTACK_FREQUENCY = 80
+
     classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS)
 
     def __unicode__(self):
         return u'%s Attack Resource' % (self.get_classification_display().capitalize())
 
+    # Checks whether or not an attack will occur this round
+    @classmethod
+    def attack_occurs(cls):
+        rand = random.randint(0,100)
+        return bool(rand < cls.ATTACK_FREQUENCY)
+
+    @classmethod
+    def deactivate_security(cls, player, attack_resource):
+        v = player.vulnerabilities
+        r = v.security_resources.get(classification=attack_resource.classification)
+        if r.active:
+            r.active = False
+            r.save()
+            return True
+        else:
+            return False
+
+
+    @classmethod
+    def incomplete_research(cls, player, attack_resource):
+        for ro in player.researchobjective_set.filter(complete=False):
+            for r in ro.research_resources.all():
+                if r.classification == attack_resource.classification:
+                    r.complete=False
+                    r.save()
+
+        return True
+
+
     @classmethod
     def create(cls, game):
-        if game.tick_set.count() > 1:
+        if game.tick_set.count() > 1 and cls.attack_occurs():
             num_ticks = game.tick_set.count()
             attack_probability = game.tick_set.get(number=(num_ticks - 1)).next_attack_probability
             blue, yellow, red = attack_probability.blue, attack_probability.yellow, attack_probability.red
@@ -300,13 +339,15 @@ class AttackResource(models.Model):
             rand = random.randint(1,100)
             for lo, hi, classification in attack_probability:
                 if rand >= lo and rand < hi:
-                    print rand
                     attack_resource = cls(classification=classification)
                     attack_resource.save()
-                    return attack_resource
+                    break
 
-            # Shouldn't reach here.  Returns random classification
-            return cls(classification=random.randint(BLUE,YELLOW))
+            for player in game.player_set.all():
+                if not cls.deactivate_security(player, attack_resource):
+                    cls.incomplete_research(player, attack_resource)
+
+            return attack_resource
 
 
 ''' The probability per classification of an AttackResource object in the next round '''
@@ -347,6 +388,7 @@ class Tick(models.Model):
         tick.attack = AttackResource.create(game)
         tick.next_attack_probability = AttackProbability.create()
         tick.save()
+        return tick
 
 
 ''' An object for synchronizing players' moves within a round '''
@@ -362,6 +404,9 @@ def update_tick(sender, instance, **kwargs):
         if player.can_move:
             return
 
+    t = game.tick_set.last()
+    t.complete = True
+    t.save()
     Tick.create(game=game)
 
 post_save.connect(update_tick, sender=PlayerTick)

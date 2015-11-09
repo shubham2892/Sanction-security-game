@@ -8,8 +8,16 @@
 
 {% block navbar %}
 <div class="game-header">
-    <h3 id="game-number">Game&nbsp;#<span id="game-key">{{ game.game_key }}</span></h3>
-    <h3 id="time-remaining">Remaining Moves: {{ me.remaining_moves }}</h3>
+    <div class="row">
+        <div class="col-md-4">
+            <h3 id="game-number">Game&nbsp;#<span id="game-key">{{ game.game_key }}</span></h3>
+        </div>
+        <div class="col-md-4">
+            <h3 id="countdown">Something here...</h3>
+        </div>
+        <div class="col-md-4">
+            <h3 id="time-remaining">Remaining Moves: {{ me.remaining_moves }}</h3>
+        </div>
 </div>
 {% endblock %}
 
@@ -254,7 +262,7 @@
                         <div class="panel panel-primary">
                             <div class="panel-heading attack-heading">
                                 <div>
-                                    <span class="glyphicon glyphicon-screenshot"></span>&nbsp; threat
+                                    <span class="glyphicon glyphicon-screenshot"></span>&nbsp; Threat
                                 </div>
                             </div>
                             <div id="threat" class="panel-body attack-threat">

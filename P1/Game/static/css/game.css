@@ -12,11 +12,11 @@
 }
 
 .game-header #game-number {
-    float: left;
+    text-align: left;
 }
 
-.game-header #waiting-on {
-    float:center;
+.game-header #countdown {
+    text-align:center;
 }
 
 .game-header #time-remaining {

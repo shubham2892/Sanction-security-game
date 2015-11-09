@@ -12,6 +12,8 @@ urlpatterns = [
     url(r'^accounts/logout/$', views.logout_view, name='logout'),
     url(r'^message/create/$', views.create_message, name='create_message'),
     url(r'^resource/activate/$', views.security_resource_activate, name='security_resource_activate'),
+    url(r'^resource/deactivate/$', views.security_resource_deactivate, name='security_resource_deactivate'),
     url(r'^resource/complete/$', views.research_resource_complete, name='research_resource_complete'),
+    url(r'^resource/incomplete/$', views.research_resource_incomplete, name='research_resource_incomplete'),
     url(r'^sanction/$', views.sanction, name='sanction'),
 ]

@@ -7,6 +7,8 @@ $(function() {
 // Function for Attack Threat vertical bar
 function update_attack_probabilities(){
 
+    var animation_speed = 0
+
     // Get blue threat
     var blueBar = $('.attack-threat').find('.inner.blue');
     var blueThreat = blueBar.attr("blue-threat");
@@ -14,7 +16,7 @@ function update_attack_probabilities(){
     // Animate bar
     $(blueBar).animate({
         height: blueThreat
-    }, 1000);
+    }, animation_speed);
 
      // Get blue threat
     var redBar = $('.attack-threat').find('.inner.red');
@@ -24,7 +26,7 @@ function update_attack_probabilities(){
     // Animate bar
     $(redBar).animate({
         height: redCent
-    }, 1000);
+    }, animation_speed);
 
     // Get blue threat
     var yellowBar = $('.attack-threat').find('.inner.yellow');
@@ -34,9 +36,10 @@ function update_attack_probabilities(){
     // Animate bar
     $(yellowBar).animate({
         height: yellowCent
-    }, 1000);
+    }, animation_speed);
 
 };
+
 
 // AJAX POST message for game chat
 $('#message-form').on('submit', function(event){
@@ -80,10 +83,13 @@ function updatePage(){
     $("#talk").load(location.href +  ' #talk');
     $("#left-panel").load(location.href +" #left-panel>*","");
     $("#attack").load(location.href +" #attack>*","");
+    $("#vulnerability-list").load(location.href +" #vulnerability-list>*","");
+    $("#vulnerabilities").load(location.href +" #vulnerabilities>*","");
+    $("#time-remaining").load(location.href +" #time-remaining");
     scrollChat();
 }
 
-setInterval("updatePage()",800);  //call updatePage() function every 1 seconds
+setInterval("updatePage()", 800);  //call updatePage() function every 1 seconds
 
 
 // AJAX POST activate security resource
@@ -103,12 +109,10 @@ function activate_security_resource(clicked_resource) {
 
         // handle a successful response
         success : function(json) {
-            clicked_resource.removeClass("inactive").addClass("active");
+            $(clicked_resource).removeClass("inactive").addClass("active")
             $("#vulnerability-list").load(location.href +" #vulnerability-list>*","");
             $("#vulnerabilities").load(location.href +" #vulnerabilities>*","");
             $("#time-remaining").load(location.href +" #time-remaining");
-            // $("#threat").load(location.href +" #threat>*","");
-            // update_attack_probabilities();
             console.log(json); // log the returned json to the console
             console.log("success"); // another sanity check
         },
@@ -139,11 +143,9 @@ function complete_research_resource(clicked_resource) {
 
         // handle a successful response
         success : function(json) {
-            clicked_resource.removeClass("incomplete").addClass("complete");
+            $(clicked_resource).removeClass("incomplete").addClass("complete")
             $("#research-objectives").load(location.href+" #research-objectives>*","");
             $("#time-remaining").load(location.href +" #time-remaining");
-            // $("#threat").load(location.href +" #threat>*","");
-            // update_attack_probabilities();
             console.log(json); // log the returned json to the console
             console.log("success"); // another sanity check
         },
