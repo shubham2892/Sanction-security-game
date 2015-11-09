@@ -8,8 +8,8 @@
 
 {% block navbar %}
 <div class="game-header">
-    <h3 id="game-number">Game&nbsp;#{{ game.game_key }}</h3>
-    <h3 id="time-remaining">Remaining Moves: {{ game.ticks }}</h3>
+    <h3 id="game-number">Game&nbsp;#<span id="game-key">{{ game.game_key }}</span></h3>
+    <h3 id="time-remaining">Remaining Moves: {{ me.remaining_moves }}</h3>
 </div>
 {% endblock %}
 
@@ -55,6 +55,13 @@
                                 {% endif %}
                             </div>
                         </td>
+                        <td colspan="1">
+                            <h5>moved:</h5>
+                        {% if not player.can_move %}
+                        <td colspan="1">
+                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></h5>
+                        <td>
+                        {% endif %}
                     </tr>
                         {% if player == me%}
                         <tr id="vulnerabilities">
@@ -91,6 +98,7 @@
                     <div class="panel-heading">
                         <div>
                             <span><span class="glyphicon glyphicon-user"></span>
+                            <span id="player" style="display:none">{{ me.pk }}</span>
                             &nbsp;Player {{ me.number|apnumber|capfirst }} (Me)</span>
                             <span id="score">
                                 &nbsp;Score: <b> {{ me.score }}</b>
@@ -181,7 +189,7 @@
                             </div>
                             <table class="category-list">
                                 <tbody>
-                                    <tr>
+                                    <tr id="vulnerability-list">
                                         <td>
                                             <h4 class="objective-category">Vulnerabilities:</h4>
                                         </td>
@@ -228,7 +236,7 @@
                     <!-- START Attack Information -->
 
                     <div class="col-md-2 attack">
-                        <div class="panel panel-primary">
+                        <div id="attack" class="panel panel-primary">
                             <div class="panel-heading attack-heading">
                                 <div>
                                     <span class="glyphicon glyphicon-screenshot"></span>&nbsp; Attack
@@ -246,18 +254,18 @@
                         <div class="panel panel-primary">
                             <div class="panel-heading attack-heading">
                                 <div>
-                                    <span class="glyphicon glyphicon-screenshot"></span>&nbsp; Threat
+                                    <span class="glyphicon glyphicon-screenshot"></span>&nbsp; threat
                                 </div>
                             </div>
-                            <div class="panel-body attack-threat">
+                            <div id="threat" class="panel-body attack-threat">
                                 <div class="outer">
-                                    <div class="inner blue" blue-threat="{{ view.threats.blue }}%">
+                                    <div class="inner blue" blue-threat="{{ game.current_tick.next_attack_probability.blue }}%">
                                         <div></div>
                                     </div>
-                                    <div class="inner red" red-threat="{{ view.threats.red}}%">
+                                    <div class="inner red" red-threat="{{ game.current_tick.next_attack_probability.red }}%">
                                         <div></div>
                                     </div>
-                                    <div class="inner yellow" yellow-threat="{{ view.threats.yellow }}%">
+                                    <div class="inner yellow" yellow-threat="{{ game.current_tick.next_attack_probability.yellow }}%">
                                         <div></div>
                                     </div>
                                 </div>

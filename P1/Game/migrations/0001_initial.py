@@ -51,6 +51,13 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
+            name='PlayerTick',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('player', models.ForeignKey(to='Game.Player')),
+            ],
+        ),
+        migrations.CreateModel(
             name='ResearchObjective',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
@@ -74,13 +81,14 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('classification', models.IntegerField(choices=[(1, b'blue'), (2, b'red'), (3, b'yellow')])),
-                ('active', models.BooleanField(default=False)),
+                ('active', models.BooleanField(default=True)),
             ],
         ),
         migrations.CreateModel(
             name='Tick',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('number', models.IntegerField(default=1)),
                 ('complete', models.BooleanField(default=False)),
                 ('attack', models.OneToOneField(to='Game.AttackResource')),
                 ('game', models.ForeignKey(to='Game.Game')),
@@ -90,7 +98,7 @@ class Migration(migrations.Migration):
             name='Vulnerabilities',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('player', models.OneToOneField(to='Game.Player')),
+                ('player', models.OneToOneField(null=True, to='Game.Player')),
                 ('security_resources', models.ManyToManyField(to='Game.SecurityResource')),
             ],
         ),
@@ -98,6 +106,11 @@ class Migration(migrations.Migration):
             model_name='researchobjective',
             name='research_resources',
             field=models.ManyToManyField(to='Game.ResearchResource'),
+        ),
+        migrations.AddField(
+            model_name='playertick',
+            name='tick',
+            field=models.ForeignKey(to='Game.Tick'),
         ),
         migrations.AddField(
             model_name='message',
@@ -112,7 +125,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='capabilities',
             name='player',
-            field=models.OneToOneField(to='Game.Player'),
+            field=models.OneToOneField(null=True, to='Game.Player'),
         ),
         migrations.AddField(
             model_name='capabilities',

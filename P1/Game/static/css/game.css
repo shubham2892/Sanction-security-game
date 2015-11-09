@@ -15,8 +15,12 @@
     float: left;
 }
 
+.game-header #waiting-on {
+    float:center;
+}
+
 .game-header #time-remaining {
-    float:right;
+    text-align:right;
 }
 
 /*===END Game Header Style===*/

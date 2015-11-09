@@ -1,15 +1,39 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Games:</h1>
-<ul>
-  {% for game in view.games %}
 
-    <li>
-      <a href="{% url 'game' game.game_key %}"><h3>Game&nbsp;#{{ game.game_key }}</h3></a> </br>
-    </li>
+<div class="container">
+  <h2 class="centered">My Games</h2>
+  <hr>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Game</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for game in view.games %}
 
-  {% endfor %}
-</ul>
+          <td>
+              <h5><a href="{% url 'game' game.game_key %}" class="btn btn-sm btn-info">Game&nbsp;#{{ game.game_key }}</a></h5>
+          </td>
+
+          {% if game.complete %}
+          <td>
+            <h5>Completed</h5>
+          </td>
+          {% else %}
+          <td>
+            <h5>Incomplete</h5>
+          </td>
+          {% endif %}
+
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
 {% endblock %}
+
+

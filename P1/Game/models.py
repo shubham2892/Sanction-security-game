@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.db import models
+from django.db.models.signals import post_save
 
 from datetime import timedelta
 from random import choice
@@ -13,22 +14,25 @@ class Game(models.Model):
     GAME_KEY_LENGTH = 5
 
     _ticks = models.IntegerField()
-    game_key = models.CharField(max_length=GAME_KEY_LENGTH, unique=True, null=True, blank=True, editable=False)
+    game_key = models.CharField(max_length=GAME_KEY_LENGTH*2, unique=True, null=True, blank=True, editable=False)
 
     def __unicode__(self):
-        return u'%s' % (self.game_key)
+        return u'Game #%s' % (self.game_key)
 
     @property
     def ticks(self):
-        return self._ticks - self.tick_set.filter(complete=True).count()
+        return self._ticks - self.tick_set.latest('number').number
 
     @property
     def current_tick(self):
-        return self.tick_set.last()
+        return self.tick_set.latest('number')
 
     @property
     def attack(self):
-        return self.tick_set.last().attack.get_classification_display()
+        if self.tick_set.last().attack:
+            return self.tick_set.last().attack.get_classification_display()
+        else:
+            return None
 
     @property
     def players(self):
@@ -36,10 +40,11 @@ class Game(models.Model):
 
 
     def generate_random_alphanumeric(self, length=GAME_KEY_LENGTH):
-        return ''.join(random.choice('0123456789ABCDEF') for i in range(length))
+        return str(Game.objects.count() + 1) + ''.join(random.choice('0123456789ABCDEF') for i in range(length))
 
     def save(self, *args, **kwargs):
-        # Assign the game a unique game_key
+
+        # Assign the game a unique game_key upon save, if none exists
         if not self.game_key:
             self.game_key = self.generate_random_alphanumeric()
             # using your function as above or anything else
@@ -58,20 +63,15 @@ class Game(models.Model):
             else:
                  success = True
 
-        # Assign persistent player numbers for the game
-        players = self.players.all()
-        if players.filter(number=0).exists():
-            player_number = 1;
-            for player in self.players.all():
-                player.number = player_number
-                player.save()
-                player_number+=1
+        # Create the first game tick
+        if not self.tick_set.all():
+            Tick.create(game=self)
 
 
 ''' A Player - How do we make it so that a player may only play once '''
 class Player(models.Model):
     user = models.ForeignKey(User)
-    game = models.ForeignKey(Game, null=True, blank=True)
+    game = models.ForeignKey(Game)
     score = models.IntegerField(default=0, editable=False)
     number = models.IntegerField(default=0, editable=False)
 
@@ -92,7 +92,6 @@ class Player(models.Model):
             self.save()
 
         return objective
-
 
     @property
     def conference(self):
@@ -116,18 +115,32 @@ class Player(models.Model):
 
         return objective
 
+    @property
+    def can_move(self):
+        return not self.playertick_set.filter(tick=self.game.current_tick)
 
-    @classmethod
-    def create(cls, user):
-        player = cls(user=user)
-        player.save()
-        Vulnerabilities.create(player)
-        Capabilities.create(player)
-        for objective in ResearchObjective.get_initial_set(player):
-            player.researchobjective_set.add(objective)
+    @property
+    def remaining_moves(self):
+        return self.game._ticks - self.playertick_set.count()
 
-        player.save()
-        return player
+
+def set_player_defaults(sender, instance, **kwargs):
+
+    if instance.number == 0:
+        instance.number = instance.game.player_set.count()
+        instance.save()
+
+    if not hasattr(instance, 'vulnerabilities'):
+        Vulnerabilities.create(instance)
+
+    if not hasattr(instance, 'capabilities'):
+        Capabilities.create(instance)
+
+    if not instance.researchobjective_set.all():
+        for objective in ResearchObjective.get_initial_set(instance):
+            instance.researchobjective_set.add(objective)
+
+post_save.connect(set_player_defaults, sender=Player)
 
 
 ''' Resource classifications by color '''
@@ -188,7 +201,6 @@ class ResearchObjective(models.Model):
     # Creates and saves a ResearchObjective object of the provided name parameter
     @classmethod
     def create(cls, name, player):
-
         research_objective = cls(name=name, value=name*10, player=player)   # Fix value for each objective
         research_objective.save()
         for i in range(name):
@@ -228,10 +240,11 @@ class SecurityResource(models.Model):
 class Capabilities(models.Model):
 
     security_resources = models.ManyToManyField(SecurityResource)
-    player = models.OneToOneField(Player)
+    player = models.OneToOneField(Player, null=True)
 
     def __unicode__(self):
-        return u'%s\'s Capabilities' % (self.player.name)
+        if hasattr(Capabilities, 'player'):
+            return u'%s\'s Capabilities' % (self.player.name)
 
     @classmethod
     def create(cls, player):
@@ -249,10 +262,11 @@ class Capabilities(models.Model):
 class Vulnerabilities(models.Model):
 
     security_resources = models.ManyToManyField(SecurityResource)
-    player = models.OneToOneField(Player)
+    player = models.OneToOneField(Player, null=True)
 
     def __unicode__(self):
-        return u'%s\'s Vulnerabilities' % (self.player.name)
+        if hasattr(Vulnerabilities, 'player'):
+            return u'%s\'s Vulnerabilities' % (self.player.name)
 
     @classmethod
     def create(cls, player):
@@ -275,17 +289,82 @@ class AttackResource(models.Model):
         return u'%s Attack Resource' % (self.get_classification_display().capitalize())
 
     @classmethod
-    def create(cls, classification):
-        attack_resource = cls(classification=classification)
-        attack_resource.save()
-        return attack_resource
+    def create(cls, game):
+        if game.tick_set.count() > 1:
+            num_ticks = game.tick_set.count()
+            attack_probability = game.tick_set.get(number=(num_ticks - 1)).next_attack_probability
+            blue, yellow, red = attack_probability.blue, attack_probability.yellow, attack_probability.red
+            attack_probability = [(0, blue, BLUE),
+                                                (blue, blue+red, RED),
+                                                (blue+red, blue+red+yellow, YELLOW)]
+            rand = random.randint(1,100)
+            for lo, hi, classification in attack_probability:
+                if rand >= lo and rand < hi:
+                    print rand
+                    attack_resource = cls(classification=classification)
+                    attack_resource.save()
+                    return attack_resource
+
+            # Shouldn't reach here.  Returns random classification
+            return cls(classification=random.randint(BLUE,YELLOW))
 
 
+''' The probability per classification of an AttackResource object in the next round '''
+class AttackProbability(models.Model):
+    blue = models.IntegerField()
+    yellow = models.IntegerField()
+    red = models.IntegerField()
 
+    def __unicode__(self):
+        return u'blue: %s, red: %s, yellow: %s' %(self.blue, self.red, self.yellow)
+
+    @classmethod
+    def create(cls):
+        blue = random.randint(0, 100)
+        yellow = random.randint(0, 100 - blue)
+        red = (100 - yellow - blue)
+        attack_probability = cls(blue=blue, yellow=yellow, red=red)
+        attack_probability.save()
+        return attack_probability
+
+
+''' Tick object that keeps game state '''
 class Tick(models.Model):
+    number = models.IntegerField(default = 1)
     game = models.ForeignKey(Game)
     complete = models.BooleanField(default=False)
-    attack = models.OneToOneField(AttackResource)
+    attack = models.OneToOneField(AttackResource, null=True, default=None, related_name="attack")
+    next_attack_probability = models.OneToOneField(AttackProbability)
+
+    def __unicode__(self):
+        return u'Tick %s of %s' % (self.number, self.game)
+
+    @classmethod
+    def create(cls, game):
+        tick = cls(game=game)
+        if game.tick_set.all():
+            tick.number = game.tick_set.latest('number').number + 1
+        tick.attack = AttackResource.create(game)
+        tick.next_attack_probability = AttackProbability.create()
+        tick.save()
+
+
+''' An object for synchronizing players' moves within a round '''
+class PlayerTick(models.Model):
+    tick = models.ForeignKey(Tick)
+    player = models.ForeignKey(Player)
+
+
+def update_tick(sender, instance, **kwargs):
+    game = instance.player.game
+    players = Player.objects.filter(game=game)
+    for player in players:
+        if player.can_move:
+            return
+
+    Tick.create(game=game)
+
+post_save.connect(update_tick, sender=PlayerTick)
 
 
 ''' Group Message object '''

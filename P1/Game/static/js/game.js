@@ -1,6 +1,11 @@
 
+$(function() {
+    update_attack_probabilities();
+    scrollChat();
+});
+
 // Function for Attack Threat vertical bar
-$(function(){
+function update_attack_probabilities(){
 
     // Get blue threat
     var blueBar = $('.attack-threat').find('.inner.blue');
@@ -9,7 +14,7 @@ $(function(){
     // Animate bar
     $(blueBar).animate({
         height: blueThreat
-    }, 1500);
+    }, 1000);
 
      // Get blue threat
     var redBar = $('.attack-threat').find('.inner.red');
@@ -19,7 +24,7 @@ $(function(){
     // Animate bar
     $(redBar).animate({
         height: redCent
-    }, 1500);
+    }, 1000);
 
     // Get blue threat
     var yellowBar = $('.attack-threat').find('.inner.yellow');
@@ -29,13 +34,9 @@ $(function(){
     // Animate bar
     $(yellowBar).animate({
         height: yellowCent
-    }, 1500);
+    }, 1000);
 
-});
-
-$(function() {
-    scrollChat();
-});
+};
 
 // AJAX POST message for game chat
 $('#message-form').on('submit', function(event){
@@ -49,7 +50,7 @@ function create_message() {
     $.ajax({
         url : "/message/create/", // the endpoint
         type : "POST", // http method
-        data : { the_message : $('#id_content').val() }, // data sent with the post request
+        data : { the_message : $('#id_content').val(), game_key : $('#game-key').text()}, // data sent with the post request
 
         // handle a successful response
         success : function(json) {
@@ -74,23 +75,22 @@ function scrollChat() {
         $(chatWindow).animate({scrollTop:$(chatWindow)[0].scrollHeight}, 1000);
 };
 
+// Keeps chat and other players' scores and vulnerabilities up-to-date
 function updatePage(){
-    $("#talk").load(document.URL +  ' #talk');
-    $("#left-panel").load(location.href+" #left-panel>*","");
+    $("#talk").load(location.href +  ' #talk');
+    $("#left-panel").load(location.href +" #left-panel>*","");
+    $("#attack").load(location.href +" #attack>*","");
     scrollChat();
 }
 
-setInterval("updatePage()",1000);  //call updateChat() function every 1 seconds
+setInterval("updatePage()",800);  //call updatePage() function every 1 seconds
 
 
 // AJAX POST activate security resource
 $(document).on('click', '.clickable.inactive',function(event){
     var clicked_resource = $(this);
-    // Change class from .inactive to .active
-    clicked_resource.removeClass("inactive").addClass("active");
     event.preventDefault();
     console.log("resource clicked");  // sanity check
-    var color = clicked_resource.attr('id');
     activate_security_resource(clicked_resource);
 });
 
@@ -99,11 +99,16 @@ function activate_security_resource(clicked_resource) {
     $.ajax({
         url : "/resource/activate/", // the endpoint
         type : "POST", // http method
-        data : { pk : $(clicked_resource).attr('value') }, // data sent with the post request
+        data : { pk : $(clicked_resource).attr('value'), player_pk : $("#player").text() }, // data sent with the post request
 
         // handle a successful response
         success : function(json) {
+            clicked_resource.removeClass("inactive").addClass("active");
+            $("#vulnerability-list").load(location.href +" #vulnerability-list>*","");
             $("#vulnerabilities").load(location.href +" #vulnerabilities>*","");
+            $("#time-remaining").load(location.href +" #time-remaining");
+            // $("#threat").load(location.href +" #threat>*","");
+            // update_attack_probabilities();
             console.log(json); // log the returned json to the console
             console.log("success"); // another sanity check
         },
@@ -120,11 +125,8 @@ function activate_security_resource(clicked_resource) {
 // AJAX POST complete research resource
 $(document).on('click', '.clickable.incomplete', function(event){
     var clicked_resource = $(this);
-    // Change class from .incomplete to .complete
-    clicked_resource.removeClass("incomplete").addClass("complete");
     event.preventDefault();
     console.log("resource clicked");  // sanity check
-    var color = clicked_resource.attr('id');
     complete_research_resource(clicked_resource);
 });
 
@@ -133,11 +135,15 @@ function complete_research_resource(clicked_resource) {
     $.ajax({
         url : "/resource/complete/", // the endpoint
         type : "POST", // http method
-        data : { pk : $(clicked_resource).attr('value') }, // data sent with the post request
+        data : { pk : $(clicked_resource).attr('value'), player_pk : $("#player").text() }, // data sent with the post request
 
         // handle a successful response
         success : function(json) {
+            clicked_resource.removeClass("incomplete").addClass("complete");
             $("#research-objectives").load(location.href+" #research-objectives>*","");
+            $("#time-remaining").load(location.href +" #time-remaining");
+            // $("#threat").load(location.href +" #threat>*","");
+            // update_attack_probabilities();
             console.log(json); // log the returned json to the console
             console.log("success"); // another sanity check
         },
@@ -165,7 +171,7 @@ function complete_research_resource(clicked_resource) {
 // function complete_research_resource(clicked_resource) {
 //     console.log("Research Resource Completed!") // sanity check
 //     $.ajax({
-//         url : "/resource/complete/", // the endpoint
+//         url : "/sanction/", // the endpoint
 //         type : "POST", // http method
 //         data : { pk : $(clicked_resource).attr('value') }, // data sent with the post request
 
