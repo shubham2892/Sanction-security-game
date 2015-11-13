@@ -84,12 +84,13 @@ function updatePage(){
     $("#left-panel").load(location.href +" #left-panel>*","");
     $("#attack").load(location.href +" #attack>*","");
     $("#vulnerability-list").load(location.href +" #vulnerability-list>*","");
+    $("#capability-list").load(location.href +" #capability-list>*","");
     $("#vulnerabilities").load(location.href +" #vulnerabilities>*","");
     $("#time-remaining").load(location.href +" #time-remaining");
     scrollChat();
 }
 
-setInterval("updatePage()", 800);  //call updatePage() function every 1 seconds
+setInterval("updatePage()", 1000);  //call updatePage() function every 1 seconds
 
 
 // AJAX POST activate security resource
@@ -109,8 +110,12 @@ function activate_security_resource(clicked_resource) {
 
         // handle a successful response
         success : function(json) {
-            $(clicked_resource).removeClass("inactive").addClass("active")
+            console.log(json["active"]);
+            if (json["active"] === true) {
+                $(clicked_resource).removeClass("inactive").addClass("active")
+            }
             $("#vulnerability-list").load(location.href +" #vulnerability-list>*","");
+            $("#capability-list").load(location.href +" #capability-list>*","");
             $("#vulnerabilities").load(location.href +" #vulnerabilities>*","");
             $("#time-remaining").load(location.href +" #time-remaining");
             console.log(json); // log the returned json to the console
@@ -143,7 +148,9 @@ function complete_research_resource(clicked_resource) {
 
         // handle a successful response
         success : function(json) {
-            $(clicked_resource).removeClass("incomplete").addClass("complete")
+            if (json["resource_complete"] === true) {
+                $(clicked_resource).removeClass("incomplete").addClass("complete");
+            }
             $("#research-objectives").load(location.href+" #research-objectives>*","");
             $("#time-remaining").load(location.href +" #time-remaining");
             console.log(json); // log the returned json to the console

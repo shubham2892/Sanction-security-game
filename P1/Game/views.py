@@ -15,7 +15,7 @@ from django.views.generic.edit import CreateView
 from random import random
 from itertools import chain
 from forms import RegistrationForm, CreateMessageForm
-from models import Player, Game, Message, SecurityResource, ResearchResource, PlayerTick
+from models import Player, Game, Message, SecurityResource, ResearchResource, PlayerTick, Capabilities
 import json
 
 
@@ -180,13 +180,20 @@ def security_resource_activate(request):
         if request.method == 'POST':
             player = Player.objects.get(pk=request.POST.get('player_pk'))
             if player.can_move:
-                PlayerTick(player=player, tick=player.game.current_tick).save()
                 pk = request.POST.get('pk')
                 response_data = {}
 
                 security_resource = SecurityResource.objects.get(pk=pk)
                 security_resource.active=True
                 security_resource.save()
+
+                # After security resource is activated, reactivate capability if necessary
+                c = Capabilities.objects.get(player=player).security_resources.get(classification=security_resource.classification)
+                c.active = True;
+                c.save()
+
+                # End players move
+                PlayerTick(player=player, tick=player.game.current_tick).save()
 
                 response_data['result'] = 'Security Resource Activated!'
                 response_data['pk'] = security_resource.pk
@@ -227,13 +234,19 @@ def research_resource_complete(request):
         if request.method == 'POST':
             player = Player.objects.get(pk=request.POST.get('player_pk'))
             if player.can_move:
-                PlayerTick(player=player, tick=player.game.current_tick).save()
                 pk = request.POST.get('pk')
                 response_data = {}
 
                 research_resource = ResearchResource.objects.get(pk=pk)
-                research_resource.complete=True
-                research_resource.save()
+                capable = player.capabilities.security_resources.get(classification = research_resource.classification)
+                if capable.active:
+                    research_resource.complete=True
+                    research_resource.save()
+                else:
+                    return HttpResponse(
+                    json.dumps({"Player not capable of completing task": "Must activate Security Resource"}),
+                    content_type="application/json"
+                    )
 
                 objective_completed = True
                 objective = research_resource.researchobjective_set.all().first()
@@ -248,6 +261,9 @@ def research_resource_complete(request):
                     player.save()
                     objective.save()
 
+                # End players move
+                PlayerTick(player=player, tick=player.game.current_tick).save()
+
                 response_data['result'] = 'Research Resource Complete!'
                 response_data['pk'] = research_resource.pk
                 response_data['resource_complete'] = research_resource.complete
@@ -261,7 +277,7 @@ def research_resource_complete(request):
                 return HttpResponse(
                     json.dumps({"Player has already moved": "Must wait until next turn"}),
                     content_type="application/json"
-            )
+                )
         else:
             return HttpResponse(
                 json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),

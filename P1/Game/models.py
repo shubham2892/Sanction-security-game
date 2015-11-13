@@ -3,9 +3,12 @@ from django.db import IntegrityError
 from django.db import models
 from django.db.models.signals import post_save
 
+from custom_models import IntegerRangeField
 from datetime import timedelta
 from random import choice
 import random
+
+
 
 
 ''' The Game object for maintaining game state and players '''
@@ -15,6 +18,7 @@ class Game(models.Model):
 
     _ticks = models.IntegerField()
     game_key = models.CharField(max_length=GAME_KEY_LENGTH*2, unique=True, null=True, blank=True, editable=False)
+    attack_frequency = IntegerRangeField(min_value=0, max_value=100)
 
     def __unicode__(self):
         return u'Game #%s' % (self.game_key)
@@ -298,12 +302,6 @@ class AttackResource(models.Model):
     def __unicode__(self):
         return u'%s Attack Resource' % (self.get_classification_display().capitalize())
 
-    # Checks whether or not an attack will occur this round
-    @classmethod
-    def attack_occurs(cls):
-        rand = random.randint(0,100)
-        return bool(rand < cls.ATTACK_FREQUENCY)
-
     @classmethod
     def deactivate_security(cls, player, attack_resource):
         v = player.vulnerabilities
@@ -313,6 +311,9 @@ class AttackResource(models.Model):
             r.save()
             return True
         else:
+            c = Capabilities.objects.get(player=player).security_resources.get(classification=attack_resource.classification)
+            c.active = False;
+            c.save()
             return False
 
 
@@ -323,13 +324,12 @@ class AttackResource(models.Model):
                 if r.classification == attack_resource.classification:
                     r.complete=False
                     r.save()
-
         return True
 
 
     @classmethod
     def create(cls, game):
-        if game.tick_set.count() > 1 and cls.attack_occurs():
+        if game.tick_set.count() > 1 and (random.randint(0,100) < game.attack_frequency):
             num_ticks = game.tick_set.count()
             attack_probability = game.tick_set.get(number=(num_ticks - 1)).next_attack_probability
             blue, yellow, red = attack_probability.blue, attack_probability.yellow, attack_probability.red
