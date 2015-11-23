@@ -79,7 +79,6 @@ class Player(models.Model):
     game = models.ForeignKey(Game)
     score = models.IntegerField(default=0, editable=False)
     number = models.IntegerField(default=0, editable=False)
-    sanctioned = models.BooleanField(default=False, editable=False)
 
     def __unicode__(self):
         return u'%s %s (%s) in %s' % (self.user.first_name, self.user.last_name, self.user.email, self.game)
@@ -129,11 +128,18 @@ class Player(models.Model):
 
     @property
     def can_move(self):
-        return not self.playertick_set.filter(tick=self.game.current_tick) and not player.game.complete
+        return not self.playertick_set.filter(tick=self.game.current_tick) and not self.game.complete
 
     @property
     def remaining_moves(self):
         return self.game._ticks - self.playertick_set.count()
+
+    @property
+    def sanctioned(self):
+        if self.sanctionee.exists() and (self.sanctionee.latest("tick_number").tick_number == self.game.current_tick.number):
+            return True
+        else:
+            return False
 
 
 def set_player_defaults(sender, instance, **kwargs):
@@ -386,12 +392,11 @@ class Tick(models.Model):
             tick.next_attack_probability = AttackProbability.create()
             tick.save()
 
-            # Take away sanctioned player's turned
-            for player in game.player_set.all():
-                if player.sanctioned:
-                    PlayerTick(tick=tick, player=player).save()
-                    player.sanctioned = False
-                    player.save()
+            # Take away  player's turned
+            sanctions = Sanction.objects.filter(tick_number=tick.number)
+            if sanctions:
+                for sanction in sanctions:
+                        PlayerTick(tick=tick, player=sanction.sanctionee).save()
 
             return tick
 
@@ -433,5 +438,18 @@ class Message(models.Model):
             return u'%s' % content
 
 
+class Sanction(models.Model):
+    sanctioner = models.ForeignKey(Player, related_name="sanctioner")
+    sanctionee = models.ForeignKey(Player, related_name="sanctionee")
+    tick_number = models.IntegerField()
+
+    def __unicode__(self):
+        return u'%s sanctioned %s' %(self.sanctioner.user.username, self.sanctionee.user.username)
+
+    @classmethod
+    def create(cls, sanctioner, sanctionee, tick):
+        sanction = cls(sanctioner=sanctioner, sanctionee=sanctionee, tick_number=(tick.number + 1))
+        sanction.save()
+        return sanction
 
 

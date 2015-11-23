@@ -77,6 +77,10 @@
 
 /*=== START Game Information Header Style ===*/
 
+.panel-heading.sanctioned {
+    background-color: red;
+}
+
 .panel-heading #sanction {
     position: relative;
     top: -5px;

@@ -15,7 +15,7 @@ from django.views.generic.edit import CreateView
 from random import random
 from itertools import chain
 from forms import CreateMessageForm
-from models import Player, Game, Message, SecurityResource, ResearchResource, PlayerTick, Capabilities, Tick
+from models import *
 import json
 
 
@@ -201,6 +201,11 @@ def security_resource_activate(request):
                     json.dumps(response_data),
                     content_type="application/json"
                 )
+            elif player.sanctioned:
+                return HttpResponse(
+                    json.dumps({"result": "You have been sanctioned. You may not move this round."}),
+                    content_type="application/json"
+            )
             else:
                 return HttpResponse(
                     json.dumps({"result": "You have already moved this round."}),
@@ -258,6 +263,11 @@ def research_resource_complete(request):
                     json.dumps(response_data),
                     content_type="application/json"
                 )
+            elif player.sanctioned:
+                return HttpResponse(
+                    json.dumps({"result": "You have been sanctioned. You may not move this round."}),
+                    content_type="application/json"
+            )
             else:
                 return HttpResponse(
                     json.dumps({"result": "You have already moved this round."}),
@@ -280,19 +290,23 @@ def sanction(request):
                 response_data = {}
 
                 # Perform Sanction
-                sanctionee.sanctioned = True
-                sanctionee.save()
+                sanction = Sanction.create(sanctioner, sanctionee, tick)
 
                 # End players move
                 PlayerTick(player=sanctioner, tick=sanctioner.game.current_tick).save()
 
+                response_date["sanctioned"] = True
                 response_data['result'] = "You have sanctioned Player " + apnumber(sanctionee.number).capitalize()
-                response_data["sanctioned"] = sanctionee.sanctioned
 
                 return HttpResponse(
                     json.dumps(response_data),
                     content_type="application/json"
                 )
+            elif sanctioner.sanctioned:
+                return HttpResponse(
+                    json.dumps({"result": "You have been sanctioned. You may not move this round."}),
+                    content_type="application/json"
+            )
             else:
                 return HttpResponse(
                     json.dumps({"result": "You have already moved this round."}),

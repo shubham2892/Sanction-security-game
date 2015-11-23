@@ -31,7 +31,11 @@
     <div class="col-md-3">
         {% for player in players %}
         <div class="panel panel-primary">
+            {% if player.sanctioned %}
+            <div class="panel-heading sanctioned">
+            {% else %}
             <div class="panel-heading">
+            {% endif %}
                 <div>
                     {% if player == me %}
                     <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst}} (Me)
