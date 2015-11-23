@@ -127,7 +127,7 @@ class GameView(TemplateView):
 
         # Get current player from player view
         try:
-            me = Player.objects.get(user=self.request.user)
+            me = Player.objects.get(user=self.request.user, game=game)
         except ObjectDoesNotExist:
             raise Http404
         context["me"] = me
