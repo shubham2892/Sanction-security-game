@@ -4,23 +4,27 @@
 
 .game-header {
     width: 100%;
-    float: left;
     margin-left: auto;
     margin-right:auto;
-    margin-bottom: 20px;
+    padding: 10px;
+    margin-bottom:10px;
     border-bottom: 1px solid #eeeeee;
+    display :inline-block;
 }
 
 .game-header #game-number {
-    text-align: left;
+    float: left;
 }
 
-.game-header #countdown {
-    text-align:center;
+.game-header .response {
+    position:fixed;
+    text-align: center;
+    width: inherit;
+    height: 100%;
 }
 
 .game-header #time-remaining {
-    text-align:right;
+    float:right;
 }
 
 /*===END Game Header Style===*/

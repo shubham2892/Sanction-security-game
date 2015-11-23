@@ -1,10 +1,28 @@
 {% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block head_css %}
+<link href="{% static 'css/home.css' %}" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
 
 <div class="container">
-  <h2 class="centered">My Games</h2>
+
+  <!-- START Home Header -->
+  <div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-md-8">
+      <h2 id="title">My Games</h2>
+    </div>
+    <div class="col-md-2 text-center">
+      <h2><a id="logout" href="{% url 'logout' %}" class="btn btn-danger"><span class="glyphicon glyphicon-log-out"></span>&nbsp;Logout</a></h2>
+    </div>
+  <!-- END Home Header -->
+
   <hr>
+
+  <!-- START Game Table -->
   <table class="table table-striped">
     <thead>
       <tr>
@@ -14,24 +32,35 @@
     </thead>
     <tbody>
       {% for game in view.games %}
+        <tr>
+            {% if game.complete %}
 
-          <td>
-              <h5><a href="{% url 'game' game.game_key %}" class="btn btn-sm btn-info">Game&nbsp;#{{ game.game_key }}</a></h5>
-          </td>
+            <td>
+                <h5><a href="{% url 'game' game.game_key %}" class="btn btn-sm btn-info disabled">Game&nbsp;#{{ game.game_key }}</a></h5>
+            </td>
 
-          {% if game.complete %}
-          <td>
-            <h5>Completed</h5>
-          </td>
-          {% else %}
-          <td>
-            <h5>Incomplete</h5>
-          </td>
-          {% endif %}
+            <td>
+              <h5>Completed</h5>
+            </td>
 
+            {% else %}
+
+            <td>
+                <h5><a href="{% url 'game' game.game_key %}" class="btn btn-sm btn-info">Game&nbsp;#{{ game.game_key }}</a></h5>
+            </td>
+
+            <td>
+              <h5>Incomplete</h5>
+            </td>
+
+            {% endif %}
+
+        </tr>
       {% endfor %}
     </tbody>
   </table>
+  <!-- END Game Table -->
+
 </div>
 
 {% endblock %}

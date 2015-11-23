@@ -9,15 +9,16 @@
 {% block navbar %}
 <div class="game-header">
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-3 col-sm-12">
             <h3 id="game-number">Game&nbsp;#<span id="game-key">{{ game.game_key }}</span></h3>
         </div>
-        <div class="col-md-4">
-            <h3 id="countdown">Something here...</h3>
+        <div class="col-md-6 col-sm-12">
+            <p class="response center-block"></p>
         </div>
-        <div class="col-md-4">
-            <h3 id="time-remaining">Remaining Moves: {{ me.remaining_moves }}</h3>
+        <div class="col-md-3 col-sm-12">
+            <h3 id="time-remaining" value="{{ game.current_tick.pk }}"> {% if game.ticks >= 0 %} Remaining Rounds:  {{ game.ticks }}  {% else %} Game Over! {% endif %}</h3>
         </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -27,7 +28,7 @@
 <div class="row">
 
     <!-- START Game Information -->
-    <div id="left-panel" class="col-md-3">
+    <div class="col-md-3">
         {% for player in players %}
         <div class="panel panel-primary">
             <div class="panel-heading">
@@ -36,13 +37,17 @@
                     <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst}} (Me)
                     {% else %}
                     <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst }}
-                    <button id="sanction" type="button" class="btn btn-sm btn-danger pull-right">Sanction</button>
+                    <button id="sanction" type="button" sanctionee="{{ player.pk }}" sanctioner="{{ me.pk }}"class="btn btn-sm btn-danger pull-right">Sanction</button>
                     {% endif %}
                 </div>
             </div>
             <div class="panel-body">
                 <table id="player-info" class="info-text">
-                    <tr id="score" player-score="{{ player.score }}">
+                    {% if player == me %}
+                    <tr id="my-score" player-score="{{ player.score }}">
+                    {% else %}
+                    <tr id="their-score" player-score="{{ player.score }}">
+                    {% endif %}
                         <td>
                             Score: {{ player.score }}
                         </td>
@@ -65,16 +70,17 @@
                         </td>
                         <td colspan="1">
                             <h5>moved:</h5>
+                        </td>
                         {% if not player.can_move %}
                         <td colspan="1">
                             <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></h5>
-                        <td>
+                        </td>
                         {% endif %}
                     </tr>
                         {% if player == me%}
-                        <tr id="vulnerabilities">
+                        <tr id="my-vulnerabilities">
                         {% else %}
-                        <tr>
+                        <tr id="their-vulnerabilities">
                         {% endif %}
                             <td>
                                 Vulnerabilities:
@@ -244,14 +250,14 @@
                     <!-- START Attack Information -->
 
                     <div class="col-md-2 attack">
-                        <div id="attack" class="panel panel-primary">
+                        <div id="attack" value="{{ game.attack.pk }}" class="panel panel-primary">
                             <div class="panel-heading attack-heading">
                                 <div>
                                     <span class="glyphicon glyphicon-screenshot"></span>&nbsp; Attack
                                 </div>
                             </div>
                             <div class="panel-body attack-active">
-                                <div id="{{ game.attack }}" class="resource-container complete centered">
+                                <div id="{{ game.attack.get_classification_display }}" class="resource-container complete centered">
                                     <span class="centerer"></span><span class='centered'></span>
                                 </div>
                             </div>
@@ -329,12 +335,29 @@
                                 </form>
                             </div>
                         </div>
-
-                    <!-- END Chat Window -->
-
                 </div>
             </div>
             <!-- END Fluid Scaffold -->
+                    <!-- END Chat Window -->
+
+        <!-- START Game Over Modal -->
+            <div id="game-over-modal" class="modal fade"  tabindex="-1" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                             <h3 class="modal-title text-center"><span class="glyphicon glyphicon-check"></span>&nbsp;Game Over!</h3>
+                        </div>
+                    <div class="modal-body">
+                    <h5>Thank you for your participation!</h5>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="{% url 'home' %}" class="btn btn-info">My Games</a>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+
+        <!-- END Game Over Modal -->
 
             <script src="{% static 'js/game.js' %}"></script>
 

@@ -1,8 +1,8 @@
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import logout
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.humanize.templatetags.humanize import  apnumber
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max
@@ -14,10 +14,9 @@ from django.views.generic.edit import CreateView
 
 from random import random
 from itertools import chain
-from forms import RegistrationForm, CreateMessageForm
-from models import Player, Game, Message, SecurityResource, ResearchResource, PlayerTick, Capabilities
+from forms import CreateMessageForm
+from models import Player, Game, Message, SecurityResource, ResearchResource, PlayerTick, Capabilities, Tick
 import json
-
 
 
 class HomeView(TemplateView):
@@ -28,10 +27,9 @@ class HomeView(TemplateView):
         user_players = Player.objects.filter(user=self.request.user)
         games = []
         for player in user_players:
-            games.append(Game.objects.filter(player=player).first())  #filter().first() won't cause system to crash if query doesn't exist
+            games.append(Game.objects.filter(player=player).first())  #filter().first() won't cause 500 if query doesn't exist
 
         return games
-
 
 
 class MultipleFormView(FormView):
@@ -76,11 +74,10 @@ class MultipleFormView(FormView):
 
 
 
-class LoginOrRegisterView(MultipleFormView):
+class LoginView(MultipleFormView):
     template_name = 'accounts/login.html'
     form_classes = {
         'login': AuthenticationForm,
-        'registration': RegistrationForm,
     }
 
     def login_form_valid(self, form):
@@ -195,7 +192,8 @@ def security_resource_activate(request):
                 # End players move
                 PlayerTick(player=player, tick=player.game.current_tick).save()
 
-                response_data['result'] = 'Security Resource Activated!'
+                response_data['result'] = str(security_resource) + ' Activated!  ' + str(security_resource.get_classification_display().capitalize()) + ' capability restored.'
+
                 response_data['pk'] = security_resource.pk
                 response_data['active'] = security_resource.active
 
@@ -205,27 +203,12 @@ def security_resource_activate(request):
                 )
             else:
                 return HttpResponse(
-                    json.dumps({"Player has already moved": "Must wait until next turn"}),
+                    json.dumps({"result": "You have already moved this round."}),
                     content_type="application/json"
             )
         else:
             return HttpResponse(
                 json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
-                content_type="application/json"
-            )
-
-@csrf_exempt
-def security_resource_deactivate(request):
-        if request.method == 'POST':
-            response_data['WTF']
-
-            return HttpResponse(
-                json.dumps(response_data),
-                content_type="application/json"
-            )
-        else:
-            return HttpResponse(
-                json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game!"}),
                 content_type="application/json"
             )
 
@@ -244,7 +227,7 @@ def research_resource_complete(request):
                     research_resource.save()
                 else:
                     return HttpResponse(
-                    json.dumps({"Player not capable of completing task": "Must activate Security Resource"}),
+                    json.dumps({"result": "You are not capable of completing this task. Make sure you patch your vulnerabilities."}),
                     content_type="application/json"
                     )
 
@@ -254,17 +237,19 @@ def research_resource_complete(request):
                     if resource.complete == False:
                         objective_completed = False
 
+                response_data['result'] = str(research_resource) + ' Completed!'
+
                 if objective_completed:
                     objective.complete = True
                     player = objective.player
                     player.score += objective.value
                     player.save()
                     objective.save()
+                    response_data['result'] = str(objective) + " Completed!"
 
                 # End players move
                 PlayerTick(player=player, tick=player.game.current_tick).save()
 
-                response_data['result'] = 'Research Resource Complete!'
                 response_data['pk'] = research_resource.pk
                 response_data['resource_complete'] = research_resource.complete
                 response_data['objective_complete'] = objective_completed
@@ -275,7 +260,7 @@ def research_resource_complete(request):
                 )
             else:
                 return HttpResponse(
-                    json.dumps({"Player has already moved": "Must wait until next turn"}),
+                    json.dumps({"result": "You have already moved this round."}),
                     content_type="application/json"
                 )
         else:
@@ -284,26 +269,66 @@ def research_resource_complete(request):
                 content_type="application/json"
             )
 
-@csrf_exempt
-def research_resource_incomplete(request):
-        if request.method == 'POST':
-            response_data['WTF']
-
-            return HttpResponse(
-                json.dumps(response_data),
-                content_type="application/json"
-            )
-        else:
-            return HttpResponse(
-                json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game!"}),
-                content_type="application/json"
-            )
-
 
 @csrf_exempt
 def sanction(request):
-    print 'sanction url'
-    pass;
+    if request.method == 'POST':
+            sanctioner = Player.objects.get(pk=request.POST.get("sanctioner_pk"))
+            if sanctioner.can_move:
+                sanctionee = Player.objects.get(pk=request.POST.get("sanctionee_pk"))
+                tick = Tick.objects.get(pk=request.POST.get("tick_pk"))
+                response_data = {}
+
+                # Perform Sanction
+                sanctionee.sanctioned = True
+                sanctionee.save()
+
+                # End players move
+                PlayerTick(player=sanctioner, tick=sanctioner.game.current_tick).save()
+
+                response_data['result'] = "You have sanctioned Player " + apnumber(sanctionee.number).capitalize()
+                response_data["sanctioned"] = sanctionee.sanctioned
+
+                return HttpResponse(
+                    json.dumps(response_data),
+                    content_type="application/json"
+                )
+            else:
+                return HttpResponse(
+                    json.dumps({"result": "You have already moved this round."}),
+                    content_type="application/json"
+                )
+    else:
+            return HttpResponse(
+                json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
+                content_type="application/json"
+            )
+
+
+@csrf_exempt
+def check_tick_complete(request):
+    if request.method == 'POST':
+        tick = Tick.objects.get(pk=request.POST.get("tick_pk"))
+        response_data = {}
+
+        # End the game if it's complete
+        if tick.game.ticks < 0:
+            tick.game.complete =  True
+            tick.game.save()
+
+        response_data["game_complete"] = tick.game.complete
+        response_data["tick_complete"] = tick.complete
+
+        return HttpResponse(
+            json.dumps(response_data),
+            content_type="application/json"
+        )
+
+    else:
+        return HttpResponse(
+            json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
+            content_type="application/json"
+        )
 
 
 

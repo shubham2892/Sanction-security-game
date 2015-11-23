@@ -19,6 +19,7 @@ class Game(models.Model):
     _ticks = models.IntegerField()
     game_key = models.CharField(max_length=GAME_KEY_LENGTH*2, unique=True, null=True, blank=True, editable=False)
     attack_frequency = IntegerRangeField(min_value=0, max_value=100)
+    complete = models.BooleanField(default=False, editable=False)
 
     def __unicode__(self):
         return u'Game #%s' % (self.game_key)
@@ -34,7 +35,7 @@ class Game(models.Model):
     @property
     def attack(self):
         if self.tick_set.last().attack:
-            return self.tick_set.last().attack.get_classification_display()
+            return self.tick_set.last().attack
         else:
             return None
 
@@ -44,7 +45,7 @@ class Game(models.Model):
 
 
     def generate_random_alphanumeric(self, length=GAME_KEY_LENGTH):
-        return str(Game.objects.count() + 1) + "X" + ''.join(random.choice('0123456789ABCDEF') for i in range(length))
+        return str(Game.objects.count() + 1) + "x" + ''.join(random.choice('0123456789ABCDEF') for i in range(length))
 
     def save(self, *args, **kwargs):
 
@@ -78,9 +79,10 @@ class Player(models.Model):
     game = models.ForeignKey(Game)
     score = models.IntegerField(default=0, editable=False)
     number = models.IntegerField(default=0, editable=False)
+    sanctioned = models.BooleanField(default=False, editable=False)
 
     def __unicode__(self):
-        return u'%s %s (%s)' % (self.user.first_name, self.user.last_name, self.user.email)
+        return u'%s %s (%s) in %s' % (self.user.first_name, self.user.last_name, self.user.email, self.game)
 
     @property
     def name(self):
@@ -127,7 +129,7 @@ class Player(models.Model):
 
     @property
     def can_move(self):
-        return not self.playertick_set.filter(tick=self.game.current_tick)
+        return not self.playertick_set.filter(tick=self.game.current_tick) and not player.game.complete
 
     @property
     def remaining_moves(self):
@@ -171,10 +173,7 @@ class ResearchResource(models.Model):
     complete = models.BooleanField(default=False)
 
     def __unicode__(self):
-        if self.complete:
-            return u'Completed %s Resource' % (self.get_classification_display().capitalize())
-        else:
-            return u'Incomplete %s Resource' % (self.get_classification_display().capitalize())
+            return u'%s Resource' % (self.get_classification_display().capitalize())
 
     # If no resource classification is specified before saving, a random classification is selected
     @classmethod
@@ -294,9 +293,6 @@ class Vulnerabilities(models.Model):
 ''' An Attack Resource for issuing an attack against a Research Resource '''
 class AttackResource(models.Model):
 
-    # Percent of attacks that are successful (should be between 1 and 100) MOVE TO PERCENT FIELD IN GAME OBJECT
-    ATTACK_FREQUENCY = 80
-
     classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS)
 
     def __unicode__(self):
@@ -329,9 +325,9 @@ class AttackResource(models.Model):
 
     @classmethod
     def create(cls, game):
-        if game.tick_set.count() > 1 and (random.randint(0,100) < game.attack_frequency):
+        if game.tick_set.count() > 0 and (random.randint(0,100) < game.attack_frequency):
             num_ticks = game.tick_set.count()
-            attack_probability = game.tick_set.get(number=(num_ticks - 1)).next_attack_probability
+            attack_probability = game.tick_set.get(number=num_ticks).next_attack_probability
             blue, yellow, red = attack_probability.blue, attack_probability.yellow, attack_probability.red
             attack_probability = [(0, blue, BLUE),
                                                 (blue, blue+red, RED),
@@ -382,13 +378,22 @@ class Tick(models.Model):
 
     @classmethod
     def create(cls, game):
-        tick = cls(game=game)
-        if game.tick_set.all():
-            tick.number = game.tick_set.latest('number').number + 1
-        tick.attack = AttackResource.create(game)
-        tick.next_attack_probability = AttackProbability.create()
-        tick.save()
-        return tick
+        if not game.complete:
+            tick = cls(game=game)
+            if game.tick_set.all():
+                tick.number = game.tick_set.latest('number').number + 1
+            tick.attack = AttackResource.create(game)
+            tick.next_attack_probability = AttackProbability.create()
+            tick.save()
+
+            # Take away sanctioned player's turned
+            for player in game.player_set.all():
+                if player.sanctioned:
+                    PlayerTick(tick=tick, player=player).save()
+                    player.sanctioned = False
+                    player.save()
+
+            return tick
 
 
 ''' An object for synchronizing players' moves within a round '''

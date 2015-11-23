@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django import forms
 from models import Player, Message
 
-class RegistrationForm(UserCreationForm):
+class RegisterUserForm(UserCreationForm):
     username = forms.EmailField(required=True, help_text='Your email address')
     first_name = forms.CharField(required=True)
     last_name = forms.CharField(required=True)
