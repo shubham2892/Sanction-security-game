@@ -1,7 +1,7 @@
 
 $(function() {
     update_attack_probabilities();
-    updateChat();
+    scrollChat();
 });
 
 function alertSuccess(message) {
@@ -83,7 +83,8 @@ function create_message() {
         // handle a successful response
         success : function(json) {
             $('#id_content').val(''); // remove the value from the input
-            updatePage();
+            updateChat();
+            scrollChat();
         },
 
         // handle a non-successful response
@@ -126,19 +127,21 @@ function updateRound() {
     });
 };
 
-var roundUpdate = setInterval(updateRound, 2000);  //call updateRound() function every 2 seconds
+var roundUpdate = setInterval(function() {updateRound() }, 3000);  //call updateRound() function every 2 seconds
 
 // Updates for new messages and keeps chat scrolled to the bottom
 function updateChat() {
     $("#talk").load(location.href +  ' #talk');
+};
+
+function scrollChat() {
     var chatWindow = $(".panel-body.chat");
     $(chatWindow).animate({scrollTop:$(chatWindow)[0].scrollHeight}, 1000);
 };
 
 function updateLeftPanel() {
-    $("#my-score").load(location.href +" #my-score>*","");
-    $("#their-score").load(location.href +" #their-score>*","");
-    $("#their-vulnerabilities").load(location.href +" #their-vulnerabilities>*","");
+    $("#their-score").load(location.href + " #their-score");
+    $("#their-vulnerabilities").load(location.href + " #their-vulnerabilities");
 }
 
 // Keeps chat and other players' scores and vulnerabilities up-to-date
@@ -147,8 +150,7 @@ function updatePage(){
     updateChat();
 }
 
-var pageUpdate = setInterval(updatePage, 1000);  //call updatePage() function every 1 seconds
-
+var pageUpdate = setInterval(function() {updatePage() }, 3000);  //call updatePage() function every 1 seconds
 
 
 // AJAX POST activate security resource
@@ -168,6 +170,7 @@ function activate_security_resource(clicked_resource) {
         success : function(json) {
             if (json["active"] === true) {
                 $(clicked_resource).removeClass("inactive").addClass("active")
+                $("#my-score").load(location.href +" #my-score>*","");
                 $("#capability-list").load(location.href +" #capability-list>*","");
                 $("#my-vulnerabilities").load(location.href +" #my-vulnerabilities>*","");
                 alertSuccess(json["result"]);
@@ -203,6 +206,7 @@ function complete_research_resource(clicked_resource) {
         success : function(json) {
             if (json["resource_complete"] === true) {
                 $(clicked_resource).removeClass("incomplete").addClass("complete");
+                $("#my-score").load(location.href +" #my-score>*","");
                 alertSuccess(json["result"]);
             } else {
                 alertFailure(json["result"]);
@@ -240,6 +244,7 @@ function sanction_player(sanctionee_pk, sanctioner_pk, tick_pk) {
         // handle a successful response
         success : function(json) {
             if (json["sanctioned"]) {
+                $("#my-score").load(location.href +" #my-score>*","");
                 alertSuccess(json["result"]);
             } else {
                 alertFailure(json["result"]);
