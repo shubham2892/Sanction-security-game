@@ -43,7 +43,7 @@
 
 /*===START Player Pane Style===*/
 
-.content {
+#content {
     padding-top: 1em;
 }
 
@@ -81,7 +81,7 @@
     background-color: red;
 }
 
-.panel-heading #sanction {
+.panel-heading .sanction {
     position: relative;
     top: -5px;
 }

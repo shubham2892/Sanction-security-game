@@ -2,6 +2,7 @@
 $(function() {
     update_attack_probabilities();
     scrollChat();
+    return false;
 });
 
 function alertSuccess(message) {
@@ -15,6 +16,7 @@ function alertSuccess(message) {
             '<strong>Success:&nbsp;</strong>' +
             message +
          '</div>');
+    return false;
 };
 
 function alertFailure(message) {
@@ -28,6 +30,7 @@ function alertFailure(message) {
             '<strong>Failure:&nbsp;</strong>' +
             message +
          '</div>');
+    return false;
 };
 
 
@@ -65,6 +68,7 @@ function update_attack_probabilities(){
         height: yellowCent
     }, animation_speed);
 
+    return false;
 };
 
 
@@ -72,6 +76,7 @@ function update_attack_probabilities(){
 $('#message-form').on('submit', function(event){
     event.preventDefault();
     create_message();
+    return false;
 });
 
 function create_message() {
@@ -94,6 +99,7 @@ function create_message() {
             console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
         }
     });
+    return false;
 };
 
 
@@ -107,14 +113,15 @@ function updateRound() {
         // handle a successful response
         success : function(json) {
             if (json["game_complete"] === true) {
-                clearInterval(roundUpdate);
-                clearInterval(pageUpdate);
                 $('#game-over-modal').modal({
                     backdrop : "static",
                     keyboard : false,
                     });
+                clearinterval(roundUpdate);
             } else if (json["tick_complete"] === true) {
                 window.location.reload();
+            } else {
+                updatePage();
             }
         },
 
@@ -125,39 +132,52 @@ function updateRound() {
             console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
         }
     });
+    return false;
 };
 
 var roundUpdate = setInterval(function() {updateRound() }, 3000);  //call updateRound() function every 2 seconds
 
-// Updates for new messages and keeps chat scrolled to the bottom
+// Refreshes talk for new messages
 function updateChat() {
     $("#talk").load(location.href +  ' #talk');
+    return false;
 };
 
+// Scrolls chat to bottom of screen when a message is send
 function scrollChat() {
     var chatWindow = $(".panel-body.chat");
     $(chatWindow).animate({scrollTop:$(chatWindow)[0].scrollHeight}, 1000);
+    return false;
 };
 
-function updateLeftPanel() {
-    $("#their-score").load(location.href + " #their-score");
-    $("#their-vulnerabilities").load(location.href + " #their-vulnerabilities");
+// Updates Chat and the Left Panel
+function updatePage() {
+    $.ajax({
+        url: location.href,
+        success: function(json) {
+
+            // Update left panel
+            var gameInfo = $(json).find("#game-info").html();
+            $('#game-info').html(gameInfo);
+
+            // Update Chat
+            var old_talk = $("#talk").html();
+            var new_talk = $(json).find("#talk").html();
+            if (old_talk !== new_talk) {
+                $('#talk').html(new_talk);
+                scrollChat();
+            }
+        }
+    });
+    return false;
 }
-
-// Keeps chat and other players' scores and vulnerabilities up-to-date
-function updatePage(){
-    updateLeftPanel();
-    updateChat();
-}
-
-var pageUpdate = setInterval(function() {updatePage() }, 3000);  //call updatePage() function every 1 seconds
-
 
 // AJAX POST activate security resource
 $(document).on('click', '.clickable.inactive',function(event){
     var clicked_resource = $(this);
     event.preventDefault();
     activate_security_resource(clicked_resource);
+    return false;
 });
 
 function activate_security_resource(clicked_resource) {
@@ -171,8 +191,8 @@ function activate_security_resource(clicked_resource) {
             if (json["active"] === true) {
                 $(clicked_resource).removeClass("inactive").addClass("active")
                 $("#my-score").load(location.href +" #my-score>*","");
-                $("#capability-list").load(location.href +" #capability-list>*","");
                 $("#my-vulnerabilities").load(location.href +" #my-vulnerabilities>*","");
+                $("#capability-list").load(location.href +" #capability-list>*","");
                 alertSuccess(json["result"]);
             } else {
                 alertFailure(json["result"]);
@@ -187,6 +207,7 @@ function activate_security_resource(clicked_resource) {
             console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
         }
     });
+    return false;
 };
 
 // AJAX POST complete research resource
@@ -194,6 +215,7 @@ $(document).on('click', '.clickable.incomplete', function(event){
     var clicked_resource = $(this);
     event.preventDefault();
     complete_research_resource(clicked_resource);
+    return false;
 });
 
 function complete_research_resource(clicked_resource) {
@@ -224,15 +246,17 @@ function complete_research_resource(clicked_resource) {
             console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
         }
     });
+    return false;
 };
 
 // AJAX POST impose sanction on player
-$("#sanction").click(function(event){
+$(document).on("click", ".sanction", function(event){
     var sanctionee_pk = $(this).attr("sanctionee");
     var sanctioner_pk = $(this).attr("sanctioner");
     var tick_pk = $("#time-remaining").attr("value");
     event.preventDefault();
     sanction_player(sanctionee_pk, sanctioner_pk, tick_pk);
+    return false;
 });
 
 function sanction_player(sanctionee_pk, sanctioner_pk, tick_pk) {
@@ -258,4 +282,5 @@ function sanction_player(sanctionee_pk, sanctioner_pk, tick_pk) {
             console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
         }
     });
+    return false;
 };

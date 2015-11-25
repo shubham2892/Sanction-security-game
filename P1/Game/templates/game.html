@@ -9,17 +9,17 @@
 {% block navbar %}
 <div class="game-header">
     <div class="row">
-        <div class="col-md-3 col-sm-12">
+        <div class="col-md-3">
             <h3 id="game-number">Game&nbsp;#<span id="game-key">{{ game.game_key }}</span></h3>
-        </div>
-        <div class="col-md-6 col-sm-12">
+        </div> <!-- end .col-md-3 -->
+        <div class="col-md-6">
             <p class="response center-block"></p>
-        </div>
-        <div class="col-md-3 col-sm-12">
+        </div> <!-- end .col-md-6 -->
+        <div class="col-md-3">
             <h3 id="time-remaining" value="{{ game.current_tick.pk }}"> {% if game.ticks >= 0 %} Remaining Rounds:  {{ game.ticks }}  {% else %} Game Over! {% endif %}</h3>
-        </div>
-    </div>
-</div>
+        </div> <!-- end .col-md-3  -->
+    </div> <!-- end .row -->
+</div> <!-- end .game-header -->
 {% endblock %}
 
 {% block content %}
@@ -28,9 +28,9 @@
 <div class="row">
 
     <!-- START Game Information -->
-    <div class="col-md-3">
+    <div id="game-info" class="col-md-3">
         {% for player in players %}
-        <div class="panel panel-primary">
+        <div class="panel panel-primary info-panel">
             {% if player.sanctioned %}
             <div class="panel-heading sanctioned">
             {% else %}
@@ -38,15 +38,16 @@
             {% endif %}
                 <div>
                     {% if player == me %}
-                    <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst}} (Me)
+                    <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst}} <strong>(Me)</strong>
                     {% else %}
                     <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst }}
-                    <button id="sanction" type="button" sanctionee="{{ player.pk }}" sanctioner="{{ me.pk }}"class="btn btn-sm btn-danger pull-right">Sanction</button>
+                    <button type="button" sanctionee="{{ player.pk }}" sanctioner="{{ me.pk }}" class="btn btn-sm btn-danger pull-right sanction">Sanction</button>
                     {% endif %}
                 </div>
             </div>
-            <div class="panel-body">
-                <table class="info-text">
+            <div class="panel-body info-text">
+                <table>
+                <tbody>
                     {% if player == me %}
                     <tr id="my-score" player-score="{{ player.score }}">
                     {% else %}
@@ -73,13 +74,14 @@
                             </div>
                         </td>
                         <td colspan="1">
-                            <h5>moved:</h5>
-                        </td>
-                        {% if not player.can_move %}
-                        <td colspan="1">
-                            <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></h5>
-                        </td>
+                        {% if player.can_move %}
+                            <h5><strong>thinking...</strong>
+                        {% elif player.sanctioned %}
+                            <h5><strong>sanctioned.</strong>
+                        {% else %}
+                            <h5><strong>moved.</strong>
                         {% endif %}
+                        </td>
                     </tr>
                         {% if player == me%}
                         <tr id="my-vulnerabilities">
@@ -101,6 +103,7 @@
                                 </td>
                                 {% endfor %}
                             </tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -117,7 +120,7 @@
                         <div>
                             <span><span class="glyphicon glyphicon-user"></span>
                             <span id="player" style="display:none">{{ me.pk }}</span>
-                            &nbsp;Player {{ me.number|apnumber|capfirst }} (Me)</span>
+                            &nbsp;Player {{ me.number|apnumber|capfirst }} <strong>(Me)</strong></span>
                             <span id="score">
                                 &nbsp;Score: <b> {{ me.score }}</b>
                             </span>
@@ -311,6 +314,8 @@
                                             <div class="header">
                                                 {% if message.created_by == me %}
                                                 <strong class="primary-font">Player {{ message.created_by.number | apnumber | capfirst }} (Me)</strong>
+                                                {% elif message.created_by == None %}
+                                                <strong class="primary-font">***Announcement***</strong>
                                                 {% else %}
                                                 <strong class="primary-font">Player {{ message.created_by.number | apnumber | capfirst }}</strong>
                                                 {% endif %}
@@ -365,8 +370,4 @@
 
             <script src="{% static 'js/game.js' %}"></script>
 
-            {% endblock %}
-
-            {% block footer %}
-            <hr>
             {% endblock %}

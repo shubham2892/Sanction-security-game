@@ -292,10 +292,15 @@ def sanction(request):
                 # Perform Sanction
                 sanction = Sanction.create(sanctioner, sanctionee, tick)
 
+                # Announce Sanctin
+                message_text = "Player %s has sanctioned Player %s" %(apnumber(sanctioner.number).capitalize(), apnumber(sanctionee.number).capitalize())
+                message = Message(content=message_text, created_by=None, game=sanctioner.game)
+                message.save()
+
                 # End players move
                 PlayerTick(player=sanctioner, tick=sanctioner.game.current_tick).save()
 
-                response_date["sanctioned"] = True
+                response_data["sanctioned"] = True
                 response_data['result'] = "You have sanctioned Player " + apnumber(sanctionee.number).capitalize()
 
                 return HttpResponse(
