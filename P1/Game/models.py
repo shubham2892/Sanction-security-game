@@ -20,6 +20,8 @@ class Game(models.Model):
     game_key = models.CharField(max_length=GAME_KEY_LENGTH*2, unique=True, null=True, blank=True, editable=False)
     attack_frequency = IntegerRangeField(min_value=0, max_value=100)
     complete = models.BooleanField(default=False, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False)
 
     def __unicode__(self):
         return u'Game #%s' % (self.game_key)
@@ -79,9 +81,11 @@ class Player(models.Model):
     game = models.ForeignKey(Game)
     score = models.IntegerField(default=0, editable=False)
     number = models.IntegerField(default=0, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now=True, editable=False)
 
     def __unicode__(self):
-        return u'%s %s (%s) in %s' % (self.user.first_name, self.user.last_name, self.user.email, self.game)
+        return u'%s in %s' % (self.user.username, self.game)
 
     @property
     def name(self):
@@ -177,6 +181,8 @@ RESOURCE_CLASSIFICATIONS = (
 class ResearchResource(models.Model):
     classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS, null=True, blank=True)
     complete = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
             return u'%s Resource' % (self.get_classification_display().capitalize())
@@ -209,6 +215,8 @@ class ResearchObjective(models.Model):
     value = models.IntegerField(null=True, blank=True)
     deadline = models.IntegerField(null=True, blank=True)  # deadline not in use yet
     complete = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return u'%s Objective' % (self.get_name_display().capitalize())
@@ -240,6 +248,8 @@ class ResearchObjective(models.Model):
 class SecurityResource(models.Model):
     classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS)
     active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return u'%s Security Resource' % (self.get_classification_display().capitalize())
@@ -256,6 +266,8 @@ class Capabilities(models.Model):
 
     security_resources = models.ManyToManyField(SecurityResource)
     player = models.OneToOneField(Player, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         if hasattr(Capabilities, 'player'):
@@ -278,6 +290,8 @@ class Vulnerabilities(models.Model):
 
     security_resources = models.ManyToManyField(SecurityResource)
     player = models.OneToOneField(Player, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         if hasattr(Vulnerabilities, 'player'):
@@ -300,6 +314,8 @@ class Vulnerabilities(models.Model):
 class AttackResource(models.Model):
 
     classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return u'%s Attack Resource' % (self.get_classification_display().capitalize())
@@ -357,6 +373,8 @@ class AttackProbability(models.Model):
     blue = models.IntegerField()
     yellow = models.IntegerField()
     red = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return u'blue: %s, red: %s, yellow: %s' %(self.blue, self.red, self.yellow)
@@ -378,6 +396,8 @@ class Tick(models.Model):
     complete = models.BooleanField(default=False)
     attack = models.OneToOneField(AttackResource, null=True, default=None, related_name="attack")
     next_attack_probability = models.OneToOneField(AttackProbability)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return u'Tick %s of %s' % (self.number, self.game)
@@ -405,6 +425,8 @@ class Tick(models.Model):
 class PlayerTick(models.Model):
     tick = models.ForeignKey(Tick)
     player = models.ForeignKey(Player)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
 
 def update_tick(sender, instance, **kwargs):
@@ -427,6 +449,8 @@ class Message(models.Model):
     game = models.ForeignKey(Game, null=True, editable=False)
     created_by = models.ForeignKey(Player, null=True, editable=False)
     content = models.TextField(max_length=500, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         content = (self.content[:75] + '...') if len(self.content) > 25 else self.content
@@ -442,6 +466,8 @@ class Sanction(models.Model):
     sanctioner = models.ForeignKey(Player, related_name="sanctioner")
     sanctionee = models.ForeignKey(Player, related_name="sanctionee")
     tick_number = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
         return u'%s sanctioned %s' %(self.sanctioner.user.username, self.sanctionee.user.username)
