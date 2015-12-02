@@ -224,7 +224,17 @@ class ResearchObjective(models.Model):
     # Creates and saves a ResearchObjective object of the provided name parameter
     @classmethod
     def create(cls, name, player):
-        research_objective = cls(name=name, value=name*10, player=player)   # Fix value for each objective
+
+        # Assign appropriate values to Research Objectives
+        value = 0
+        if name == 1:
+            value = 10
+        elif name == 2:
+            value = 25
+        elif name == 3:
+            value = 45
+
+        research_objective = cls(name=name, value=value, player=player)   # Fix value for each objective
         research_objective.save()
         for i in range(name):
             research_resource = ResearchResource.create()
