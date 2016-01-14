@@ -9,6 +9,12 @@ from random import choice
 import random
 
 
+#### GLOBAL VARIABLES ####
+
+''' Points earned by Research Objective'''
+WORKSHOP_VALUE = 10
+CONFERENCE_VALUE = 25
+JOURNAL_VALUE = 45
 
 
 ''' The Game object for maintaining game state and players '''
@@ -89,7 +95,7 @@ class Player(models.Model):
 
     @property
     def name(self):
-        return "{} {}".format(self.user.first_name, self.user.last_name)
+        return "{}".format(self.user.username)
 
     @property
     def workshop(self):
@@ -145,6 +151,12 @@ class Player(models.Model):
         else:
             return False
 
+    @property
+    def rank(self):
+        rank = Player.objects.filter(game=self.game, score__gt =self.score).count() + 1
+        return rank
+
+
 
 def set_player_defaults(sender, instance, **kwargs):
 
@@ -169,11 +181,13 @@ post_save.connect(set_player_defaults, sender=Player)
 BLUE = 1
 RED = 2
 YELLOW = 3
+LAB = 4
 
 RESOURCE_CLASSIFICATIONS = (
     (BLUE, "blue"),
     (RED, "red"),
     (YELLOW, "yellow"),
+    (LAB, "lab"),
 )
 
 
@@ -227,14 +241,14 @@ class ResearchObjective(models.Model):
 
         # Assign appropriate values to Research Objectives
         value = 0
-        if name == 1:
-            value = 10
-        elif name == 2:
-            value = 25
-        elif name == 3:
-            value = 45
+        if name == cls.WORKSHOP:
+            value = WORKSHOP_VALUE
+        elif name == cls.CONFERENCE:
+            value = CONFERENCE_VALUE
+        elif name == cls.JOURNAL:
+            value = JOURNAL_VALUE
 
-        research_objective = cls(name=name, value=value, player=player)   # Fix value for each objective
+        research_objective = cls(name=name, value=value, player=player)
         research_objective.save()
         for i in range(name):
             research_resource = ResearchResource.create()
@@ -262,7 +276,11 @@ class SecurityResource(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'%s Security Resource' % (self.get_classification_display().capitalize())
+        if self.active:
+            return u'Active %s Security Resource' % (self.get_classification_display().capitalize())
+        else:
+            return u'Inactive %s Security Resource' % (self.get_classification_display().capitalize())
+
 
     @classmethod
     def create(cls, classification):
@@ -288,8 +306,9 @@ class Capabilities(models.Model):
         capabilities = cls(player=player)
         capabilities.save()
         for (x,y) in RESOURCE_CLASSIFICATIONS:
-            security_resource = SecurityResource.create(x)
-            capabilities.security_resources.add(security_resource)
+            if not x == LAB:
+                security_resource = SecurityResource.create(x)
+                capabilities.security_resources.add(security_resource)
 
         capabilities.save()
         return capabilities
@@ -312,8 +331,9 @@ class Vulnerabilities(models.Model):
         vulnerabilities = cls(player=player)
         vulnerabilities.save()
         for (x,y) in RESOURCE_CLASSIFICATIONS:
-            security_resource = SecurityResource.create(x)
-            vulnerabilities.security_resources.add(security_resource)
+            if not x == LAB:
+                security_resource = SecurityResource.create(x)
+                vulnerabilities.security_resources.add(security_resource)
 
         vulnerabilities.save()
         return vulnerabilities
@@ -331,25 +351,25 @@ class AttackResource(models.Model):
         return u'%s Attack Resource' % (self.get_classification_display().capitalize())
 
     @classmethod
-    def deactivate_security(cls, player, attack_resource):
+    def deactivate_security(cls, player, attack_class):
         v = player.vulnerabilities
-        r = v.security_resources.get(classification=attack_resource.classification)
+        r = v.security_resources.get(classification=attack_class)
         if r.active:
             r.active = False
             r.save()
             return True
         else:
-            c = Capabilities.objects.get(player=player).security_resources.get(classification=attack_resource.classification)
+            c = Capabilities.objects.get(player=player).security_resources.get(classification=attack_class)
             c.active = False;
             c.save()
             return False
 
 
     @classmethod
-    def incomplete_research(cls, player, attack_resource):
+    def incomplete_research(cls, player, attack_class):
         for ro in player.researchobjective_set.filter(complete=False):
             for r in ro.research_resources.all():
-                if r.classification == attack_resource.classification:
+                if r.classification == attack_class:
                     r.complete=False
                     r.save()
         return True
@@ -357,25 +377,60 @@ class AttackResource(models.Model):
 
     @classmethod
     def create(cls, game):
-        if game.tick_set.count() > 0 and (random.randint(0,100) < game.attack_frequency):
-            num_ticks = game.tick_set.count()
-            attack_probability = game.tick_set.get(number=num_ticks).next_attack_probability
-            blue, yellow, red = attack_probability.blue, attack_probability.yellow, attack_probability.red
-            attack_probability = [(0, blue, BLUE),
-                                                (blue, blue+red, RED),
-                                                (blue+red, blue+red+yellow, YELLOW)]
-            rand = random.randint(1,100)
-            for lo, hi, classification in attack_probability:
-                if rand >= lo and rand < hi:
-                    attack_resource = cls(classification=classification)
+        # If it's not the first round of the game (we don't want to attack on the first round...)
+        if game.tick_set.count() > 0:
+
+            # If an attack occurs, given the game's constant attack frequency (see Game.attack_frequency)
+            if random.randint(0,100) < game.attack_frequency:
+
+                # Check first to see if a LAB attack occurs
+                # A lab attack will occur only as frequent as any other attack (i.e. is dictated by attack_frequency)
+                # Querying all players' vulnerabilities to compare active v. inactive
+                num_inactive = 0
+                total = 0
+                for player in game.player_set.all():
+                    vulnerabilities = player.vulnerabilities.security_resources.all()
+                    num_inactive += vulnerabilities.filter(active=False).count()
+                    total += vulnerabilities.count()
+
+                # The probability of a LAB attack is the total number of inactive vulnerabilities
+                # of all players over the total number of vulnerabilities of all players
+                prob_LAB_attack = float(num_inactive)/float(total)*100
+                print "LAB attack probability: %s" %prob_LAB_attack
+
+                # If random number between 1 and 100 is less than probability of LAB attack, then LAB attack occurs
+                if random.randint(0, 100) < prob_LAB_attack:
+                    attack_resource=cls(classification=LAB)
                     attack_resource.save()
-                    break
 
-            for player in game.player_set.all():
-                if not cls.deactivate_security(player, attack_resource):
-                    cls.incomplete_research(player, attack_resource)
+                    # If attack occurs, peform the attack.
+                    for player in game.player_set.all():
+                        for resource in player.vulnerabilities.security_resources.all():
+                            if not cls.deactivate_security(player, resource.classification):
+                                cls.incomplete_research(player, resource.classification)
 
-            return attack_resource
+                # Else, a regular attack occurs, and now we determine which color
+                # Each color has a probabillity of occurring that was established the previous round
+                else:
+                    num_ticks = game.tick_set.count()
+                    attack_probability = game.tick_set.get(number=num_ticks).next_attack_probability
+                    blue, yellow, red = attack_probability.blue, attack_probability.yellow, attack_probability.red
+                    attack_probability = [(0, blue, BLUE),
+                                                        (blue, blue+red, RED),
+                                                        (blue+red, blue+red+yellow, YELLOW)]
+                    rand = random.randint(1,100)
+                    for lo, hi, classification in attack_probability:
+                        if rand >= lo and rand < hi:
+                            attack_resource = cls(classification=classification)
+                            attack_resource.save()
+                            break
+
+                    # Once the color of the attack is determined, perform the attack on the player
+                    for player in game.player_set.all():
+                        if not cls.deactivate_security(player, attack_resource.classification):
+                            cls.incomplete_research(player, attack_resource.classification)
+
+                return attack_resource
 
 
 ''' The probability per classification of an AttackResource object in the next round '''

@@ -283,6 +283,10 @@
     background: rgb(255,255,0);
 }
 
+#lab.complete, #lab.active {
+    background: rgb(0,0,0);
+}
+
 /*=== END  Resource Container Style ===*/
 
 /*========================================*/

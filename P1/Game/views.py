@@ -22,14 +22,12 @@ import json
 class HomeView(TemplateView):
     template_name = "home.html"
 
-    def games(self):
+    def get_context_data(self, **kwargs):
+        context = super(HomeView, self).get_context_data(**kwargs)
 
-        user_players = Player.objects.filter(user=self.request.user)
-        games = []
-        for player in user_players:
-            games.append(Game.objects.filter(player=player).first())  #filter().first() won't cause 500 if query doesn't exist
+        context["my_players"] = Player.objects.filter(user=self.request.user)
 
-        return games
+        return context
 
 
 class MultipleFormView(FormView):
@@ -139,6 +137,10 @@ class GameView(TemplateView):
         # Get current total score for bar normalization
         highscore = Player.objects.all().aggregate(Max('score')).get("score__max")
         context['highscore'] = highscore
+
+        # Players ordered by score (for game over modal)
+        player_scores = Player.objects.filter(game=game).order_by("-score")
+        context['player_scores'] = player_scores
 
         return context
 

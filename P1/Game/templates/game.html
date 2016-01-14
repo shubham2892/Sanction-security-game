@@ -88,8 +88,8 @@
                         {% else %}
                         <tr id="their-vulnerabilities">
                         {% endif %}
-                            <td>
-                                Vulnerabilities:
+                            <td class="title">
+                                Protected Resources:
                             </td>
                             {% for vulnerability in player.vulnerabilities.security_resources.all %}
                             <td>
@@ -212,7 +212,7 @@
                                 <tbody>
                                     <tr id="vulnerability-list">
                                         <td>
-                                            <h4 class="objective-category">Vulnerabilities:</h4>
+                                            <h4 class="objective-category">Protected Resources:</h4>
                                         </td>
                                         {% for vulnerability in me.vulnerabilities.security_resources.all %}
                                         <td>
@@ -357,7 +357,14 @@
                              <h3 class="modal-title text-center"><span class="glyphicon glyphicon-check"></span>&nbsp;Game Over!</h3>
                         </div>
                     <div class="modal-body">
-                    <h5>Thank you for your participation!</h5>
+                    <h4>Thank you for your participation!</h5>
+                    <hr>
+                    <h4> Scores: </h4>
+                    <ol>
+                    {% for player in player_scores %}
+                                <h4><li> Player {{ player.number|apnumber|capfirst}} {% if player == me %} (me) {% endif %}: {{ player.score }} </h4></li>
+                    {% endfor %}
+                    </ol>
                     </div>
                     <div class="modal-footer">
                         <a href="{% url 'home' %}" class="btn btn-info">My Games</a>

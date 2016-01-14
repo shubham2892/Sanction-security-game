@@ -28,29 +28,47 @@
       <tr>
         <th>Game</th>
         <th>Status</th>
+        <th>Rank</th>
+        <th>Score</th>
       </tr>
     </thead>
     <tbody>
-      {% for game in view.games %}
+      {% for player in my_players %}
         <tr>
-            {% if game.complete %}
+            {% if player.game.complete %}
 
             <td>
-                <h5><a href="{% url 'game' game.game_key %}" class="btn btn-sm btn-info disabled">Game&nbsp;#{{ game.game_key }}</a></h5>
+                <h5><a href="{% url 'game' player.game.game_key %}" class="btn btn-sm btn-info disabled">Game&nbsp;#{{ player.game.game_key }}</a></h5>
             </td>
 
             <td>
               <h5>Completed</h5>
             </td>
 
+            <td>
+              <h5>{{ player.rank }}</h5>
+            </td>
+
+            <td>
+              <h5>{{ player.score }} </h5>
+            </td>
+
             {% else %}
 
             <td>
-                <h5><a href="{% url 'game' game.game_key %}" class="btn btn-sm btn-info">Game&nbsp;#{{ game.game_key }}</a></h5>
+                <h5><a href="{% url 'game' player.game.game_key %}" class="btn btn-sm btn-info">Game&nbsp;#{{ player.game.game_key }}</a></h5>
             </td>
 
             <td>
               <h5>Incomplete</h5>
+            </td>
+
+            <td>
+              <h5><em>pending...</em></h5>
+            </td>
+
+            <td>
+              <h5>{{ player.score }} </h5>
             </td>
 
             {% endif %}
