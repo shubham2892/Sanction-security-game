@@ -14,5 +14,6 @@ urlpatterns = [
     url(r'^resource/activate/$', views.security_resource_activate, name='security_resource_activate'),
     url(r'^resource/complete/$', views.research_resource_complete, name='research_resource_complete'),
     url(r'^sanction/$', views.sanction, name='sanction'),
+    url(r'^props/$', views.give_props, name='sanction'),
     url(r'^tick/complete/$', views.check_tick_complete, name='check_tick_complete'),
 ]

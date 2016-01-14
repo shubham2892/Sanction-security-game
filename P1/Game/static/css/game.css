@@ -81,9 +81,10 @@
     background-color: red;
 }
 
-.panel-heading .sanction {
+.panel-heading .sanction,  .panel-heading .props {
     position: relative;
     top: -5px;
+    margin-left: 4px;
 }
 
 .panel-heading #score {

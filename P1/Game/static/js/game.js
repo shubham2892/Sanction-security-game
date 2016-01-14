@@ -284,3 +284,38 @@ function sanction_player(sanctionee_pk, sanctioner_pk, tick_pk) {
     });
     return false;
 };
+
+// AJAX POST give props to player
+$(document).on("click", ".props", function(event){
+    var sanctionee_pk = $(this).attr("sanctionee");
+    var sanctioner_pk = $(this).attr("sanctioner");
+    event.preventDefault();
+    give_props(sanctionee_pk, sanctioner_pk);
+    return false;
+});
+
+function give_props(sanctionee_pk, sanctioner_pk) {
+    $.ajax({
+        url : "/props/", // the endpoint
+        type : "POST", // http method
+        data : { sanctionee_pk : sanctionee_pk, sanctioner_pk: sanctioner_pk }, // data sent with the post request
+
+        // handle a successful response
+        success : function(json) {
+            if (json["props!"]) {
+                $("#my-score").load(location.href +" #my-score>*","");
+                alertSuccess(json["result"]);
+            } else {
+                alertFailure(json["result"]);
+            }
+        },
+
+        // handle a non-successful response
+        error : function(xhr,errmsg,err) {
+            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+        }
+    });
+    return false;
+};

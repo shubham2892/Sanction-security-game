@@ -86,6 +86,7 @@ class Player(models.Model):
     user = models.ForeignKey(User)
     game = models.ForeignKey(Game)
     score = models.IntegerField(default=0, editable=False)
+    props = models.IntegerField(default=0, editable=False)
     number = models.IntegerField(default=0, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False)

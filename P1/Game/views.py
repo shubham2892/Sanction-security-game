@@ -327,6 +327,41 @@ def sanction(request):
 
 
 @csrf_exempt
+def give_props(request):
+    if request.method == 'POST':
+        sanctioner = Player.objects.get(pk=request.POST.get("sanctioner_pk"))
+        if not sanctioner.sanctioned:
+            sanctionee = Player.objects.get(pk=request.POST.get("sanctionee_pk"))
+            response_data = {}
+
+            sanctionee.props += 1
+            sanctionee.save()
+
+            # Announce Props!
+            message_text = "Player %s has given Props! to Player %s" %(apnumber(sanctioner.number).capitalize(), apnumber(sanctionee.number).capitalize())
+            message = Message(content=message_text, created_by=None, game=sanctioner.game)
+            message.save()
+
+            response_data["props!"] = True
+            response_data['result'] = "You gave Props! to Player " + apnumber(sanctionee.number).capitalize()
+
+            return HttpResponse(
+                json.dumps(response_data),
+                content_type="application/json"
+                    )
+        elif sanctioner.sanctioned:
+            return HttpResponse(
+                json.dumps({"result": "You have been sanctioned. You may not move this round."}),
+                content_type="application/json"
+        )
+        else:
+                return HttpResponse(
+                    json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
+                    content_type="application/json"
+                )
+
+
+@csrf_exempt
 def check_tick_complete(request):
     if request.method == 'POST':
         tick = Tick.objects.get(pk=request.POST.get("tick_pk"))
