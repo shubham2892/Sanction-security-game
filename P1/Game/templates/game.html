@@ -89,7 +89,7 @@
                         <tr id="their-vulnerabilities">
                         {% endif %}
                             <td class="title">
-                                Protected Resources:
+                                Immunities:
                             </td>
                             {% for vulnerability in player.vulnerabilities.security_resources.all %}
                             <td>
@@ -212,7 +212,7 @@
                                 <tbody>
                                     <tr id="vulnerability-list">
                                         <td>
-                                            <h4 class="objective-category">Protected Resources:</h4>
+                                            <h4 class="objective-category">Immunities:</h4>
                                         </td>
                                         {% for vulnerability in me.vulnerabilities.security_resources.all %}
                                         <td>
