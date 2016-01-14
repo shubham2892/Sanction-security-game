@@ -244,12 +244,12 @@
 }
 
 .complete, .active {
-    border: medium solid green;
+    border: 3px solid #5cb85c;
 }
 
 #attack .complete {
     border: none;
-    border: thin solid black;
+    border: 2px solid #ccc;
 }
 
 .complete .centered, .active .centered {
@@ -257,7 +257,7 @@
 }
 
 .incomplete, .inactive {
-    border: medium dotted red;
+    border: 3px dotted red;
 }
 
 .incomplete .centered, .inactive .centered{
