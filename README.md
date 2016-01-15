@@ -4,7 +4,7 @@ Game Application for Science of Security Policy Group study
 
 ##Installation and Setup
 
-_P1-Game is an application-driven website_
+_P1-Game is an application-driven website running django 1.8 and python 2.7.x_
 
 To begin, clone the repository into a directory of your choice. 
 
@@ -48,6 +48,6 @@ wsgiref==0.1.2 </br>
 
 ##Screenshot
 
-![Game Application](game.png)
+![Game Application](https://github.ncsu.edu/github-enterprise-assets/0000/1631/0000/1376/785fb8b6-bb93-11e5-9da4-c52cfbae255d.png)
 
   
