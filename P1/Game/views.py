@@ -140,10 +140,6 @@ class GameView(TemplateView):
         highscore = Player.objects.all().aggregate(Max('score')).get("score__max")
         context['highscore'] = highscore
 
-        # Players ordered by score (for game over modal)
-        player_scores = Player.objects.filter(game=game).order_by("-score")
-        context['player_scores'] = player_scores
-
         return context
 
 
