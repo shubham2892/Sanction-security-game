@@ -29,6 +29,10 @@ Now, you will need to run migrations for MWG_Site and other tracked apps:
 
 > $ python manage.py migrate
 
+Finally, create a super user for your database
+
+>$ python manage.py createsuperuser
+
 You're all set!
 
 Run your test server and check out the site!
