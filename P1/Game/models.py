@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.db import models
 from django.db.models.signals import post_save
+from django.contrib.humanize.templatetags.humanize import  apnumber
 
 from custom_models import IntegerRangeField
 from datetime import timedelta
@@ -31,6 +32,36 @@ class Game(models.Model):
 
     def __unicode__(self):
         return u'Game #%s' % (self.game_key)
+
+
+    # Game print override -- the main query for reading game data
+    @property
+    def results(self):
+        s = 'Game #{}\n\n'.format(self.game_key)
+        for tick in self.tick_set.filter(complete=True):
+            s += "  #### Tick Number {} ####\n".format(tick.number)
+            s += "  Attack: {} \n".format(tick.attack)
+            s += "  Next Attack Probabilities: {}\n".format(tick.next_attack_probability)
+
+            s += "\n    ## Player Actions ##\n"
+            for player_tick in tick.playertick_set.all().order_by('player'):
+                s += "    Player: Player {} ({}) \n".format(apnumber(player_tick.player.number).capitalize(), player_tick.player.user.username)
+                s += "      - Action: {} \n".format(player_tick.get_action_display())
+
+            s += "\n    ## Messages ##\n"
+            if tick.message_set.all():
+                for message in tick.message_set.all():
+                    if message.created_by:
+                        s += "    Player {} says: \"{}\" at {} \n".format(apnumber(message.created_by.number).capitalize(), message.content, message.created_at)
+                    else:
+                        s += "    ***Announcement***: \"{}\"\n".format(message.content)
+            else:
+                s += "    No messages.\n"
+
+            s += '\n'
+
+        return s
+
 
     @property
     def ticks(self):
@@ -98,6 +129,7 @@ class Player(models.Model):
     def name(self):
         return "{}".format(self.user.username)
 
+    # A player's active workshop objective; creates a new one if need be
     @property
     def workshop(self):
         objective = self.researchobjective_set.filter(name=ResearchObjective.WORKSHOP,
@@ -111,6 +143,7 @@ class Player(models.Model):
 
         return objective
 
+    # A player's active conference objective; creates a new one if need be
     @property
     def conference(self):
         objective = self.researchobjective_set.filter(name=ResearchObjective.CONFERENCE,
@@ -124,6 +157,7 @@ class Player(models.Model):
 
         return objective
 
+    # A player's active conference objective; creates a new one if need be
     @property
     def journal(self):
         objective = self.researchobjective_set.filter(name=ResearchObjective.JOURNAL,
@@ -137,14 +171,17 @@ class Player(models.Model):
 
         return objective
 
+    # Returns true if a player can make a move at a given instance
     @property
     def can_move(self):
         return not self.playertick_set.filter(tick=self.game.current_tick) and not self.game.complete
 
+    # Returns the total number of remaining  moves for a player with a game instance
     @property
     def remaining_moves(self):
         return self.game._ticks - self.playertick_set.count()
 
+    # Returns true if a player is sanctioned at a given instance
     @property
     def sanctioned(self):
         if self.sanctionee.exists() and (self.sanctionee.latest("tick_number").tick_number == self.game.current_tick.number):
@@ -152,13 +189,14 @@ class Player(models.Model):
         else:
             return False
 
+    # Returns an integer value describing a players' rank based on current score
     @property
     def rank(self):
         rank = Player.objects.filter(game=self.game, score__gt =self.score).count() + 1
         return rank
 
 
-
+# Set's a player's default values, called as a post_save signal
 def set_player_defaults(sender, instance, **kwargs):
 
     if instance.number == 0:
@@ -487,10 +525,27 @@ class Tick(models.Model):
             return tick
 
 
+''' PLAYER ACTIONS '''
+REST = 0
+SANCTION = 1
+SECURITY = 2
+RESEARCH_TASK = 3
+RESEARCH_OBJ = 4
+
+ACTIONS = (
+    (REST, "The player did not move."),
+    (SANCTION, "sanctioned player"),
+    (SECURITY, "activated security resource"),
+    (RESEARCH_TASK, "completed research task"),
+    (RESEARCH_OBJ, "completed research objective"),
+)
+
 ''' An object for synchronizing players' moves within a round '''
 class PlayerTick(models.Model):
+
     tick = models.ForeignKey(Tick)
     player = models.ForeignKey(Player)
+    action = models.IntegerField(choices=ACTIONS, default =REST)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -513,6 +568,7 @@ post_save.connect(update_tick, sender=PlayerTick)
 ''' Group Message object '''
 class Message(models.Model):
     game = models.ForeignKey(Game, null=True, editable=False)
+    tick = models.ForeignKey(Tick, null=True, editable=False)
     created_by = models.ForeignKey(Player, null=True, editable=False)
     content = models.TextField(max_length=500, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)

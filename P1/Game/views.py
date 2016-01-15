@@ -18,7 +18,7 @@ from forms import CreateMessageForm
 from models import *
 import json
 
-
+''' The user's homepage which displays user game information '''
 class HomeView(TemplateView):
     template_name = "home.html"
 
@@ -30,6 +30,7 @@ class HomeView(TemplateView):
         return context
 
 
+''' A form mixin for supporting multiple forms in a single generic view '''
 class MultipleFormView(FormView):
     form_class = None
     form_name = None
@@ -71,7 +72,7 @@ class MultipleFormView(FormView):
             return form_class()
 
 
-
+''' The login form view '''
 class LoginView(MultipleFormView):
     template_name = 'accounts/login.html'
     form_classes = {
@@ -101,6 +102,7 @@ class LoginView(MultipleFormView):
         return authenticate(username=username, password=password)
 
 
+''' A lazy logout view, redirects to login '''
 def logout_view(request):
     logout(request)
     return redirect('login')
@@ -154,7 +156,8 @@ def create_message(request):
         game_key = request.POST.get('game_key')
         game = Game.objects.get(game_key=game_key)
         player = game.player_set.get(user=request.user)
-        message = Message(content=message_text, created_by=player, game=game)
+        tick = game.current_tick
+        message = Message(content=message_text, created_by=player, game=game, tick=tick)
         message.save()
 
         response_data['result'] = 'Create post successful!'
@@ -169,7 +172,7 @@ def create_message(request):
         )
     else:
         return HttpResponse(
-            json.dumps({"nothing to see": "this isn't happening"}),
+            json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
             content_type="application/json"
         )
 
@@ -178,6 +181,7 @@ def create_message(request):
 def security_resource_activate(request):
         if request.method == 'POST':
             player = Player.objects.get(pk=request.POST.get('player_pk'))
+            player_tick = PlayerTick(player=player, tick=player.game.current_tick)
             if player.can_move:
                 pk = request.POST.get('pk')
                 response_data = {}
@@ -186,13 +190,16 @@ def security_resource_activate(request):
                 security_resource.active=True
                 security_resource.save()
 
+                # Record players action as "Security"
+                player_tick.action = SECURITY
+
                 # After security resource is activated, reactivate capability if necessary
                 c = Capabilities.objects.get(player=player).security_resources.get(classification=security_resource.classification)
                 c.active = True;
                 c.save()
 
                 # End players move
-                PlayerTick(player=player, tick=player.game.current_tick).save()
+                player_tick.save()
 
                 response_data['result'] = str(security_resource) + ' Activated!  ' + str(security_resource.get_classification_display().capitalize()) + ' capability restored.'
 
@@ -223,6 +230,7 @@ def security_resource_activate(request):
 def research_resource_complete(request):
         if request.method == 'POST':
             player = Player.objects.get(pk=request.POST.get('player_pk'))
+            player_tick = PlayerTick(player=player, tick=player.game.current_tick)
             if player.can_move:
                 pk = request.POST.get('pk')
                 response_data = {}
@@ -232,6 +240,10 @@ def research_resource_complete(request):
                 if capable.active:
                     research_resource.complete=True
                     research_resource.save()
+
+                    # Record Player's action as "Research Task"
+                    player_tick.action = RESEARCH_TASK
+
                 else:
                     return HttpResponse(
                     json.dumps({"result": "You are not capable of completing this task. Make sure you patch your vulnerabilities."}),
@@ -248,6 +260,10 @@ def research_resource_complete(request):
 
                 if objective_completed:
                     objective.complete = True
+
+                    # Record Player's action as "Research Objective"
+                    player_tick.action = RESEARCH_OBJ
+
                     player = objective.player
                     player.score += objective.value
                     player.save()
@@ -255,7 +271,7 @@ def research_resource_complete(request):
                     response_data['result'] = str(objective) + " Completed!"
 
                 # End players move
-                PlayerTick(player=player, tick=player.game.current_tick).save()
+                player_tick.save()
 
                 response_data['pk'] = research_resource.pk
                 response_data['resource_complete'] = research_resource.complete
@@ -294,13 +310,16 @@ def sanction(request):
                 # Perform Sanction
                 sanction = Sanction.create(sanctioner, sanctionee, tick)
 
-                # Announce Sanctin
+                # Announce Sanction
                 message_text = "Player %s has sanctioned Player %s" %(apnumber(sanctioner.number).capitalize(), apnumber(sanctionee.number).capitalize())
-                message = Message(content=message_text, created_by=None, game=sanctioner.game)
+                tick = sanctioner.game.current_tick
+                message = Message(content=message_text, created_by=None, game=sanctioner.game, tick=tick)
                 message.save()
 
-                # End players move
-                PlayerTick(player=sanctioner, tick=sanctioner.game.current_tick).save()
+                # Record player's "Sanction" action and end players move
+                sanctioners_tick = PlayerTick(player=sanctioner, tick=sanctioner.game.current_tick)
+                sanctioners_tick.action = SANCTION
+                sanctioners_tick.save()
 
                 response_data["sanctioned"] = True
                 response_data['result'] = "You have sanctioned Player " + apnumber(sanctionee.number).capitalize()
@@ -339,7 +358,8 @@ def give_props(request):
 
             # Announce Props!
             message_text = "Player %s has given Props! to Player %s" %(apnumber(sanctioner.number).capitalize(), apnumber(sanctionee.number).capitalize())
-            message = Message(content=message_text, created_by=None, game=sanctioner.game)
+            tick = sanctioner.game.current_tick
+            message = Message(content=message_text, created_by=None, game=sanctioner.game, tick=tick)
             message.save()
 
             response_data["props!"] = True
