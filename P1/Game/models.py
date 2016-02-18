@@ -48,8 +48,6 @@ class Game(models.Model):
     # Game print override -- the main query for reading game data
     @property
     def results(self):
-    def results(self):
-    def results(self):
         s = 'Game #{}\n\n'.format(self.game_key)
         for tick in self.tick_set.filter(complete=True):
             s += "  #### Tick Number {} ####\n".format(tick.number)
