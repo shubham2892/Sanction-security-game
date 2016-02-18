@@ -17,6 +17,15 @@ WORKSHOP_VALUE = 10
 CONFERENCE_VALUE = 25
 JOURNAL_VALUE = 45
 
+NO_SANC = 0
+INDIVIDUAL_SANC = 1
+GROUP_SANC = 2
+
+MANAGER_SANC = (
+    (INDIVIDUAL_SANC, "Individual Sanction"),
+    (GROUP_SANC, "Group Sanction"),
+    (NO_SANC, "No Sanction"),
+)
 
 ''' The Game object for maintaining game state and players '''
 class Game(models.Model):
@@ -26,6 +35,8 @@ class Game(models.Model):
     _ticks = models.IntegerField()
     game_key = models.CharField(max_length=GAME_KEY_LENGTH*2, unique=True, null=True, blank=True, editable=False)
     attack_frequency = IntegerRangeField(min_value=0, max_value=100)
+    manager_sanc = models.IntegerField(choices = MANAGER_SANC, default = INDIVIDUAL_SANC)
+    peer_sanc = models.BooleanField(default = True)
     complete = models.BooleanField(default=False, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False)
@@ -36,6 +47,8 @@ class Game(models.Model):
 
     # Game print override -- the main query for reading game data
     @property
+    def results(self):
+    def results(self):
     def results(self):
         s = 'Game #{}\n\n'.format(self.game_key)
         for tick in self.tick_set.filter(complete=True):
