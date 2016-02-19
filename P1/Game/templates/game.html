@@ -20,6 +20,21 @@
         </div> <!-- end .col-md-3  -->
     </div> <!-- end .row -->
 </div> <!-- end .game-header -->
+
+{% for player in players %}
+ <div class="game-vulnerability-info">
+    {% if player == me %}
+    Player {{ player.number|apnumber|capfirst}} <strong>(Me)</strong>   
+    {% else %}
+    Player {{ player.number|apnumber|capfirst }}
+    {% endif %}
+    --- {{player.number_of_vulnerabilities}}
+</div>
+{% endfor %}
+
+<br/>
+<br/>
+
 {% endblock %}
 
 {% block content %}
@@ -44,9 +59,9 @@
                     <button type="button" sanctionee="{{ player.pk }}" sanctioner="{{ me.pk }}" class="btn btn-sm btn-danger pull-right sanction">
                         <span class="glyphicon glyphicon-thumbs-down"></span>&nbsp;Sanction
                     </button>
-                     <button type="button" sanctionee="{{ player.pk }}" sanctioner="{{ me.pk }}" class="btn btn-sm btn-success pull-right props">
+                    <button type="button" sanctionee="{{ player.pk }}" sanctioner="{{ me.pk }}" class="btn btn-sm btn-success pull-right props">
                         <span class="glyphicon glyphicon-thumbs-up"></span>&nbsp;Props!
-                     </button>
+                    </button>
                     {% endif %}
                 </div>
             </div>

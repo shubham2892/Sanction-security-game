@@ -15,5 +15,6 @@ urlpatterns = [
     url(r'^resource/complete/$', login_required(views.research_resource_complete), name='research_resource_complete'),
     url(r'^sanction/$', login_required(views.sanction), name='sanction'),
     url(r'^props/$', login_required(views.give_props), name='sanction'),
+    #url(r'^managersanction/$', login_required(views.manager_sanction), name='manager_sanction'),
     url(r'^tick/complete/$', login_required(views.check_tick_complete), name='check_tick_complete'),
 ]

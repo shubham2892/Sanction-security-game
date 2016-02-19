@@ -31,6 +31,16 @@
 
 /*========================================*/
 
+/*===START Game Vulnerability Information Header===*/
+.game-vulnerability-info{
+    text-align: center;
+    font-size: 200%;
+}
+
+/*===END Game Vulnerability Information Header===*/
+
+/*========================================*/
+
 /*===START Bootstrap Override Style===*/
 
 .progress {

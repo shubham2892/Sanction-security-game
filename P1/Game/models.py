@@ -132,6 +132,12 @@ class Player(models.Model):
     number = models.IntegerField(default=0, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False)
+    num_of_santions = models.IntegerField(default=0, editable=False)
+    num_of_finished_s_task = models.IntegerField(default=0, editable=False)
+    num_of_finished_r_task = models.IntegerField(default=0, editable=False)
+    num_of_finished_r_obj = models.IntegerField(default=0, editable=False)
+
+
 
     def __unicode__(self):
         return u'%s in %s' % (self.user.username, self.game)
@@ -168,7 +174,7 @@ class Player(models.Model):
 
         return objective
 
-    # A player's active conference objective; creates a new one if need be
+    # A player's active journal objective; creates a new one if need be
     @property
     def journal(self):
         objective = self.researchobjective_set.filter(name=ResearchObjective.JOURNAL,
@@ -206,6 +212,10 @@ class Player(models.Model):
         rank = Player.objects.filter(game=self.game, score__gt =self.score).count() + 1
         return rank
 
+    def number_of_vulnerabilities(self):
+        vulnerabilities = self.vulnerabilities.security_resources.all()
+        return vulnerabilities.filter(active=False).count()
+        
 
 # Set's a player's default values, called as a post_save signal
 def set_player_defaults(sender, instance, **kwargs):
@@ -364,6 +374,7 @@ class Capabilities(models.Model):
         return capabilities
 
 
+
 ''' A player's set of vulnerabilities '''
 class Vulnerabilities(models.Model):
 
@@ -387,8 +398,6 @@ class Vulnerabilities(models.Model):
 
         vulnerabilities.save()
         return vulnerabilities
-
-
 
 ''' An Attack Resource for issuing an attack against a Research Resource '''
 class AttackResource(models.Model):
