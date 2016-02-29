@@ -4,4 +4,3 @@
 *.pyc
 .DS_Store
 *.sqlite3
-/P1/db.sqlite3
