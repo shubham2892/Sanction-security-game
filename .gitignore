@@ -1,7 +1,7 @@
-
 .project
 .pydevproject
 .settings
 *.pyc
 .DS_Store
-*.sqilte3
+*.sqlite3
+/P1/db.sqlite3
