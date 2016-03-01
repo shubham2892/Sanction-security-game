@@ -120,6 +120,7 @@ function updateRound() {
                     });
                 clearinterval(roundUpdate);
             } else if (json["tick_complete"] === true) {
+                manager_sanction();
                 window.location.reload();
             } else {
                 updatePage();
