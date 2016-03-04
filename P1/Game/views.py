@@ -185,7 +185,7 @@ def security_resource_activate(request):
                 security_resource = SecurityResource.objects.get(pk=pk)
                 security_resource.active=True
                 security_resource.save()
-
+                '''
                 #update the number of finished security tasks
                 if security_resource.classification == RESOURCE_CLASSIFICATIONS.BLUE:
                     player.nf_blue += 1
@@ -195,7 +195,9 @@ def security_resource_activate(request):
                     player.nf_red += 1
                     
                 player.save()
-
+                '''
+                print "the resource is "
+                print security_resource.classification
                 # Record players action as "Security"
                 player_tick.action = SECURITY
 
@@ -401,7 +403,7 @@ def check_tick_complete(request):
         response_data["game_complete"] = tick.game.complete
         response_data["tick_complete"] = tick.complete
 
-        if tick.complete == true: 
+        if tick.complete == True: 
             manager_sanction(tick)
 
         return HttpResponse(
