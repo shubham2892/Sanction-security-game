@@ -132,10 +132,15 @@ class Player(models.Model):
     number = models.IntegerField(default=0, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False)
-    num_of_santions = models.IntegerField(default=0, editable=False)
-    num_of_finished_s_task = models.IntegerField(default=0, editable=False)
-    num_of_finished_r_task = models.IntegerField(default=0, editable=False)
-    num_of_finished_r_obj = models.IntegerField(default=0, editable=False)
+    # count number of finished task of each type; nf means number of finished
+    n_sanction = models.IntegerField(default=0, editable=False)
+    nf_workshop = models.IntegerField(default=0, editable=False)
+    nf_conference = models.IntegerField(default=0, editable=False)
+    nf_journal = models.IntegerField(default=0, editable=False)
+    # for red, yellow, green vulnerabilities
+    nf_red = models.IntegerField(default=0, editable=False)
+    nf_yellow = models.IntegerField(default=0, editable=False)
+    nf_blue = models.IntegerField(default=0, editable=False)
 
 
 
@@ -617,6 +622,21 @@ class Sanction(models.Model):
     @classmethod
     def create(cls, sanctioner, sanctionee, tick):
         sanction = cls(sanctioner=sanctioner, sanctionee=sanctionee, tick_number=(tick.number + 1))
+        sanction.save()
+        return sanction
+
+class ManagerSanction(models.Model):
+    sanctionee = models.ForeignKey(Player, related_name="sanctionee_by_manager")
+    tick_number = models.IntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __unicode__(self):
+        return u'%s The lab manager sanctioned %s' %(self.sanctionee.user.username)
+
+    @classmethod
+    def create(cls, sanctionee, tick):
+        sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + 1))
         sanction.save()
         return sanction
 

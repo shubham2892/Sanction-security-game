@@ -21,6 +21,10 @@
     </div> <!-- end .row -->
 </div> <!-- end .game-header -->
 
+
+<br/>
+Number of finished security tasks
+<br/>
 {% for player in players %}
  <div class="game-vulnerability-info">
     {% if player == me %}
@@ -28,10 +32,9 @@
     {% else %}
     Player {{ player.number|apnumber|capfirst }}
     {% endif %}
-    --- {{player.number_of_vulnerabilities}}
+    ---Red = {{player.nf_red}} ---Yellow = {{player.nf_yellow}}---Blue = {{player.nf_blue}}
 </div>
 {% endfor %}
-
 <br/>
 <br/>
 
@@ -60,7 +63,7 @@
                         <span class="glyphicon glyphicon-thumbs-down"></span>&nbsp;Sanction
                     </button>
                     <button type="button" sanctionee="{{ player.pk }}" sanctioner="{{ me.pk }}" class="btn btn-sm btn-success pull-right props">
-                        <span class="glyphicon glyphicon-thumbs-up"></span>&nbsp;Props!
+                        <span class="glyphicon glyphicon-thumbs-up"></span>&nbsp; Like
                     </button>
                     {% endif %}
                 </div>

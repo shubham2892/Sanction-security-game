@@ -186,6 +186,16 @@ def security_resource_activate(request):
                 security_resource.active=True
                 security_resource.save()
 
+                #update the number of finished security tasks
+                if security_resource.classification == RESOURCE_CLASSIFICATIONS.BLUE:
+                    player.nf_blue += 1
+                elif security_resource.classification == RESOURCE_CLASSIFICATIONS.YELLOW:
+                    player.nf_yellow += 1
+                else:
+                    player.nf_red += 1
+                    
+                player.save()
+
                 # Record players action as "Security"
                 player_tick.action = SECURITY
 
@@ -353,13 +363,13 @@ def give_props(request):
             sanctionee.save()
 
             # Announce Props!
-            message_text = "Player %s has given Props! to Player %s" %(apnumber(sanctioner.number).capitalize(), apnumber(sanctionee.number).capitalize())
+            message_text = "Player %s has given Like to Player %s" %(apnumber(sanctioner.number).capitalize(), apnumber(sanctionee.number).capitalize())
             tick = sanctioner.game.current_tick
             message = Message(content=message_text, created_by=None, game=sanctioner.game, tick=tick)
             message.save()
 
             response_data["props!"] = True
-            response_data['result'] = "You gave Props! to Player " + apnumber(sanctionee.number).capitalize()
+            response_data['result'] = "You gave Like to Player " + apnumber(sanctionee.number).capitalize() + "to show your appreciation"
 
             return HttpResponse(
                 json.dumps(response_data),
@@ -391,6 +401,9 @@ def check_tick_complete(request):
         response_data["game_complete"] = tick.game.complete
         response_data["tick_complete"] = tick.complete
 
+        if tick.complete == true: 
+            manager_sanction(tick)
+
         return HttpResponse(
             json.dumps(response_data),
             content_type="application/json"
@@ -402,5 +415,6 @@ def check_tick_complete(request):
             content_type="application/json"
         )
 
-
-
+@csrf_exempt
+def manager_sanction(tick):
+    print "placeholder"
