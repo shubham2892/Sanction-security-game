@@ -41,6 +41,16 @@
 
 /*========================================*/
 
+/*===START Player Statistics Information Header===*/
+.player-stat-info{
+    text-align: center;
+    font-size: 150%;
+}
+
+/*===END Player Statistics Information Header===*/
+
+/*========================================*/
+
 /*===START Bootstrap Override Style===*/
 
 .progress {

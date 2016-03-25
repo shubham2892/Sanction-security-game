@@ -21,22 +21,37 @@
     </div> <!-- end .row -->
 </div> <!-- end .game-header -->
 
+<div id = "test"> 
+</div>
+
+<table style="width:40%" border="1" align="center" class="player-stat-info">
+    <tr>
+        <td>Player</td>
+        <td>Finished Research Objectives</td>
+        <td>Finished Security Objectives</td>
+    </tr>
+    {% for player in players %}
+    <tr>
+        <td>
+        {% if player == me %}
+        Player {{ player.number|apnumber|capfirst}} <strong>(Me)</strong>   
+        {% else %}
+        Player {{ player.number|apnumber|capfirst }}
+        {% endif %}
+        </td>
+        <td>
+        Workshop: {{player.nf_workshop}}, Conference: {{player.nf_conference}}, Journal: {{player.nf_journal}}
+        </td>
+        <td>
+        Blue: {{player.nf_blue}}, Red: {{player.nf_red}}, Yellow: {{player.nf_yellow}}
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 
 <br/>
-Number of finished security tasks
 <br/>
-{% for player in players %}
- <div class="game-vulnerability-info">
-    {% if player == me %}
-    Player {{ player.number|apnumber|capfirst}} <strong>(Me)</strong>   
-    {% else %}
-    Player {{ player.number|apnumber|capfirst }}
-    {% endif %}
-    ---Red = {{player.nf_red}} ---Yellow = {{player.nf_yellow}}---Blue = {{player.nf_blue}}
-</div>
-{% endfor %}
-<br/>
-<br/>
+
 
 {% endblock %}
 

@@ -132,17 +132,15 @@ class Player(models.Model):
     number = models.IntegerField(default=0, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False)
-    # count number of finished task of each type; nf means number of finished
-    n_sanction = models.IntegerField(default=0, editable=False)
+    #the last time the player gets sanctioned by the manager
+    last_manager_sanction = models.IntegerField(default=-1, editable=False)
+    #number of finished tasks
+    nf_blue = models.IntegerField(default=0, editable=False)
+    nf_yellow = models.IntegerField(default=0, editable=False)
+    nf_red = models.IntegerField(default=0, editable=False)
     nf_workshop = models.IntegerField(default=0, editable=False)
     nf_conference = models.IntegerField(default=0, editable=False)
     nf_journal = models.IntegerField(default=0, editable=False)
-    # for red, yellow, green vulnerabilities
-    nf_red = models.IntegerField(default=0, editable=False)
-    nf_yellow = models.IntegerField(default=0, editable=False)
-    nf_blue = models.IntegerField(default=0, editable=False)
-
-
 
     def __unicode__(self):
         return u'%s in %s' % (self.user.username, self.game)
@@ -632,12 +630,36 @@ class ManagerSanction(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'%s The lab manager sanctioned %s' %(self.sanctionee.user.username)
+        return u'The lab manager sanctioned %s' %(self.sanctionee.user.username)
 
     @classmethod
-    def create(cls, sanctionee, tick):
-        sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + 1))
+    def create(cls, sanctionee, tick, num_of_ticks_sanc):
+        sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + num_of_ticks_sanc))
         sanction.save()
         return sanction
 
 
+WORKSHOP_TASK = 0
+CONFERENCE_TASK = 1
+JOURNAL_TASK = 2
+RED_TASK = 3
+YELLOW_TASK = 4
+BLUE_TASK = 5
+
+TASK_TYPES = (
+    (WORKSHOP_TASK, "Workshop Research Task"),
+    (CONFERENCE_TASK, "Conference Research Task"),
+    (JOURNAL_TASK, "Journal Research Task"),
+    (RED_TASK, "Red Security Task"),
+    (YELLOW_TASK, "Yellow Security Task"),
+    (BLUE_TASK, "Blue Security Task")
+)
+class Statistics(models.Model):
+    stat_tick = models.ForeignKey(Tick, null=True)
+    #number of finished tasks
+    stat_number = models.IntegerField(default = 0)
+    #type of task
+    type_of_task = models.IntegerField(choices = TASK_TYPES, default = None)
+
+    def __unicode__(self):
+        return u'%s I finished task %s at tick %s' %(self.type_of_task, self.number,self.tick.number)

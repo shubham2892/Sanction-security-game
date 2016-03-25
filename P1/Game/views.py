@@ -185,19 +185,19 @@ def security_resource_activate(request):
                 security_resource = SecurityResource.objects.get(pk=pk)
                 security_resource.active=True
                 security_resource.save()
-                '''
-                #update the number of finished security tasks
-                if security_resource.classification == RESOURCE_CLASSIFICATIONS.BLUE:
+
+                #update the number of finished security tasks; note the number corresponding to the one in the model
+                if security_resource.classification == 1:
                     player.nf_blue += 1
-                elif security_resource.classification == RESOURCE_CLASSIFICATIONS.YELLOW:
-                    player.nf_yellow += 1
-                else:
+                elif security_resource.classification == 2:
                     player.nf_red += 1
+                else:
+                    player.nf_yellow += 1
                     
                 player.save()
-                '''
-                print "the resource is "
-                print security_resource.classification
+
+                #print "the resource is "
+                #print security_resource.classification
                 # Record players action as "Security"
                 player_tick.action = SECURITY
 
@@ -274,9 +274,18 @@ def research_resource_complete(request):
 
                     player = objective.player
                     player.score += objective.value
+                    #update number of finished research tasks; note the number corresponding to the one in the model
+                    if objective.name == 1:
+                        player.nf_workshop += 1
+                    elif objective.name == 2:
+                        player.nf_conference += 1
+                    else:
+                        player.nf_journal += 1                        
                     player.save()
                     objective.save()
                     response_data['result'] = str(objective) + " Completed!"
+                    #update the number of finished security tasks
+
 
                 # End players move
                 player_tick.save()
@@ -403,8 +412,8 @@ def check_tick_complete(request):
         response_data["game_complete"] = tick.game.complete
         response_data["tick_complete"] = tick.complete
 
-        if tick.complete == True: 
-            manager_sanction(tick)
+        #if tick.complete == True: 
+        #    manager_sanction(tick, request, response_data)
 
         return HttpResponse(
             json.dumps(response_data),
@@ -418,5 +427,22 @@ def check_tick_complete(request):
         )
 
 @csrf_exempt
-def manager_sanction(tick):
-    print "placeholder"
+def manager_sanction(tick, request, response_data):
+    total_resources = 3
+    if tick.game.manager_sanc == INDIVIDUAL_SANC:
+        players = Player.objects.filter(game = tick.game)
+        for player in players:
+            if player.number_of_vulnerabilities() > 0 and not player.sanctioned:
+                sanc_prob = float(player.number_of_vulnerabilities()) / float(total_resources) * 100
+                # print "sanction prob. * 100 is" + str(sanc_prob)
+                if random.randint(0,100) < sanc_prob:
+                    #sanction the player for player.number_of_vulnerabilities ticks
+                    player.last_manager_sanction = tick.number
+                    #sanction = ManagerSanction.create(player, tick, player.number_of_vulnerabilities())
+                    response_data["sanction_msg"] = "The manager has done sanction on" + player.user.username
+
+
+    #if tick.game.manager_sanc == GROUP_SANC:
+
+
+    # for NO_SANC, do nothing
