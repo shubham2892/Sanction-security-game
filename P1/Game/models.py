@@ -655,11 +655,14 @@ TASK_TYPES = (
     (BLUE_TASK, "Blue Security Task")
 )
 class Statistics(models.Model):
-    stat_tick = models.ForeignKey(Tick, null=True)
+    game = models.ForeignKey(Game, default = None)
+    player = models.ForeignKey(Player, default = None)
+    player_tick = models.ForeignKey(PlayerTick, default = None)
     #number of finished tasks
-    stat_number = models.IntegerField(default = 0)
+    nf_finished_task = models.IntegerField(default = 0)
     #type of task
     type_of_task = models.IntegerField(choices = TASK_TYPES, default = None)
 
     def __unicode__(self):
-        return u'%s I finished task %s at tick %s' %(self.type_of_task, self.number,self.tick.number)
+        return u'In game %s, player %s finished task %s at tick %s. Total number of finished this type of task is %s' %(self.game.game_key, self.player.user.username, self.get_type_of_task_display(), self.player_tick.tick.number, self.nf_finished_task)
+

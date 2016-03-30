@@ -191,7 +191,7 @@ def security_resource_activate(request):
                     player.nf_blue += 1
                 elif security_resource.classification == 2:
                     player.nf_red += 1
-                else:
+                else: #for yellow, classification = 3; there is no need to consider "lab" resource_classifications
                     player.nf_yellow += 1
                     
                 player.save()
@@ -208,6 +208,21 @@ def security_resource_activate(request):
 
                 # End players move
                 player_tick.save()
+
+                #update Statistics table data; note the number corresponding to the one in the model
+                stats = Statistics(game = player.game, player = player, player_tick = player_tick)
+                if security_resource.classification == 1: #blue
+                    stats.nf_finished_task = player.nf_blue
+                    stats.type_of_task = 5
+                elif security_resource.classification == 2: #red
+                    stats.nf_finished_task = player.nf_red
+                    stats.type_of_task = 3
+                else: #for yellow, classification = 3
+                    stats.nf_finished_task = player.nf_yellow
+                    stats.type_of_task = 4
+                print stats
+                stats.save()
+
 
                 response_data['result'] = str(security_resource) + ' Activated!  ' + str(security_resource.get_classification_display().capitalize()) + ' capability restored.'
 
@@ -284,11 +299,23 @@ def research_resource_complete(request):
                     player.save()
                     objective.save()
                     response_data['result'] = str(objective) + " Completed!"
-                    #update the number of finished security tasks
-
-
                 # End players move
                 player_tick.save()
+
+                if objective_completed:
+                    #update Statistics table data; note the number corresponding to the one in the model
+                    stats = Statistics(game = player.game, player = player, player_tick = player_tick)
+                    if objective.name == 1: #workshop 
+                        stats.nf_finished_task = player.nf_workshop
+                        stats.type_of_task = 0
+                    elif objective.name == 2: #conference
+                        stats.nf_finished_task = player.nf_conference
+                        stats.type_of_task = 1
+                    else:  # ==3: journal
+                        stats.nf_finished_task = player.nf_journal
+                        stats.type_of_task = 2
+                    print stats
+                    stats.save()
 
                 response_data['pk'] = research_resource.pk
                 response_data['resource_complete'] = research_resource.complete
