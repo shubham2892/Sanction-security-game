@@ -220,7 +220,7 @@ def security_resource_activate(request):
                 else: #for yellow, classification = 3
                     stats.nf_finished_task = player.nf_yellow
                     stats.type_of_task = 4
-                print stats
+                #print stats
                 stats.save()
 
 
@@ -314,7 +314,7 @@ def research_resource_complete(request):
                     else:  # ==3: journal
                         stats.nf_finished_task = player.nf_journal
                         stats.type_of_task = 2
-                    print stats
+                    #print stats
                     stats.save()
 
                 response_data['pk'] = research_resource.pk
@@ -439,8 +439,8 @@ def check_tick_complete(request):
         response_data["game_complete"] = tick.game.complete
         response_data["tick_complete"] = tick.complete
 
-        #if tick.complete == True: 
-        #    manager_sanction(tick, request, response_data)
+        if tick.complete == True: 
+            manager_sanction(tick, request, response_data)
 
         return HttpResponse(
             json.dumps(response_data),
@@ -455,8 +455,14 @@ def check_tick_complete(request):
 
 @csrf_exempt
 def manager_sanction(tick, request, response_data):
+    message_text = "Player x is sanctioned by the lab manager"
+    #message_text = "Player %s is sanctioned by the lab manager" %apnumber(sanctionee.number).capitalize())
+    message = Message(content=message_text, created_by=None, game=tick.game, tick=tick)
+    message.save()
+    '''
     total_resources = 3
-    if tick.game.manager_sanc == INDIVIDUAL_SANC:
+    #individual sanction
+    if tick.game.manager_sanc == 1:
         players = Player.objects.filter(game = tick.game)
         for player in players:
             if player.number_of_vulnerabilities() > 0 and not player.sanctioned:
@@ -467,9 +473,11 @@ def manager_sanction(tick, request, response_data):
                     player.last_manager_sanction = tick.number
                     #sanction = ManagerSanction.create(player, tick, player.number_of_vulnerabilities())
                     response_data["sanction_msg"] = "The manager has done sanction on" + player.user.username
+    '''
+    #group sanction, fill in later
+    if tick.game.manager_sanc == 2:
+        pass
 
-
-    #if tick.game.manager_sanc == GROUP_SANC:
-
-
-    # for NO_SANC, do nothing
+    #no sanction, do nothing
+    if tick.game.manager_sanc ==  0:
+        pass

@@ -132,8 +132,10 @@ class Player(models.Model):
     number = models.IntegerField(default=0, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False)
-    #the last time the player gets sanctioned by the manager
-    last_manager_sanction = models.IntegerField(default=-1, editable=False)
+    #the last tick the player lose each security resource vulnerability
+    last_tick_blue = models.IntegerField(default=0, editable=False)
+    last_tick_yellow = models.IntegerField(default=0, editable=False)
+    last_tick_red = models.IntegerField(default=0, editable=False)
     #number of finished tasks
     nf_blue = models.IntegerField(default=0, editable=False)
     nf_yellow = models.IntegerField(default=0, editable=False)
@@ -632,6 +634,7 @@ class ManagerSanction(models.Model):
     def __unicode__(self):
         return u'The lab manager sanctioned %s' %(self.sanctionee.user.username)
 
+    # the sanctionee is sanctioned for num_of_ticks_sanc ticks
     @classmethod
     def create(cls, sanctionee, tick, num_of_ticks_sanc):
         sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + num_of_ticks_sanc))
@@ -664,5 +667,5 @@ class Statistics(models.Model):
     type_of_task = models.IntegerField(choices = TASK_TYPES, default = None)
 
     def __unicode__(self):
-        return u'In game %s, player %s finished task %s at tick %s. Total number of finished this type of task is %s' %(self.game.game_key, self.player.user.username, self.get_type_of_task_display(), self.player_tick.tick.number, self.nf_finished_task)
+        return u'In game %s, %s finished %s at tick %s. Total number of finished task of this type is %s' %(self.game.game_key, self.player.user.username, self.get_type_of_task_display(), self.player_tick.tick.number, self.nf_finished_task)
 

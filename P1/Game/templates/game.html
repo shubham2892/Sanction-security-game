@@ -74,9 +74,11 @@
                     <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst}} <strong>(Me)</strong>
                     {% else %}
                     <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst }}
-                    <button type="button" sanctionee="{{ player.pk }}" sanctioner="{{ me.pk }}" class="btn btn-sm btn-danger pull-right sanction">
-                        <span class="glyphicon glyphicon-thumbs-down"></span>&nbsp;Sanction
-                    </button>
+                        {%if game.peer_sanc == True %}                       
+                        <button type="button" sanctionee="{{ player.pk }}" sanctioner="{{ me.pk }}" class="btn btn-sm btn-danger pull-right sanction">
+                            <span class="glyphicon glyphicon-thumbs-down"></span>&nbsp;Sanction
+                        </button>
+                        {% endif %}
                     <button type="button" sanctionee="{{ player.pk }}" sanctioner="{{ me.pk }}" class="btn btn-sm btn-success pull-right props">
                         <span class="glyphicon glyphicon-thumbs-up"></span>&nbsp; Like
                     </button>
