@@ -1,4 +1,3 @@
-
 $(function() {
     update_attack_probabilities();
     scrollChat();

@@ -196,7 +196,7 @@ class Player(models.Model):
     # Returns true if a player can make a move at a given instance
     @property
     def can_move(self):
-        return not self.playertick_set.filter(tick=self.game.current_tick) and not self.game.complete
+        return not self.playertick_set.filter(tick=self.game.current_tick) and not self.sanctioned and not self.game.complete
 
     # Returns the total number of remaining  moves for a player with a game instance
     @property
@@ -209,7 +209,7 @@ class Player(models.Model):
         if self.sanctionee.exists() and (self.sanctionee.latest("tick_number").tick_number == self.game.current_tick.number):
             return True
         elif self.sanctionee_by_manager.exists() and (self.sanctionee_by_manager.latest("tick_number").tick_number >= self.game.current_tick.number):
-            print "sanctioned by lab manager, so 'is sanctioned'"
+            #print "sanctioned"
             return True
         else:
             return False
@@ -549,14 +549,14 @@ class Tick(models.Model):
             if sanctions:
                 for sanction in sanctions:
                         PlayerTick(tick=tick, player=sanction.sanctionee).save()
-                        print "%s's turn is taken away because of peer sanction"
+                        print "%s's turn is taken away because of peer sanction" %(sanction.sanctionee.user.username)
 
-            # Take away plaer's turn because of manager sanction
+            # Take away player's turn because of manager sanction
             sanctions = ManagerSanction.objects.filter(tick_number=tick.number)
             if sanctions:
                 for sanction in sanctions:
                         PlayerTick(tick=tick, player=sanction.sanctionee).save()
-                        print "%s's turn is taken away because of manager sanction"
+                        print "%s's turn is taken away because of manager sanction" %(sanction.sanctionee.user.username)
             return tick
 
 
@@ -627,7 +627,7 @@ class Sanction(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'%s sanctioned %s' %(self.sanctioner.user.username, self.sanctionee.user.username)
+        return u'%s sanctioned %s in game %s' %(self.sanctioner.user.username, self.sanctionee.user.username, sanctionee.game.game_key)
 
     @classmethod
     def create(cls, sanctioner, sanctionee, tick):
@@ -648,8 +648,8 @@ class ManagerSanction(models.Model):
     #create num_of_ticks_sanc ManagerSanction records
     @classmethod
     def create(cls, sanctionee, tick, num_of_ticks_sanc):
-        print "%s number of sanction(s):" %(i)
-        for i in range(1 : num_of_ticks_sanc + 1):
+        print "%s number of sanction(s):" %(num_of_ticks_sanc)
+        for i in range(1, num_of_ticks_sanc + 1):
             sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + i))
             sanction.save()
             print sanction
