@@ -208,6 +208,9 @@ class Player(models.Model):
     def sanctioned(self):
         if self.sanctionee.exists() and (self.sanctionee.latest("tick_number").tick_number == self.game.current_tick.number):
             return True
+        elif self.sanctionee_by_manager.exists() and (self.sanctionee_by_manager.latest("tick_number").tick_number >= self.game.current_tick.number):
+            print "sanctioned by lab manager, so 'is sanctioned'"
+            return True
         else:
             return False
 
@@ -541,12 +544,19 @@ class Tick(models.Model):
             tick.next_attack_probability = AttackProbability.create()
             tick.save()
 
-            # Take away  player's turned
+            # Take away  player's turn because of other players' sanction
             sanctions = Sanction.objects.filter(tick_number=tick.number)
             if sanctions:
                 for sanction in sanctions:
                         PlayerTick(tick=tick, player=sanction.sanctionee).save()
+                        print "%s's turn is taken away because of peer sanction"
 
+            # Take away plaer's turn because of manager sanction
+            sanctions = ManagerSanction.objects.filter(tick_number=tick.number)
+            if sanctions:
+                for sanction in sanctions:
+                        PlayerTick(tick=tick, player=sanction.sanctionee).save()
+                        print "%s's turn is taken away because of manager sanction"
             return tick
 
 
@@ -632,14 +642,17 @@ class ManagerSanction(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'The lab manager sanctioned %s' %(self.sanctionee.user.username)
+        return u'The lab manager sanctioned %s at tick %s' %(self.sanctionee.user.username, self.tick_number)
 
     # the sanctionee is sanctioned for num_of_ticks_sanc ticks
+    #create num_of_ticks_sanc ManagerSanction records
     @classmethod
     def create(cls, sanctionee, tick, num_of_ticks_sanc):
-        sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + num_of_ticks_sanc))
-        sanction.save()
-        return sanction
+        print "%s number of sanction(s):" %(i)
+        for i in range(1 : num_of_ticks_sanc + 1):
+            sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + i))
+            sanction.save()
+            print sanction
 
 
 WORKSHOP_TASK = 0

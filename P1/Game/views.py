@@ -455,25 +455,56 @@ def check_tick_complete(request):
 
 @csrf_exempt
 def manager_sanction(tick, request, response_data):
-    message_text = "Player x is sanctioned by the lab manager"
-    #message_text = "Player %s is sanctioned by the lab manager" %apnumber(sanctionee.number).capitalize())
-    message = Message(content=message_text, created_by=None, game=tick.game, tick=tick)
-    message.save()
-    '''
-    total_resources = 3
+    # A threshold (the number of ticks), for how long a vulnerability hasn't fixed would be taken into account when considering the probability of manager sanction
+    THRESHOLD = 3
+    num_of_resource = 3
     #individual sanction
     if tick.game.manager_sanc == 1:
         players = Player.objects.filter(game = tick.game)
+        count = 0
         for player in players:
-            if player.number_of_vulnerabilities() > 0 and not player.sanctioned:
-                sanc_prob = float(player.number_of_vulnerabilities()) / float(total_resources) * 100
-                # print "sanction prob. * 100 is" + str(sanc_prob)
-                if random.randint(0,100) < sanc_prob:
-                    #sanction the player for player.number_of_vulnerabilities ticks
-                    player.last_manager_sanction = tick.number
-                    #sanction = ManagerSanction.create(player, tick, player.number_of_vulnerabilities())
-                    response_data["sanction_msg"] = "The manager has done sanction on" + player.user.username
-    '''
+            print " "
+            print "for player %s " %s(player.user.username)
+            for resource in player.vulnerabilities.security_resources:
+                #blue
+                if resource.classification == 1:
+                    resource.active = False
+                    if resource.active == True:
+                        last_tick_blue = tick.number
+                    elif tick.number - last_tick_blue >= THRESHOLD:
+                        count = count + 1
+                #red
+                elif resource.classification == 2:
+                    resource.active = False
+                    if resource.active == True:
+                        last_tick_red = tick.number
+                    elif tick.number - last_tick_red >= THRESHOLD:
+                        count = count + 1
+
+                #yellow
+                else: # resource.classification == 3:
+                    resource.active = False
+                    if resource.active == True:
+                        last_tick_yellow = tick.number
+                    elif tick.number - last_tick_yellow >= THRESHOLD:
+                        count = count + 1
+                print " "
+                print resource
+            sanction_prob = count / num_of_resource
+            print "individual sanction probability is %s" %s(sanction_prob)
+            x = random.random();
+            print "random number is %s" %s(x)
+            if not player.sanctioned and x < sanction_prob:
+                    #sanction the player for "count" number of ticks
+                    ManagerSanction.create(player, tick, player.number_of_vulnerabilities())
+
+                    message_text = "Player %s is sanctioned by the lab manager for %s number of ticks" %s(%apnumber(player.number).capitalize(),player.number_of_vulnerabilities())
+                    message = Message(content=message_text, created_by=None, game=tick.game, tick=tick)
+                    message.save()
+                    print " "
+                    print message
+                    
+    
     #group sanction, fill in later
     if tick.game.manager_sanc == 2:
         pass

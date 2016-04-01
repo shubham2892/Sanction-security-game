@@ -34,20 +34,6 @@ function alertFailure(message) {
     return false;
 };
 
-function alertSanction(message) {
-    $("#test").empty();
-    $("#test").append(
-        '<div class="alert alert-danger alert-dismissable">'+
-            '<button type="button" class="close" ' +
-                    'data-dismiss="alert" aria-hidden="true">' +
-                '&times;' +
-            '</button>' +
-            '<strong>Failure:&nbsp;</strong>' +
-            message +
-         '</div>');
-    return false;
-};
-
 // Function for Attack Threat vertical bar
 function update_attack_probabilities(){
 
@@ -135,7 +121,6 @@ function updateRound() {
             } else if (json["tick_complete"] === true) {
                 //if a tick is complete, do manager sanction in check_tick_complete in views.py           
                 window.location.reload();
-                alertSanction(json["sanction_msg"]);
             } else {
                 updatePage();
             }
