@@ -333,11 +333,18 @@ function pass_round(clicked_resource) {
     $.ajax({
         url : "/passround/", // the endpoint
         type : "POST", // http method
-        data : { player_pk : $("#player").text() }, // data sent with the post request
+        data : {player_pk : $("#player").text() }, // data sent with the post request
 
         // handle a successful response
         success : function(json) {
-            if (json["passed"] === true) {
+            if (json["resource"] == "blue") {
+                $('#blue').removeClass("incomplete").addClass("complete");
+                alertSuccess(json["result"]);
+            } else if (json["resource"] == "red") {
+                $('#red').removeClass("incomplete").addClass("complete");
+                alertSuccess(json["result"]);
+            } else if (json["resource"] == "yellow") {
+                $('#yellow').removeClass("incomplete").addClass("complete");
                 alertSuccess(json["result"]);
             } else {
                 alertFailure(json["result"]);

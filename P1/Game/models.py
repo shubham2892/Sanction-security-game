@@ -143,6 +143,15 @@ class Player(models.Model):
     nf_workshop = models.IntegerField(default=0, editable=False)
     nf_conference = models.IntegerField(default=0, editable=False)
     nf_journal = models.IntegerField(default=0, editable=False)
+    #to count the number of "pass" button clicks
+    pass_counter = models.IntegerField(default=0, editable=False)
+    #the number of total sanction ticks
+    pass_total = models.IntegerField(default=0, editable=False)
+    #security tasks that are not finished when the manager decided to sanction they player; unfinished tasks are modified to be finished after manager sanction
+    blue_status = models.BooleanField(default=True, editable=False)
+    yellow_status = models.BooleanField(default=True, editable=False)
+    red_status = models.BooleanField(default=True, editable=False)
+
 
     def __unicode__(self):
         return u'%s in %s' % (self.user.username, self.game)
@@ -197,6 +206,12 @@ class Player(models.Model):
     @property
     def can_move(self):
         return not self.playertick_set.filter(tick=self.game.current_tick) and not self.sanctioned and not self.manager_sanctioned and not self.game.complete
+
+    # Returns true if a player already clicked the pass button in the case of being sanctioned by the manager; only returns the right value when the player is manager_sanctioned 
+    # only called by pass_round in views
+    @property
+    def passed(self):
+        return self.playertick_set.filter(tick=self.game.current_tick) and not self.game.complete
 
     # Returns the total number of remaining  moves for a player with a game instance
     @property
@@ -651,14 +666,15 @@ class ManagerSanction(models.Model):
     def __unicode__(self):
         return u'The lab manager sanctioned %s at tick %s' %(self.sanctionee.user.username, self.tick_number)
 
-    # a player gets sanctioned by the manager twice the time of what his unfinished vulnerabilities are
-    SANCTION_CONST = 2
+    
+    
     # the sanctionee is sanctioned for num_of_ticks_sanc ticks
     #create num_of_ticks_sanc ManagerSanction records
     @classmethod
     def create(cls, sanctionee, tick, num_of_ticks_sanc):
         print "%s number of sanction(s):" %(num_of_ticks_sanc)
-        for i in range(1, SANCTION_CONST * num_of_ticks_sanc + 1):
+        # a player gets sanctioned by the manager twice the time of what his unfinished vulnerabilities are
+        for i in range(1, 2 * num_of_ticks_sanc + 1):
             sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + i))
             sanction.save()
             print sanction
