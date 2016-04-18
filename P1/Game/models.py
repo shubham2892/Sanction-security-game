@@ -193,23 +193,28 @@ class Player(models.Model):
 
         return objective
 
-    # Returns true if a player can make a move at a given instance
+    # Returns true if a player can make a move at a given instance; click on 'pass' button doesn't count as can_move
     @property
     def can_move(self):
-        return not self.playertick_set.filter(tick=self.game.current_tick) and not self.sanctioned and not self.game.complete
+        return not self.playertick_set.filter(tick=self.game.current_tick) and not self.sanctioned and not self.manager_sanctioned and not self.game.complete
 
     # Returns the total number of remaining  moves for a player with a game instance
     @property
     def remaining_moves(self):
         return self.game._ticks - self.playertick_set.count()
 
-    # Returns true if a player is sanctioned at a given instance
+    # Returns true if a player is peer sanctioned at a given instance
     @property
     def sanctioned(self):
         if self.sanctionee.exists() and (self.sanctionee.latest("tick_number").tick_number == self.game.current_tick.number):
             return True
-        elif self.sanctionee_by_manager.exists() and (self.sanctionee_by_manager.latest("tick_number").tick_number >= self.game.current_tick.number):
-            #print "sanctioned"
+        else:
+            return False
+    # Returns true if a player is sanctioned by the manager at a given instance
+    @property
+    def manager_sanctioned(self):
+        if self.sanctionee_by_manager.exists() and (self.sanctionee_by_manager.latest("tick_number").tick_number >= self.game.current_tick.number):
+            #print "manager sanctioned"
             return True
         else:
             return False
@@ -566,6 +571,7 @@ SANCTION = 1
 SECURITY = 2
 RESEARCH_TASK = 3
 RESEARCH_OBJ = 4
+PASS = 5
 
 ACTIONS = (
     (REST, "The player did not move."),
@@ -573,6 +579,7 @@ ACTIONS = (
     (SECURITY, "activated security resource"),
     (RESEARCH_TASK, "completed research task"),
     (RESEARCH_OBJ, "completed research objective"),
+    (PASS, "clicked the pass button")
 )
 
 ''' An object for synchronizing players' moves within a round '''
@@ -644,12 +651,14 @@ class ManagerSanction(models.Model):
     def __unicode__(self):
         return u'The lab manager sanctioned %s at tick %s' %(self.sanctionee.user.username, self.tick_number)
 
+    # a player gets sanctioned by the manager twice the time of what his unfinished vulnerabilities are
+    SANCTION_CONST = 2
     # the sanctionee is sanctioned for num_of_ticks_sanc ticks
     #create num_of_ticks_sanc ManagerSanction records
     @classmethod
     def create(cls, sanctionee, tick, num_of_ticks_sanc):
         print "%s number of sanction(s):" %(num_of_ticks_sanc)
-        for i in range(1, num_of_ticks_sanc + 1):
+        for i in range(1, SANCTION_CONST * num_of_ticks_sanc + 1):
             sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + i))
             sanction.save()
             print sanction

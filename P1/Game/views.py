@@ -233,11 +233,16 @@ def security_resource_activate(request):
                     json.dumps(response_data),
                     content_type="application/json"
                 )
+            elif player.manager_sanctioned:
+                return HttpResponse(
+                    json.dumps({"result": "You have been sanctioned by the manager. You can only click on the 'Pass' button to pass this round."}),
+                    content_type="application/json"
+                    )
             elif player.sanctioned:
                 return HttpResponse(
-                    json.dumps({"result": "You have been sanctioned. You may not move this round."}),
+                    json.dumps({"result": "You have been sanctioned by other player(s). You may not move this round."}),
                     content_type="application/json"
-            )
+                )
             else:
                 return HttpResponse(
                     json.dumps({"result": "You have already moved this round."}),
@@ -325,11 +330,16 @@ def research_resource_complete(request):
                     json.dumps(response_data),
                     content_type="application/json"
                 )
+            elif player.manager_sanctioned:
+                return HttpResponse(
+                    json.dumps({"result": "You have been sanctioned by the manager. You can only click on the 'Pass' button to pass this round."}),
+                    content_type="application/json"
+                    )
             elif player.sanctioned:
                 return HttpResponse(
-                    json.dumps({"result": "You have been sanctioned. You may not move this round."}),
+                    json.dumps({"result": "You have been sanctioned by other player(s). You may not move this round."}),
                     content_type="application/json"
-            )
+                )
             else:
                 return HttpResponse(
                     json.dumps({"result": "You have already moved this round."}),
@@ -372,11 +382,16 @@ def sanction(request):
                     json.dumps(response_data),
                     content_type="application/json"
                 )
-            elif sanctioner.sanctioned:
+            elif player.manager_sanctioned:
                 return HttpResponse(
-                    json.dumps({"result": "You have been sanctioned. You may not move this round."}),
+                    json.dumps({"result": "You have been sanctioned by the manager. You can only click on the 'Pass' button to pass this round."}),
                     content_type="application/json"
-            )
+                    )
+            elif player.sanctioned:
+                return HttpResponse(
+                    json.dumps({"result": "You have been sanctioned by other player(s). You may not move this round."}),
+                    content_type="application/json"
+                )
             else:
                 return HttpResponse(
                     json.dumps({"result": "You have already moved this round."}),
@@ -393,7 +408,7 @@ def sanction(request):
 def give_props(request):
     if request.method == 'POST':
         sanctioner = Player.objects.get(pk=request.POST.get("sanctioner_pk"))
-        if not sanctioner.sanctioned:
+        if not sanctioner.sanctioned and not sanctioner.manager_sanctioned:
             sanctionee = Player.objects.get(pk=request.POST.get("sanctionee_pk"))
             response_data = {}
 
@@ -413,16 +428,21 @@ def give_props(request):
                 json.dumps(response_data),
                 content_type="application/json"
                     )
-        elif sanctioner.sanctioned:
-            return HttpResponse(
-                json.dumps({"result": "You have been sanctioned. You may not move this round."}),
-                content_type="application/json"
-        )
-        else:
+        elif player.manager_sanctioned:
                 return HttpResponse(
-                    json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
+                    json.dumps({"result": "You have been sanctioned by the manager. You can only click on the 'Pass' button to pass this round."}),
                     content_type="application/json"
-                )
+                    )
+        elif player.sanctioned:
+            return HttpResponse(
+                json.dumps({"result": "You have been sanctioned by other player(s). You may not move this round."}),
+                content_type="application/json"
+            )
+        else:
+            return HttpResponse(
+                json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
+                content_type="application/json"
+            )
 
 
 @csrf_exempt
@@ -458,6 +478,7 @@ def manager_sanction(tick, request, response_data):
     # A threshold (the number of ticks), for how long a vulnerability hasn't fixed would be taken into account when considering the probability of manager sanction
     THRESHOLD = 3
     num_of_resource = 3
+
     #individual sanction
     if tick.game.manager_sanc == 1:
         players = Player.objects.filter(game = tick.game)
@@ -500,9 +521,12 @@ def manager_sanction(tick, request, response_data):
             x = random.random();
             print "random number is %s" %(x)
 
+            #for testing
+            sanction_prob = 1
+            x = 0
 
             if x < sanction_prob and not player.sanctioned:
-                #sanction the player for "count" number of ticks
+                #sanction the player for "2 * count" number of ticks
                 ManagerSanction.create(player, tick, player.number_of_vulnerabilities())
 
                 message_text = "Player %s is sanctioned by the lab manager for %s tick(s) at tick %s" %(apnumber(player.number).capitalize(),player.number_of_vulnerabilities(),tick.game._ticks - tick.number - 1)
@@ -514,6 +538,20 @@ def manager_sanction(tick, request, response_data):
                 message.save()
                 print " "
                 print message
+
+
+                # Announce Sanction
+                message_text = "Player %s has sanctioned Player %s" %(apnumber(sanctioner.number).capitalize(), apnumber(sanctionee.number).capitalize())
+                tick = sanctioner.game.current_tick
+                
+
+                # Record player's "Sanction" action and end players move
+                sanctioners_tick = PlayerTick(player=player, tick=player.game.current_tick)
+                sanctioners_tick.action = PASS
+                sanctioners_tick.save()
+
+                response_data["passed"] = True
+                response_data['result'] = "You pressed the pass button"
     
     #group sanction, fill in later
     if tick.game.manager_sanc == 2:
@@ -522,3 +560,39 @@ def manager_sanction(tick, request, response_data):
     #no sanction, do nothing
     if tick.game.manager_sanc ==  0:
         pass
+
+@csrf_exempt
+def pass_round(request):
+        if request.method == 'POST':
+            player = Player.objects.get(pk=request.POST.get('player_pk'))
+            player_tick = PlayerTick(player=player, tick=player.game.current_tick)
+
+            if not player.manager_sanctioned:
+                print "Something wrong here. You shouldn't be able to see the pass button if you are not sanctioned by the manager."
+
+            
+            if player.manager_sanctioned:
+                response_data = {}
+                # if player already clicked on the pass button this round
+                # to be done
+                return HttpResponse(
+                    json.dumps({"result": "You have already moved this round."}),
+                    content_type="application/json"
+                )
+
+                # if the player clicked on the pass button the first time in this round
+                #to be done
+                return HttpResponse(
+                    json.dumps(response_data),
+                    content_type="application/json"
+                )
+            else:
+                return HttpResponse(
+                    json.dumps({"result": "What?! You should not see the pass button now."}),
+                    content_type="application/json"
+                )
+        else:
+            return HttpResponse(
+                json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
+                content_type="application/json"
+            )

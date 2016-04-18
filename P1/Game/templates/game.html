@@ -116,8 +116,10 @@
                         <td colspan="1">
                         {% if player.can_move %}
                             <h5><strong>thinking...</strong>
+                        {% elif player.manager_sanctioned %}
+                            <h5><strong>sanctioned by manager.</strong>
                         {% elif player.sanctioned %}
-                            <h5><strong>sanctioned.</strong>
+                            <h5><strong>sanctioned by peers.</strong>
                         {% else %}
                             <h5><strong>moved.</strong>
                         {% endif %}
@@ -166,6 +168,7 @@
                             </span>
                         </div>
                     </div>
+                    
                     <div class="panel-body gameboard">
 
                         <!-- START Resource Objectives -->
@@ -265,8 +268,30 @@
                                                 </div>
                                         </td>
                                         {% endfor %}
+
+                                        <vr>
+                                        <td>
+                                            {% if me.manager_sanctioned%}
+                                            <button type="button" id = "passbtn" class="btn btn-success">
+                                             Pass
+                                            </button>
+                                            {% endif %}
+                                        </td>
                                     </tr>
-                                        <tr id="capability-list">
+                                        
+                                </tbody>
+                            </table>
+                        </div><!--- close .objectives -->
+
+                        <hr>
+
+                        <div class="objectives">
+                            <div class="section-header">
+                                <h3>Capabilities:</h3>
+                            </div>
+                                 <table class="category-list">
+                                        <tbody>
+                                            <tr id="capability-list">
                                             <td>
                                                 <h4 class="objective-category">Capabilities:</h4>
                                             </td>
@@ -285,8 +310,9 @@
                                             </tr>
 
                                         </tbody>
-                                    </table>
-                                </div><!--- close .objectives -->
+                                </table>
+                        </div><!--- close .objectives -->
+
                             </div><!--- close .panel-body-->
                         </div><!-- close .panel .panel-primary -->
                     </div><!-- close col-md-4 -->

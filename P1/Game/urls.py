@@ -16,4 +16,5 @@ urlpatterns = [
     url(r'^sanction/$', login_required(views.sanction), name='sanction'),
     url(r'^props/$', login_required(views.give_props), name='props'),
     url(r'^tick/complete/$', login_required(views.check_tick_complete), name='check_tick_complete'),
+    url(r'^passround/$', login_required(views.pass_round), name='passround'),
 ]
