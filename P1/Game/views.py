@@ -203,7 +203,7 @@ def security_resource_activate(request):
 
                 # After security resource is activated, reactivate capability if necessary
                 c = Capabilities.objects.get(player=player).security_resources.get(classification=security_resource.classification)
-                c.active = True;
+                c.active = True
                 c.save()
 
                 # End players move
@@ -530,10 +530,6 @@ def manager_sanction(tick, request, response_data):
             x = random.random();
             print "random number is %s" %(x)
 
-            #for testing
-            sanction_prob = 1
-            x = 0
-
             if x < sanction_prob and not player.manager_sanctioned and not player.sanctioned:
                 #sanction the player for "2 * count" number of ticks
                 ManagerSanction.create(player, tick, player.number_of_vulnerabilities())
@@ -543,11 +539,21 @@ def manager_sanction(tick, request, response_data):
                 player.pass_total = player.number_of_vulnerabilities() * 2
                 player.save()
 
-                message_text = "Player %s is sanctioned by the lab manager for %s tick(s) at tick %s" %(apnumber(player.number).capitalize(),player.number_of_vulnerabilities(),tick.game._ticks - tick.number - 1)
-                if player.number_of_vulnerabilities() == 2 or player.number_of_vulnerabilities() == 3:
+                message_text = "Player %s is sanctioned by the lab manager for %s tick(s)" %(apnumber(player.number).capitalize(),player.number_of_vulnerabilities() * 2)
+                if tick.game._ticks - tick.number - 1 >= 0:
+                    message_text += " at tick %s" %(tick.game._ticks - tick.number - 1)
+                if tick.game._ticks - tick.number - 2 >= 0:
                     message_text += ", %s" %(tick.game._ticks - tick.number - 2)
-                elif player.number_of_vulnerabilities() == 3:
-                    message_text += ", %s" %(tick.game._ticks - tick.number - 3)
+                if player.number_of_vulnerabilities() == 2 or player.number_of_vulnerabilities() == 3:
+                    if tick.game._ticks - tick.number - 3 >= 0:
+                        message_text += ", %s" %(tick.game._ticks - tick.number - 3)
+                    if tick.game._ticks - tick.number - 4 >= 0:
+                        message_text += ", %s" %(tick.game._ticks - tick.number - 4)
+                if player.number_of_vulnerabilities() == 3:
+                    if tick.game._ticks - tick.number - 5 >= 0:
+                        message_text += ", %s" %(tick.game._ticks - tick.number - 5)
+                    if tick.game._ticks - tick.number - 6 >= 0:
+                        message_text += ", %s" %(tick.game._ticks - tick.number - 6)
                 message = Message(content=message_text, created_by=None, game=tick.game, tick=tick)
                 message.save()
                 print " "
@@ -587,18 +593,61 @@ def pass_round(request):
                     sanctioners_tick.save()
 
                     # fix security tasks if counter is odd; since we fix a security task when clicked twice
+                    print " "
+                    print "fix security task in manager sanction"
+                    print "player %s pass counter is %s" %(player.number, player.pass_counter)
+
                     if player.pass_counter > 0 and player.pass_counter % 2 == 0:
-                        if player.blue_status == False:
-                            response_data["resource"] = "blue"
-                            player.blue_status = True
-                        elif player.red_status == False:
-                            response_data["resource"] = "red"
-                            player.red_status = True
-                        elif player.yellow_status == False:
-                            response_data["resource"] = "yellow"
-                            player.yellow_status = True
+                        stats = Statistics(game = player.game, player = player, player_tick = player_tick)
+                        for vulnerability in player.vulnerabilities.security_resources.all:
+                            if  vulnerability.classification == 1 and player.blue_status == False:
+                                response_data["resource"] = "blue"
+                                player.blue_status = True
+                                vulnerability.active = True
+                                vulnerability.save()
+                                player.nf_blue += 1
+                                player.save()
+
+                                c = Capabilities.objects.get(player=player).security_resources.get(classification=1)
+                                c.active = True
+                                c.save()
+                                stats.nf_finished_task = player.nf_blue
+                                stats.type_of_task = 5
+                                print "fixed blue vulnerability"
+                            elif vulnerability.classification == 2 and player.red_status == False:
+                                response_data["resource"] = "red"
+                                player.red_status = True
+                                vulnerability.active = True
+                                vulnerability.save()
+                                player.nf_red += 1
+                                player.save()
+
+                                c = Capabilities.objects.get(player=player).security_resources.get(classification=2)
+                                c.active = True
+                                c.save()
+                                stats.nf_finished_task = player.nf_red
+                                stats.type_of_task = 3
+                                print "fixed red vulnerability"
+                            elif vulnerability.classification == 3 and player.yellow_status == False:
+                                response_data["resource"] = "yellow"
+                                player.yellow_status = True
+                                vulnerability.active = True
+                                vulnerability.save()
+                                player.nf_yellow += 1
+                                player.save()
+
+                                c = Capabilities.objects.get(player=player).security_resources.get(classification=3)
+                                c.active = True
+                                c.save()
+                                stats.nf_finished_task = player.nf_yellow
+                                stats.type_of_task = 4
+                                print "fixed yellow vulnerability"                           
+                            
+                        stats.save()
 
                     player.pass_counter = player.pass_counter + 1
+                    print "after fix vulnerability, capability:"
+                    print "player %s pass counter is %s" %(player.number, player.pass_counter)
                     #reset pass_total after this round of manager sanctions
                     if player.pass_counter == player.pass_total:
                         player.pass_total = 0

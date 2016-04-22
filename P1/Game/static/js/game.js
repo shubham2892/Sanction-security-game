@@ -135,7 +135,7 @@ function updateRound() {
     return false;
 };
 
-var roundUpdate = setInterval(function() {updateRound() }, 3000);  //call updateRound() function every 2 seconds
+var roundUpdate = setInterval(function() {updateRound() }, 3000);  //call updateRound() function every 3 seconds
 
 // Refreshes talk for new messages
 function updateChat() {
@@ -338,13 +338,19 @@ function pass_round(clicked_resource) {
         // handle a successful response
         success : function(json) {
             if (json["resource"] == "blue") {
-                $('#blue').removeClass("incomplete").addClass("complete");
+                $('#blue').removeClass("inactive").addClass("active");
+                $("#my-vulnerabilities").load(location.href +" #my-vulnerabilities>*","");
+                $("#capability-list").load(location.href +" #capability-list>*","");
                 alertSuccess(json["result"]);
             } else if (json["resource"] == "red") {
-                $('#red').removeClass("incomplete").addClass("complete");
+                $('#red').removeClass("inactive").addClass("active");
+                $("#my-vulnerabilities").load(location.href +" #my-vulnerabilities>*","");
+                $("#capability-list").load(location.href +" #capability-list>*","");
                 alertSuccess(json["result"]);
             } else if (json["resource"] == "yellow") {
-                $('#yellow').removeClass("incomplete").addClass("complete");
+                $('#yellow').removeClass("inactive").addClass("active");
+                $("#my-vulnerabilities").load(location.href +" #my-vulnerabilities>*","");
+                $("#capability-list").load(location.href +" #capability-list>*","");
                 alertSuccess(json["result"]);
             } else {
                 alertFailure(json["result"]);

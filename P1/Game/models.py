@@ -574,7 +574,9 @@ class Tick(models.Model):
             # Take away player's turn because of manager sanction
             sanctions = ManagerSanction.objects.filter(tick_number=tick.number)
             if sanctions:
+                print tick
                 for sanction in sanctions:
+                        print sanction
                         PlayerTick(tick=tick, player=sanction.sanctionee).save()
                         print "%s's turn is taken away because of manager sanction" %(sanction.sanctionee.user.username)
             return tick
