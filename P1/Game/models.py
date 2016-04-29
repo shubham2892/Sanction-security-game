@@ -565,20 +565,20 @@ class Tick(models.Model):
             tick.save()
 
             # Take away  player's turn because of other players' sanction
-            sanctions = Sanction.objects.filter(tick_number=tick.number)
+            sanctions = Sanction.objects.filter(tick_number=tick.number, game = tick.game)
             if sanctions:
                 for sanction in sanctions:
                         PlayerTick(tick=tick, player=sanction.sanctionee).save()
-                        print "%s's turn is taken away because of peer sanction" %(sanction.sanctionee.user.username)
+                        print "Created a playertick: %s, peer sanction, tick %s" %(sanction.sanctionee.user.username, tick.number)
 
             # Take away player's turn because of manager sanction
-            sanctions = ManagerSanction.objects.filter(tick_number=tick.number)
+            sanctions = ManagerSanction.objects.filter(tick_number=tick.number, game = tick.game)
             if sanctions:
-                print tick
+                #print tick
                 for sanction in sanctions:
                         print sanction
                         PlayerTick(tick=tick, player=sanction.sanctionee).save()
-                        print "%s's turn is taken away because of manager sanction" %(sanction.sanctionee.user.username)
+                        print "Created a playertick: %s, manager sanction, tick %s" %(sanction.sanctionee.user.username, tick.number)
             return tick
 
 
@@ -647,6 +647,7 @@ class Sanction(models.Model):
     sanctioner = models.ForeignKey(Player, related_name="sanctioner")
     sanctionee = models.ForeignKey(Player, related_name="sanctionee")
     tick_number = models.IntegerField()
+    game = models.ForeignKey(Game)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -655,18 +656,19 @@ class Sanction(models.Model):
 
     @classmethod
     def create(cls, sanctioner, sanctionee, tick):
-        sanction = cls(sanctioner=sanctioner, sanctionee=sanctionee, tick_number=(tick.number + 1))
+        sanction = cls(sanctioner=sanctioner, sanctionee=sanctionee, tick_number=(tick.number + 1), game = tick.game)
         sanction.save()
         return sanction
 
 class ManagerSanction(models.Model):
     sanctionee = models.ForeignKey(Player, related_name="sanctionee_by_manager")
     tick_number = models.IntegerField()
+    game = models.ForeignKey(Game)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'The lab manager sanctioned %s at tick %s' %(self.sanctionee.user.username, self.tick_number)
+        return u'Created manager sanction: %s for tick %s' %(self.sanctionee.user.username, self.tick_number)
 
     
     
@@ -674,10 +676,10 @@ class ManagerSanction(models.Model):
     #create num_of_ticks_sanc ManagerSanction records
     @classmethod
     def create(cls, sanctionee, tick, num_of_ticks_sanc):
-        print "%s number of sanction(s):" %(num_of_ticks_sanc)
+        # print "%s number of sanction(s):" %(num_of_ticks_sanc)
         # a player gets sanctioned by the manager twice the time of what his unfinished vulnerabilities are
-        for i in range(1, 2 * num_of_ticks_sanc + 1):
-            sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + i))
+        for i in range(1, num_of_ticks_sanc + 1):
+            sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + i), game = tick.game)
             sanction.save()
             print sanction
 
@@ -698,7 +700,7 @@ TASK_TYPES = (
     (BLUE_TASK, "Blue Security Task")
 )
 class Statistics(models.Model):
-    game = models.ForeignKey(Game, default = None)
+    game = models.ForeignKey(Game)
     player = models.ForeignKey(Player, default = None)
     player_tick = models.ForeignKey(PlayerTick, default = None)
     #number of finished tasks

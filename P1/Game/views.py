@@ -530,30 +530,24 @@ def manager_sanction(tick, request, response_data):
             x = random.random();
             print "random number is %s" %(x)
 
-            if x < sanction_prob and not player.manager_sanctioned and not player.sanctioned:
+            if x < sanction_prob and not player.manager_sanctioned:
                 #sanction the player for "2 * count" number of ticks
-                ManagerSanction.create(player, tick, player.number_of_vulnerabilities())
+                num_of_vul = player.number_of_vulnerabilities()
+                diff = tick.game._ticks - tick.number
+                player.pass_total =  num_of_vul * 2
+
+                ManagerSanction.create(player, tick, player.pass_total)
                 player.blue_status = t_blue_status
                 player.red_status = t_red_status
                 player.yellow_status = t_yellow_status
-                player.pass_total = player.number_of_vulnerabilities() * 2
                 player.save()
 
-                message_text = "Player %s is sanctioned by the lab manager for %s tick(s)" %(apnumber(player.number).capitalize(),player.number_of_vulnerabilities() * 2)
-                if tick.game._ticks - tick.number - 1 >= 0:
-                    message_text += " at tick %s" %(tick.game._ticks - tick.number - 1)
-                if tick.game._ticks - tick.number - 2 >= 0:
-                    message_text += ", %s" %(tick.game._ticks - tick.number - 2)
-                if player.number_of_vulnerabilities() == 2 or player.number_of_vulnerabilities() == 3:
-                    if tick.game._ticks - tick.number - 3 >= 0:
-                        message_text += ", %s" %(tick.game._ticks - tick.number - 3)
-                    if tick.game._ticks - tick.number - 4 >= 0:
-                        message_text += ", %s" %(tick.game._ticks - tick.number - 4)
-                if player.number_of_vulnerabilities() == 3:
-                    if tick.game._ticks - tick.number - 5 >= 0:
-                        message_text += ", %s" %(tick.game._ticks - tick.number - 5)
-                    if tick.game._ticks - tick.number - 6 >= 0:
-                        message_text += ", %s" %(tick.game._ticks - tick.number - 6)
+                message_text = "Player %s is sanctioned by the lab manager for %s tick(s) at tick" %(apnumber(player.number).capitalize(),player.pass_total)
+
+                for i in range(1, num_of_vul * 2 + 1):
+                    if diff - i >= 0:
+                        message_text += " %s" %(diff - i) 
+
                 message = Message(content=message_text, created_by=None, game=tick.game, tick=tick)
                 message.save()
                 print " "
@@ -589,7 +583,7 @@ def pass_round(request):
                      # if the player clicked on the pass button the first time in this round
                     # Record player's "Sanction" action and end players move
                     sanctioners_tick = PlayerTick(player=player, tick=player.game.current_tick)
-                    sanctioners_tick.action = PASS
+                    sanctioners_tick.action = 5 #PASS
                     sanctioners_tick.save()
 
                     # fix security tasks if counter is odd; since we fix a security task when clicked twice
@@ -641,9 +635,9 @@ def pass_round(request):
                                 c.save()
                                 stats.nf_finished_task = player.nf_yellow
                                 stats.type_of_task = 4
-                                print "fixed yellow vulnerability"                           
-                            
+                                print "fixed yellow vulnerability"                               
                         stats.save()
+                        print stats 
 
                     player.pass_counter = player.pass_counter + 1
                     print "after fix vulnerability, capability:"

@@ -119,7 +119,7 @@ function updateRound() {
                 clearinterval(roundUpdate);
             } else if (json["tick_complete"] === true) {
                 //if a tick is complete, do manager sanction in check_tick_complete in views.py           
-                window.location.reload();
+                //window.location.reload();
             } else {
                 updatePage();
             }
