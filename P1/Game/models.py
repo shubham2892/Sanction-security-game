@@ -143,14 +143,14 @@ class Player(models.Model):
     nf_workshop = models.IntegerField(default=0, editable=False)
     nf_conference = models.IntegerField(default=0, editable=False)
     nf_journal = models.IntegerField(default=0, editable=False)
-    #to count the number of "pass" button clicks
-    pass_counter = models.IntegerField(default=0, editable=False)
-    #the number of total sanction ticks
-    pass_total = models.IntegerField(default=0, editable=False)
+
     #security tasks that are not finished when the manager decided to sanction they player; unfinished tasks are modified to be finished after manager sanction
     blue_status = models.BooleanField(default=True, editable=False)
     yellow_status = models.BooleanField(default=True, editable=False)
     red_status = models.BooleanField(default=True, editable=False)
+
+    #last tick that a player clicks the pass button
+    last_tick = models.ForeignKey(Tick, default = None, editable = False)
 
 
     def __unicode__(self):
@@ -210,8 +210,8 @@ class Player(models.Model):
     # Returns true if a player already clicked the pass button in the case of being sanctioned by the manager; only returns the right value when the player is manager_sanctioned 
     # only called by pass_round in views
     @property
-    def passed(self):
-        return self.playertick_set.filter(tick=self.game.current_tick) and not self.game.complete
+    def clicked_pass_at_this_tick(self):
+        return self.last_tick == self.game.current_tick and not self.game.complete
 
     # Returns the total number of remaining  moves for a player with a game instance
     @property

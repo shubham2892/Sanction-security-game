@@ -534,15 +534,14 @@ def manager_sanction(tick, request, response_data):
                 #sanction the player for "2 * count" number of ticks
                 num_of_vul = player.number_of_vulnerabilities()
                 diff = tick.game._ticks - tick.number
-                player.pass_total =  num_of_vul * 2
 
-                ManagerSanction.create(player, tick, player.pass_total)
+                ManagerSanction.create(player, tick, num_of_vul * 2)
                 player.blue_status = t_blue_status
                 player.red_status = t_red_status
                 player.yellow_status = t_yellow_status
                 player.save()
 
-                message_text = "Player %s is sanctioned by the lab manager for %s tick(s) at tick" %(apnumber(player.number).capitalize(),player.pass_total)
+                message_text = "Player %s is sanctioned by the lab manager for %s tick(s) at tick" %(apnumber(player.number).capitalize(), num_of_vul * 2)
 
                 for i in range(1, num_of_vul * 2 + 1):
                     if diff - i >= 0:
@@ -566,21 +565,10 @@ def pass_round(request):
         if request.method == 'POST':
             player = Player.objects.get(pk=request.POST.get('player_pk'))
             player_tick = PlayerTick(player=player, tick=player.game.current_tick)
-
-            if not player.manager_sanctioned:
-                print "Something wrong here. You shouldn't be able to see the pass button if you are not sanctioned by the manager."
-
             
             if player.manager_sanctioned:
-                response_data = {}
-                # if player already clicked on the pass button this round
-                if player.passed:
-                    return HttpResponse(
-                        json.dumps({"result": "You have already moved this round."}),
-                        content_type="application/json"
-                    )
-                else:
-                     # if the player clicked on the pass button the first time in this round
+                if player.clicked_pass_at_this_tick:
+                    response_data = {}
                     # Record player's "Sanction" action and end players move
                     sanctioners_tick = PlayerTick(player=player, tick=player.game.current_tick)
                     sanctioners_tick.action = 5 #PASS
@@ -588,66 +576,64 @@ def pass_round(request):
 
                     # fix security tasks if counter is odd; since we fix a security task when clicked twice
                     print " "
-                    print "fix security task in manager sanction"
-                    print "player %s pass counter is %s" %(player.number, player.pass_counter)
+                    print "pass button pressed, fix security task(s) in manager sanction"
+                    
+                    stats = Statistics(game = player.game, player = player, player_tick = player_tick)
+                    for vulnerability in player.vulnerabilities.security_resources.all:
+                        if  vulnerability.classification == 1 and player.blue_status == False:
+                            response_data["resource"] = "blue"
+                            player.blue_status = True
+                            vulnerability.active = True
+                            vulnerability.save()
+                            player.nf_blue += 1
+                            player.save()
 
-                    if player.pass_counter > 0 and player.pass_counter % 2 == 0:
-                        stats = Statistics(game = player.game, player = player, player_tick = player_tick)
-                        for vulnerability in player.vulnerabilities.security_resources.all:
-                            if  vulnerability.classification == 1 and player.blue_status == False:
-                                response_data["resource"] = "blue"
-                                player.blue_status = True
-                                vulnerability.active = True
-                                vulnerability.save()
-                                player.nf_blue += 1
-                                player.save()
+                            c = Capabilities.objects.get(player=player).security_resources.get(classification=1)
+                            c.active = True
+                            c.save()
+                            stats.nf_finished_task = player.nf_blue
+                            stats.type_of_task = 5
+                            print "fixed blue vulnerability"
+                        if vulnerability.classification == 2 and player.red_status == False:
+                            response_data["resource"] = "red"
+                            player.red_status = True
+                            vulnerability.active = True
+                            vulnerability.save()
+                            player.nf_red += 1
+                            player.save()
 
-                                c = Capabilities.objects.get(player=player).security_resources.get(classification=1)
-                                c.active = True
-                                c.save()
-                                stats.nf_finished_task = player.nf_blue
-                                stats.type_of_task = 5
-                                print "fixed blue vulnerability"
-                            elif vulnerability.classification == 2 and player.red_status == False:
-                                response_data["resource"] = "red"
-                                player.red_status = True
-                                vulnerability.active = True
-                                vulnerability.save()
-                                player.nf_red += 1
-                                player.save()
+                            c = Capabilities.objects.get(player=player).security_resources.get(classification=2)
+                            c.active = True
+                            c.save()
+                            stats.nf_finished_task = player.nf_red
+                            stats.type_of_task = 3
+                            print "fixed red vulnerability"
+                        if vulnerability.classification == 3 and player.yellow_status == False:
+                            response_data["resource"] = "yellow"
+                            player.yellow_status = True
+                            vulnerability.active = True
+                            vulnerability.save()
+                            player.nf_yellow += 1
+                            player.save()
 
-                                c = Capabilities.objects.get(player=player).security_resources.get(classification=2)
-                                c.active = True
-                                c.save()
-                                stats.nf_finished_task = player.nf_red
-                                stats.type_of_task = 3
-                                print "fixed red vulnerability"
-                            elif vulnerability.classification == 3 and player.yellow_status == False:
-                                response_data["resource"] = "yellow"
-                                player.yellow_status = True
-                                vulnerability.active = True
-                                vulnerability.save()
-                                player.nf_yellow += 1
-                                player.save()
-
-                                c = Capabilities.objects.get(player=player).security_resources.get(classification=3)
-                                c.active = True
-                                c.save()
-                                stats.nf_finished_task = player.nf_yellow
-                                stats.type_of_task = 4
-                                print "fixed yellow vulnerability"                               
+                            c = Capabilities.objects.get(player=player).security_resources.get(classification=3)
+                            c.active = True
+                            c.save()
+                            stats.nf_finished_task = player.nf_yellow
+                            stats.type_of_task = 4
+                            print "fixed yellow vulnerability"                               
                         stats.save()
-                        print stats 
+                        #print stats 
 
-                    player.pass_counter = player.pass_counter + 1
                     print "after fix vulnerability, capability:"
-                    print "player %s pass counter is %s" %(player.number, player.pass_counter)
-                    #reset pass_total after this round of manager sanctions
-                    if player.pass_counter == player.pass_total:
-                        player.pass_total = 0
-                        player.pass_counter = 0
-                    player.save()
 
+                    response_data['result'] = "You passed this round."
+
+                    return HttpResponse(
+                        json.dumps(response_data),
+                        content_type="application/json"
+                    )
+                else:
                     response_data['result'] = "You passed this round."
 
                     return HttpResponse(
@@ -656,6 +642,7 @@ def pass_round(request):
                     )
             else:
                 return HttpResponse(
+                    print "Something wrong. You shouldn't be able to see the pass button if you are not sanctioned by the manager."
                     json.dumps({"result": "What?! You should not see the pass button now."}),
                     content_type="application/json"
                 )
