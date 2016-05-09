@@ -136,6 +136,10 @@ class Player(models.Model):
     last_tick_blue = models.IntegerField(default=0, editable=False)
     last_tick_yellow = models.IntegerField(default=0, editable=False)
     last_tick_red = models.IntegerField(default=0, editable=False)
+
+    #last tick that a player clicks the pass button
+    last_tick = models.IntegerField(default=1, editable=False)
+
     #number of finished tasks
     nf_blue = models.IntegerField(default=0, editable=False)
     nf_yellow = models.IntegerField(default=0, editable=False)
@@ -144,15 +148,12 @@ class Player(models.Model):
     nf_conference = models.IntegerField(default=0, editable=False)
     nf_journal = models.IntegerField(default=0, editable=False)
 
-    #security tasks that are not finished when the manager decided to sanction they player; unfinished tasks are modified to be finished after manager sanction
+    #security tasks that are not finished when the manager decided to sanction they player (value == False); 
+    #unfinished tasks are modified to be finished after manager sanction
     blue_status = models.BooleanField(default=True, editable=False)
     yellow_status = models.BooleanField(default=True, editable=False)
     red_status = models.BooleanField(default=True, editable=False)
-
-    #last tick that a player clicks the pass button
-    last_tick = models.ForeignKey(Tick, default = None, editable = False)
-
-
+    
     def __unicode__(self):
         return u'%s in %s' % (self.user.username, self.game)
 
@@ -207,11 +208,10 @@ class Player(models.Model):
     def can_move(self):
         return not self.playertick_set.filter(tick=self.game.current_tick) and not self.sanctioned and not self.manager_sanctioned and not self.game.complete
 
-    # Returns true if a player already clicked the pass button in the case of being sanctioned by the manager; only returns the right value when the player is manager_sanctioned 
-    # only called by pass_round in views
+    # Returns true if a player already clicked the pass button at last round
     @property
     def clicked_pass_at_this_tick(self):
-        return self.last_tick == self.game.current_tick and not self.game.complete
+        return self.last_tick + 1 == self.game.current_tick.number and not self.game.complete
 
     # Returns the total number of remaining  moves for a player with a game instance
     @property
@@ -568,17 +568,18 @@ class Tick(models.Model):
             sanctions = Sanction.objects.filter(tick_number=tick.number, game = tick.game)
             if sanctions:
                 for sanction in sanctions:
-                        PlayerTick(tick=tick, player=sanction.sanctionee).save()
-                        print "Created a playertick: %s, peer sanction, tick %s" %(sanction.sanctionee.user.username, tick.number)
+                    #default action is REST = 0
+                    PlayerTick(tick=tick, player=sanction.sanctionee).save()
+                    print "Created a playertick: %s, peer sanction, tick %s" %(sanction.sanctionee.user.username, tick.number)
 
             # Take away player's turn because of manager sanction
             sanctions = ManagerSanction.objects.filter(tick_number=tick.number, game = tick.game)
             if sanctions:
                 #print tick
                 for sanction in sanctions:
-                        print sanction
-                        PlayerTick(tick=tick, player=sanction.sanctionee).save()
-                        print "Created a playertick: %s, manager sanction, tick %s" %(sanction.sanctionee.user.username, tick.number)
+                    # to do: add PASS to playertick action; if PlayerTick not existing, add the playertick
+                    PlayerTick(tick=tick, player=sanction.sanctionee, action = PASS).save()
+                    print "Created a playertick: %s, manager sanction, tick %s" %(sanction.sanctionee.user.username, tick.number)
             return tick
 
 
@@ -647,7 +648,7 @@ class Sanction(models.Model):
     sanctioner = models.ForeignKey(Player, related_name="sanctioner")
     sanctionee = models.ForeignKey(Player, related_name="sanctionee")
     tick_number = models.IntegerField()
-    game = models.ForeignKey(Game)
+    game = models.ForeignKey(Game, default = None)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -663,7 +664,7 @@ class Sanction(models.Model):
 class ManagerSanction(models.Model):
     sanctionee = models.ForeignKey(Player, related_name="sanctionee_by_manager")
     tick_number = models.IntegerField()
-    game = models.ForeignKey(Game)
+    game = models.ForeignKey(Game, default = None)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
