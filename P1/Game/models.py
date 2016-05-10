@@ -574,12 +574,15 @@ class Tick(models.Model):
 
             # Take away player's turn because of manager sanction
             sanctions = ManagerSanction.objects.filter(tick_number=tick.number, game = tick.game)
-            if sanctions:
-                #print tick
+            if sanctions: 
                 for sanction in sanctions:
-                    # to do: add PASS to playertick action; if PlayerTick not existing, add the playertick
-                    PlayerTick(tick=tick, player=sanction.sanctionee, action = PASS).save()
-                    print "Created a playertick: %s, manager sanction, tick %s" %(sanction.sanctionee.user.username, tick.number)
+                    temp = PlayerTick.objects.filter(tick = tick, player = sanction.sanctionee)
+                    if temp:
+                        temp.action = PASS
+                        temp.save()
+                    else:
+                        PlayerTick(tick=tick, player=sanction.sanctionee, action = PASS).save()
+                        print "Created a playertick: %s, manager sanction, tick %s" %(sanction.sanctionee.user.username, tick.number)
             return tick
 
 
