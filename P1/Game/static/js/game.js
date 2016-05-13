@@ -119,7 +119,7 @@ function updateRound() {
                 clearinterval(roundUpdate);
             } else if (json["tick_complete"] === true) {
                 //if a tick is complete, do manager sanction in check_tick_complete in views.py           
-                //window.location.reload();
+                window.location.reload();
             } else {
                 updatePage();
             }
@@ -352,7 +352,9 @@ function pass_round(clicked_resource) {
                 $("#my-vulnerabilities").load(location.href +" #my-vulnerabilities>*","");
                 $("#capability-list").load(location.href +" #capability-list>*","");
                 alertSuccess(json["result"]);
-            } else {
+            } else if (json["resource"] == "null") {
+                alertSuccess(json["result"]);
+            } else{
                 alertFailure(json["result"]);
             }
         },

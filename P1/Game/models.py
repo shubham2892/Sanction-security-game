@@ -137,8 +137,10 @@ class Player(models.Model):
     last_tick_yellow = models.IntegerField(default=0, editable=False)
     last_tick_red = models.IntegerField(default=0, editable=False)
 
-    #last tick that a player clicks the pass button
-    last_tick = models.IntegerField(default=1, editable=False)
+    #counts the number of ticks of sanctions in the current manager sanction
+    counter = models.IntegerField(default=0, editable=False)
+    #counts the supposed number of ticks of sanctions in the current manager sanction
+    counter_sum = models.IntegerField(default=0, editable=False)
 
     #number of finished tasks
     nf_blue = models.IntegerField(default=0, editable=False)
@@ -203,14 +205,24 @@ class Player(models.Model):
 
         return objective
 
-    # Returns true if a player can make a move at a given instance; click on 'pass' button doesn't count as can_move
+    # Returns true if a player can make a move at a given instance;
     @property
     def can_move(self):
-        return not self.playertick_set.filter(tick=self.game.current_tick) and not self.sanctioned and not self.manager_sanctioned and not self.game.complete
+        if self.manager_sanctioned:
+            if self.passed:
+                return False
+            else:
+                return True
+        return not self.playertick_set.filter(tick=self.game.current_tick) and not self.sanctioned and not self.game.complete
 
-    # Returns true if a player already clicked the pass button at last round
+    # Returns true if the player clicked the pass button
     @property
-    def clicked_pass_at_this_tick(self):
+    def passed(self):
+        return self.playertick_set.filter(tick=self.game.current_tick, action = PASS) and not self.game.complete
+
+    # Returns true if the manager just decided to sanction this player last tick
+    @property
+    def tick_just_sanctioned(self):
         return self.last_tick + 1 == self.game.current_tick.number and not self.game.complete
 
     # Returns the total number of remaining  moves for a player with a game instance
@@ -577,11 +589,8 @@ class Tick(models.Model):
             if sanctions: 
                 for sanction in sanctions:
                     temp = PlayerTick.objects.filter(tick = tick, player = sanction.sanctionee)
-                    if temp:
-                        temp.action = PASS
-                        temp.save()
-                    else:
-                        PlayerTick(tick=tick, player=sanction.sanctionee, action = PASS).save()
+                    if not temp:
+                        PlayerTick(tick=tick, player=sanction.sanctionee).save()
                         print "Created a playertick: %s, manager sanction, tick %s" %(sanction.sanctionee.user.username, tick.number)
             return tick
 
@@ -626,6 +635,9 @@ def update_tick(sender, instance, **kwargs):
     Tick.create(game=game)
 
 post_save.connect(update_tick, sender=PlayerTick)
+
+def __unicode__(self):
+    return u'Tick #%s, %s, %s' %(self.tick, self.player, self.action)
 
 
 ''' Group Message object '''

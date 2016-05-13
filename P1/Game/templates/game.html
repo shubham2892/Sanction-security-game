@@ -114,10 +114,11 @@
                             </div>
                         </td>
                         <td colspan="1">
-                        {% if player.can_move %}
-                            <h5><strong>thinking...</strong>
-                        {% elif player.manager_sanctioned %}
+                        
+                        {% if player.manager_sanctioned and not player.passed%}
                             <h5><strong>sanctioned by manager.</strong>
+                        {% elif player.can_move %}
+                            <h5><strong>thinking...</strong>
                         {% elif player.sanctioned %}
                             <h5><strong>sanctioned by peers.</strong>
                         {% else %}
