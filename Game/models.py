@@ -2,13 +2,12 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.db import models
 from django.db.models.signals import post_save
-from django.contrib.humanize.templatetags.humanize import  apnumber
+from django.contrib.humanize.templatetags.humanize import apnumber
 
 from custom_models import IntegerRangeField
 from datetime import timedelta
 from random import choice
 import random
-
 
 #### GLOBAL VARIABLES ####
 
@@ -28,22 +27,22 @@ MANAGER_SANC = (
 )
 
 ''' The Game object for maintaining game state and players '''
-class Game(models.Model):
 
+
+class Game(models.Model):
     GAME_KEY_LENGTH = 5
 
     _ticks = models.IntegerField()
-    game_key = models.CharField(max_length=GAME_KEY_LENGTH*2, unique=True, null=True, blank=True, editable=False)
+    game_key = models.CharField(max_length=GAME_KEY_LENGTH * 2, unique=True, null=True, blank=True, editable=False)
     attack_frequency = IntegerRangeField(min_value=0, max_value=100)
-    manager_sanc = models.IntegerField(choices = MANAGER_SANC, default = INDIVIDUAL_SANC)
-    peer_sanc = models.BooleanField(default = True)
+    manager_sanc = models.IntegerField(choices=MANAGER_SANC, default=INDIVIDUAL_SANC)
+    peer_sanc = models.BooleanField(default=True)
     complete = models.BooleanField(default=False, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False)
 
     def __unicode__(self):
         return u'Game #%s' % (self.game_key)
-
 
     # Game print override -- the main query for reading game data
     @property
@@ -56,14 +55,16 @@ class Game(models.Model):
 
             s += "\n    ## Player Actions ##\n"
             for player_tick in tick.playertick_set.all().order_by('player'):
-                s += "    Player: Player {} ({}) \n".format(apnumber(player_tick.player.number).capitalize(), player_tick.player.user.username)
+                s += "    Player: Player {} ({}) \n".format(apnumber(player_tick.player.number).capitalize(),
+                                                            player_tick.player.user.username)
                 s += "      - Action: {} \n".format(player_tick.get_action_display())
 
             s += "\n    ## Messages ##\n"
             if tick.message_set.all():
                 for message in tick.message_set.all():
                     if message.created_by:
-                        s += "    Player {} says: \"{}\" at {} \n".format(apnumber(message.created_by.number).capitalize(), message.content, message.created_at)
+                        s += "    Player {} says: \"{}\" at {} \n".format(
+                            apnumber(message.created_by.number).capitalize(), message.content, message.created_at)
                     else:
                         s += "    ***Announcement***: \"{}\"\n".format(message.content)
             else:
@@ -72,7 +73,6 @@ class Game(models.Model):
             s += '\n'
 
         return s
-
 
     @property
     def ticks(self):
@@ -93,7 +93,6 @@ class Game(models.Model):
     def players(self):
         return self.player_set.all()
 
-
     def generate_random_alphanumeric(self, length=GAME_KEY_LENGTH):
         return str(Game.objects.count() + 1) + "x" + ''.join(random.choice('0123456789ABCDEF') for i in range(length))
 
@@ -109,14 +108,14 @@ class Game(models.Model):
             try:
                 super(Game, self).save(*args, **kwargs)
             except IntegrityError:
-                 failures += 1
-                 if failures > 5: # or some other arbitrary cutoff point at which things are clearly wrong
-                     raise
-                 else:
-                     # looks like a collision, try another random value
-                     self.game_key = self.generate_random_alphanumeric()
+                failures += 1
+                if failures > 5:  # or some other arbitrary cutoff point at which things are clearly wrong
+                    raise
+                else:
+                    # looks like a collision, try another random value
+                    self.game_key = self.generate_random_alphanumeric()
             else:
-                 success = True
+                success = True
 
         # Create the first game tick
         if not self.tick_set.all():
@@ -124,6 +123,8 @@ class Game(models.Model):
 
 
 ''' A Player objec to hold player state '''
+
+
 class Player(models.Model):
     user = models.ForeignKey(User)
     game = models.ForeignKey(Game)
@@ -132,17 +133,17 @@ class Player(models.Model):
     number = models.IntegerField(default=0, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False)
-    #the last tick the player lose each security resource vulnerability
+    # the last tick the player lose each security resource vulnerability
     last_tick_blue = models.IntegerField(default=0, editable=False)
     last_tick_yellow = models.IntegerField(default=0, editable=False)
     last_tick_red = models.IntegerField(default=0, editable=False)
 
-    #counts the number of ticks of sanctions in the current manager sanction
+    # counts the number of ticks of sanctions in the current manager sanction
     counter = models.IntegerField(default=0, editable=False)
-    #counts the supposed number of ticks of sanctions in the current manager sanction
+    # counts the supposed number of ticks of sanctions in the current manager sanction
     counter_sum = models.IntegerField(default=0, editable=False)
 
-    #number of finished tasks
+    # number of finished tasks
     nf_blue = models.IntegerField(default=0, editable=False)
     nf_yellow = models.IntegerField(default=0, editable=False)
     nf_red = models.IntegerField(default=0, editable=False)
@@ -150,12 +151,12 @@ class Player(models.Model):
     nf_conference = models.IntegerField(default=0, editable=False)
     nf_journal = models.IntegerField(default=0, editable=False)
 
-    #security tasks that are not finished when the manager decided to sanction they player (value == False); 
-    #unfinished tasks are modified to be finished after manager sanction
+    # security tasks that are not finished when the manager decided to sanction they player (value == False);
+    # unfinished tasks are modified to be finished after manager sanction
     blue_status = models.BooleanField(default=True, editable=False)
     yellow_status = models.BooleanField(default=True, editable=False)
     red_status = models.BooleanField(default=True, editable=False)
-    
+
     def __unicode__(self):
         return u'%s in %s' % (self.user.username, self.game)
 
@@ -167,8 +168,8 @@ class Player(models.Model):
     @property
     def workshop(self):
         objective = self.researchobjective_set.filter(name=ResearchObjective.WORKSHOP,
-                                                                                    complete=False,
-                                                                                    research_resources__isnull=False).first()
+                                                      complete=False,
+                                                      research_resources__isnull=False).first()
         if not objective:
             objective = ResearchObjective.create(ResearchObjective.WORKSHOP, self)
             objective.save()
@@ -181,8 +182,8 @@ class Player(models.Model):
     @property
     def conference(self):
         objective = self.researchobjective_set.filter(name=ResearchObjective.CONFERENCE,
-                                                                                    complete=False,
-                                                                                    research_resources__isnull=False).first()
+                                                      complete=False,
+                                                      research_resources__isnull=False).first()
         if not objective:
             objective = ResearchObjective.create(ResearchObjective.CONFERENCE, self)
             objective.save()
@@ -195,8 +196,8 @@ class Player(models.Model):
     @property
     def journal(self):
         objective = self.researchobjective_set.filter(name=ResearchObjective.JOURNAL,
-                                                                                    complete=False,
-                                                                                    research_resources__isnull=False).first()
+                                                      complete=False,
+                                                      research_resources__isnull=False).first()
         if not objective:
             objective = ResearchObjective.create(ResearchObjective.JOURNAL, self)
             objective.save()
@@ -208,17 +209,18 @@ class Player(models.Model):
     # Returns true if a player can make a move at a given instance;
     @property
     def can_move(self):
-        if self.manager_sanctioned:
+        if self.manager_sanctioned or self.sanctioned:
             if self.passed:
                 return False
             else:
                 return True
-        return not self.playertick_set.filter(tick=self.game.current_tick) and not self.sanctioned and not self.game.complete
+        return not self.playertick_set.filter(
+            tick=self.game.current_tick) and not self.game.complete
 
     # Returns true if the player clicked the pass button
     @property
     def passed(self):
-        return self.playertick_set.filter(tick=self.game.current_tick, action = PASS) and not self.game.complete
+        return self.playertick_set.filter(tick=self.game.current_tick, action=PASS) and not self.game.complete
 
     # Returns true if the manager just decided to sanction this player last tick
     @property
@@ -233,15 +235,18 @@ class Player(models.Model):
     # Returns true if a player is peer sanctioned at a given instance
     @property
     def sanctioned(self):
-        if self.sanctionee.exists() and (self.sanctionee.latest("tick_number").tick_number == self.game.current_tick.number):
+        if self.sanctionee.exists() and (
+            self.sanctionee.latest("tick_number").tick_number == self.game.current_tick.number):
             return True
         else:
             return False
+
     # Returns true if a player is sanctioned by the manager at a given instance
     @property
     def manager_sanctioned(self):
-        if self.sanctionee_by_manager.exists() and (self.sanctionee_by_manager.latest("tick_number").tick_number >= self.game.current_tick.number):
-            #print "manager sanctioned"
+        if self.sanctionee_by_manager.exists() and (
+            self.sanctionee_by_manager.latest("tick_number").tick_number >= self.game.current_tick.number):
+            # print "manager sanctioned"
             return True
         else:
             return False
@@ -249,17 +254,16 @@ class Player(models.Model):
     # Returns an integer value describing a players' rank based on current score
     @property
     def rank(self):
-        rank = Player.objects.filter(game=self.game, score__gt =self.score).count() + 1
+        rank = Player.objects.filter(game=self.game, score__gt=self.score).count() + 1
         return rank
 
     def number_of_vulnerabilities(self):
         vulnerabilities = self.vulnerabilities.security_resources.all()
         return vulnerabilities.filter(active=False).count()
-        
+
 
 # Set's a player's default values, called as a post_save signal
 def set_player_defaults(sender, instance, **kwargs):
-
     if instance.number == 0:
         instance.number = instance.game.player_set.count()
         instance.save()
@@ -274,8 +278,8 @@ def set_player_defaults(sender, instance, **kwargs):
         for objective in ResearchObjective.get_initial_set(instance):
             instance.researchobjective_set.add(objective)
 
-post_save.connect(set_player_defaults, sender=Player)
 
+post_save.connect(set_player_defaults, sender=Player)
 
 ''' Resource classifications by color '''
 BLUE = 1
@@ -290,8 +294,9 @@ RESOURCE_CLASSIFICATIONS = (
     (LAB, "lab"),
 )
 
-
 ''' A Research Resource for completing a Research Task '''
+
+
 class ResearchResource(models.Model):
     classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS, null=True, blank=True)
     complete = models.BooleanField(default=False)
@@ -299,26 +304,27 @@ class ResearchResource(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-            return u'%s Resource' % (self.get_classification_display().capitalize())
+        return u'%s Resource' % (self.get_classification_display().capitalize())
 
     # If no resource classification is specified before saving, a random classification is selected
     @classmethod
     def create(cls):
-        research_resource = cls(classification=random.randint(1,3))
+        research_resource = cls(classification=random.randint(1, 3))
         research_resource.save()
         return research_resource
 
 
 ''' A Research Task comprised of some number of Research Resources '''
-class ResearchObjective(models.Model):
 
+
+class ResearchObjective(models.Model):
     # Research Objective types
     WORKSHOP = 1
     CONFERENCE = 2
     JOURNAL = 3
 
     RESEARCH_OBJECTIVES = (
-        (WORKSHOP,  "workshop"),
+        (WORKSHOP, "workshop"),
         (CONFERENCE, "conference"),
         (JOURNAL, "journal"),
     )
@@ -369,6 +375,8 @@ class ResearchObjective(models.Model):
 
 
 ''' A Security Resource for protecting against an Attack '''
+
+
 class SecurityResource(models.Model):
     classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS)
     active = models.BooleanField(default=True)
@@ -381,7 +389,6 @@ class SecurityResource(models.Model):
         else:
             return u'Inactive %s Security Resource' % (self.get_classification_display().capitalize())
 
-
     @classmethod
     def create(cls, classification):
         security_resource = cls(classification=classification)
@@ -390,8 +397,9 @@ class SecurityResource(models.Model):
 
 
 ''' A player's set of capabilities '''
-class Capabilities(models.Model):
 
+
+class Capabilities(models.Model):
     security_resources = models.ManyToManyField(SecurityResource)
     player = models.OneToOneField(Player, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -405,7 +413,7 @@ class Capabilities(models.Model):
     def create(cls, player):
         capabilities = cls(player=player)
         capabilities.save()
-        for (x,y) in RESOURCE_CLASSIFICATIONS:
+        for (x, y) in RESOURCE_CLASSIFICATIONS:
             if not x == LAB:
                 security_resource = SecurityResource.create(x)
                 capabilities.security_resources.add(security_resource)
@@ -414,10 +422,10 @@ class Capabilities(models.Model):
         return capabilities
 
 
-
 ''' A player's set of vulnerabilities '''
-class Vulnerabilities(models.Model):
 
+
+class Vulnerabilities(models.Model):
     security_resources = models.ManyToManyField(SecurityResource)
     player = models.OneToOneField(Player, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -431,7 +439,7 @@ class Vulnerabilities(models.Model):
     def create(cls, player):
         vulnerabilities = cls(player=player)
         vulnerabilities.save()
-        for (x,y) in RESOURCE_CLASSIFICATIONS:
+        for (x, y) in RESOURCE_CLASSIFICATIONS:
             if not x == LAB:
                 security_resource = SecurityResource.create(x)
                 vulnerabilities.security_resources.add(security_resource)
@@ -439,9 +447,11 @@ class Vulnerabilities(models.Model):
         vulnerabilities.save()
         return vulnerabilities
 
-''' An Attack Resource for issuing an attack against a Research Resource '''
-class AttackResource(models.Model):
 
+''' An Attack Resource for issuing an attack against a Research Resource '''
+
+
+class AttackResource(models.Model):
     classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -463,16 +473,14 @@ class AttackResource(models.Model):
             c.save()
             return False
 
-
     @classmethod
     def incomplete_research(cls, player, attack_class):
         for ro in player.researchobjective_set.filter(complete=False):
             for r in ro.research_resources.all():
                 if r.classification == attack_class:
-                    r.complete=False
+                    r.complete = False
                     r.save()
         return True
-
 
     @classmethod
     def create(cls, game):
@@ -480,7 +488,7 @@ class AttackResource(models.Model):
         if game.tick_set.count() > 0:
 
             # If an attack occurs, given the game's constant attack frequency (see Game.attack_frequency)
-            if random.randint(0,100) < game.attack_frequency:
+            if random.randint(0, 100) < game.attack_frequency:
 
                 # Check first to see if a LAB attack occurs
                 # A lab attack will occur only as frequent as any other attack (i.e. is dictated by attack_frequency)
@@ -494,12 +502,12 @@ class AttackResource(models.Model):
 
                 # The probability of a LAB attack is the total number of inactive vulnerabilities
                 # of all players over the total number of vulnerabilities of all players
-                prob_LAB_attack = float(num_inactive)/float(total)*100
-                print "LAB attack probability: %s" %prob_LAB_attack
+                prob_LAB_attack = float(num_inactive) / float(total) * 100
+                print "LAB attack probability: %s" % prob_LAB_attack
 
                 # If random number between 1 and 100 is less than probability of LAB attack, then LAB attack occurs
                 if random.randint(0, 100) < prob_LAB_attack:
-                    attack_resource=cls(classification=LAB)
+                    attack_resource = cls(classification=LAB)
                     attack_resource.save()
 
                     # If attack occurs, peform the attack.
@@ -515,9 +523,9 @@ class AttackResource(models.Model):
                     attack_probability = game.tick_set.get(number=num_ticks).next_attack_probability
                     blue, yellow, red = attack_probability.blue, attack_probability.yellow, attack_probability.red
                     attack_probability = [(0, blue, BLUE),
-                                                        (blue, blue+red, RED),
-                                                        (blue+red, blue+red+yellow, YELLOW)]
-                    rand = random.randint(1,100)
+                                          (blue, blue + red, RED),
+                                          (blue + red, blue + red + yellow, YELLOW)]
+                    rand = random.randint(1, 100)
                     for lo, hi, classification in attack_probability:
                         if rand >= lo and rand < hi:
                             attack_resource = cls(classification=classification)
@@ -533,6 +541,8 @@ class AttackResource(models.Model):
 
 
 ''' The probability per classification of an AttackResource object in the next round '''
+
+
 class AttackProbability(models.Model):
     blue = models.IntegerField()
     yellow = models.IntegerField()
@@ -541,7 +551,7 @@ class AttackProbability(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'blue: %s, red: %s, yellow: %s' %(self.blue, self.red, self.yellow)
+        return u'blue: %s, red: %s, yellow: %s' % (self.blue, self.red, self.yellow)
 
     @classmethod
     def create(cls):
@@ -554,8 +564,10 @@ class AttackProbability(models.Model):
 
 
 ''' Tick object that keeps game state '''
+
+
 class Tick(models.Model):
-    number = models.IntegerField(default = 1)
+    number = models.IntegerField(default=1)
     game = models.ForeignKey(Game)
     complete = models.BooleanField(default=False)
     attack = models.OneToOneField(AttackResource, null=True, default=None, related_name="attack")
@@ -577,21 +589,23 @@ class Tick(models.Model):
             tick.save()
 
             # Take away  player's turn because of other players' sanction
-            sanctions = Sanction.objects.filter(tick_number=tick.number, game = tick.game)
+            sanctions = Sanction.objects.filter(tick_number=tick.number, game=tick.game)
             if sanctions:
                 for sanction in sanctions:
-                    #default action is REST = 0
+                    # default action is REST = 0
                     PlayerTick(tick=tick, player=sanction.sanctionee).save()
-                    print "Created a playertick: %s, peer sanction, tick %s" %(sanction.sanctionee.user.username, tick.number)
+                    print "Created a playertick: %s, peer sanction, tick %s" % (
+                    sanction.sanctionee.user.username, tick.number)
 
             # Take away player's turn because of manager sanction
-            sanctions = ManagerSanction.objects.filter(tick_number=tick.number, game = tick.game)
-            if sanctions: 
+            sanctions = ManagerSanction.objects.filter(tick_number=tick.number, game=tick.game)
+            if sanctions:
                 for sanction in sanctions:
-                    temp = PlayerTick.objects.filter(tick = tick, player = sanction.sanctionee)
+                    temp = PlayerTick.objects.filter(tick=tick, player=sanction.sanctionee)
                     if not temp:
                         PlayerTick(tick=tick, player=sanction.sanctionee).save()
-                        print "Created a playertick: %s, manager sanction, tick %s" %(sanction.sanctionee.user.username, tick.number)
+                        print "Created a playertick: %s, manager sanction, tick %s" % (
+                        sanction.sanctionee.user.username, tick.number)
             return tick
 
 
@@ -613,11 +627,12 @@ ACTIONS = (
 )
 
 ''' An object for synchronizing players' moves within a round '''
-class PlayerTick(models.Model):
 
+
+class PlayerTick(models.Model):
     tick = models.ForeignKey(Tick)
     player = models.ForeignKey(Player)
-    action = models.IntegerField(choices=ACTIONS, default =REST)
+    action = models.IntegerField(choices=ACTIONS, default=REST)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -634,13 +649,17 @@ def update_tick(sender, instance, **kwargs):
     t.save()
     Tick.create(game=game)
 
+
 post_save.connect(update_tick, sender=PlayerTick)
 
+
 def __unicode__(self):
-    return u'Tick #%s, %s, %s' %(self.tick, self.player, self.action)
+    return u'Tick #%s, %s, %s' % (self.tick, self.player, self.action)
 
 
 ''' Group Message object '''
+
+
 class Message(models.Model):
     game = models.ForeignKey(Game, null=True, editable=False)
     tick = models.ForeignKey(Tick, null=True, editable=False)
@@ -653,8 +672,8 @@ class Message(models.Model):
         content = (self.content[:75] + '...') if len(self.content) > 25 else self.content
         if self.game and self.created_by:
             return u'Game #%s: %s said, \"%s\"' % (self.game.game_key,
-                                                                        self.created_by.user.username,
-                                                                        content)
+                                                   self.created_by.user.username,
+                                                   content)
         else:
             return u'%s' % content
 
@@ -663,39 +682,39 @@ class Sanction(models.Model):
     sanctioner = models.ForeignKey(Player, related_name="sanctioner")
     sanctionee = models.ForeignKey(Player, related_name="sanctionee")
     tick_number = models.IntegerField()
-    game = models.ForeignKey(Game, default = None)
+    game = models.ForeignKey(Game, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'%s sanctioned %s in game %s' %(self.sanctioner.user.username, self.sanctionee.user.username, sanctionee.game.game_key)
+        return u'%s sanctioned %s in game %s' % (
+        self.sanctioner.user.username, self.sanctionee.user.username, self.sanctionee.game.game_key)
 
     @classmethod
     def create(cls, sanctioner, sanctionee, tick):
-        sanction = cls(sanctioner=sanctioner, sanctionee=sanctionee, tick_number=(tick.number + 1), game = tick.game)
+        sanction = cls(sanctioner=sanctioner, sanctionee=sanctionee, tick_number=(tick.number + 1), game=tick.game)
         sanction.save()
         return sanction
+
 
 class ManagerSanction(models.Model):
     sanctionee = models.ForeignKey(Player, related_name="sanctionee_by_manager")
     tick_number = models.IntegerField()
-    game = models.ForeignKey(Game, default = None)
+    game = models.ForeignKey(Game, default=None)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'Created manager sanction: %s for tick %s' %(self.sanctionee.user.username, self.tick_number)
+        return u'Created manager sanction: %s for tick %s' % (self.sanctionee.user.username, self.tick_number)
 
-    
-    
     # the sanctionee is sanctioned for num_of_ticks_sanc ticks
-    #create num_of_ticks_sanc ManagerSanction records
+    # create num_of_ticks_sanc ManagerSanction records
     @classmethod
     def create(cls, sanctionee, tick, num_of_ticks_sanc):
         # print "%s number of sanction(s):" %(num_of_ticks_sanc)
         # a player gets sanctioned by the manager twice the time of what his unfinished vulnerabilities are
         for i in range(1, num_of_ticks_sanc + 1):
-            sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + i), game = tick.game)
+            sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + i), game=tick.game)
             sanction.save()
             print sanction
 
@@ -715,15 +734,18 @@ TASK_TYPES = (
     (YELLOW_TASK, "Yellow Security Task"),
     (BLUE_TASK, "Blue Security Task")
 )
+
+
 class Statistics(models.Model):
     game = models.ForeignKey(Game)
-    player = models.ForeignKey(Player, default = None)
-    player_tick = models.ForeignKey(PlayerTick, default = None)
-    #number of finished tasks
-    nf_finished_task = models.IntegerField(default = 0)
-    #type of task
-    type_of_task = models.IntegerField(choices = TASK_TYPES, default = None)
+    player = models.ForeignKey(Player, default=None)
+    player_tick = models.ForeignKey(PlayerTick, default=None)
+    # number of finished tasks
+    nf_finished_task = models.IntegerField(default=0)
+    # type of task
+    type_of_task = models.IntegerField(choices=TASK_TYPES, default=None)
 
     def __unicode__(self):
-        return u'In game %s, %s finished %s at tick %s. Total number of finished task of this type is %s' %(self.game.game_key, self.player.user.username, self.get_type_of_task_display(), self.player_tick.tick.number, self.nf_finished_task)
-
+        return u'In game %s, %s finished %s at tick %s. Total number of finished task of this type is %s' % (
+        self.game.game_key, self.player.user.username, self.get_type_of_task_display(), self.player_tick.tick.number,
+        self.nf_finished_task)

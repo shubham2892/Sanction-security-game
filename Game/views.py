@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.humanize.templatetags.humanize import  apnumber
+from django.contrib.humanize.templatetags.humanize import apnumber
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max
@@ -19,6 +19,8 @@ from models import *
 import json
 
 ''' The user's homepage which displays user game information '''
+
+
 class HomeView(TemplateView):
     template_name = "home.html"
 
@@ -31,6 +33,8 @@ class HomeView(TemplateView):
 
 
 ''' A form mixin for supporting multiple forms in a single generic view '''
+
+
 class MultipleFormView(FormView):
     form_class = None
     form_name = None
@@ -73,6 +77,8 @@ class MultipleFormView(FormView):
 
 
 ''' The login form view '''
+
+
 class LoginView(MultipleFormView):
     template_name = 'accounts/login.html'
     form_classes = {
@@ -103,13 +109,14 @@ class LoginView(MultipleFormView):
 
 
 ''' A lazy logout view, redirects to login '''
+
+
 def logout_view(request):
     logout(request)
     return redirect('login')
 
 
 class GameView(TemplateView):
-
     template_name = "game.html"
 
     def get_context_data(self, **kwargs):
@@ -175,234 +182,291 @@ def create_message(request):
 
 @csrf_exempt
 def security_resource_activate(request):
-        if request.method == 'POST':
-            player = Player.objects.get(pk=request.POST.get('player_pk'))
-            player_tick = PlayerTick(player=player, tick=player.game.current_tick)
-            if player.manager_sanctioned:
-                return HttpResponse(
-                    json.dumps({"result": "You have been sanctioned by the manager. You can only click on the 'Pass' button to pass this round."}),
-                    content_type="application/json"
-                    )
-            elif player.can_move:
-                pk = request.POST.get('pk')
-                response_data = {}
+    if request.method == 'POST':
+        player = Player.objects.get(pk=request.POST.get('player_pk'))
+        player_tick = PlayerTick(player=player, tick=player.game.current_tick)
+        if player.manager_sanctioned:
+            return HttpResponse(
+                json.dumps({
+                    "result": "You have been sanctioned by the manager. You can only click on the 'Pass' button to pass this round."}),
+                content_type="application/json"
+            )
+        if player.sanctioned:
+            return HttpResponse(
+                json.dumps({
+                    "result": "You have been peer sanctioned. You can only click on the 'Pass' button to pass this round."}),
+                content_type="application/json"
+            )
+        elif player.can_move:
+            pk = request.POST.get('pk')
+            response_data = {}
 
-                security_resource = SecurityResource.objects.get(pk=pk)
-                security_resource.active=True
-                security_resource.save()
+            security_resource = SecurityResource.objects.get(pk=pk)
+            security_resource.active = True
+            security_resource.save()
 
-                #update the number of finished security tasks; note the number corresponding to the one in the model
-                if security_resource.classification == 1:
-                    player.nf_blue += 1
-                elif security_resource.classification == 2:
-                    player.nf_red += 1
-                else: #for yellow, classification = 3; there is no need to consider "lab" resource_classifications
-                    player.nf_yellow += 1
-                    
-                player.save()
+            # update the number of finished security tasks; note the number corresponding to the one in the model
+            if security_resource.classification == 1:
+                player.nf_blue += 1
+            elif security_resource.classification == 2:
+                player.nf_red += 1
+            else:  # for yellow, classification = 3; there is no need to consider "lab" resource_classifications
+                player.nf_yellow += 1
 
-                #print "the resource is "
-                #print security_resource.classification
-                # Record players action as "Security"
-                player_tick.action = SECURITY
+            player.save()
 
-                # After security resource is activated, reactivate capability if necessary
-                c = Capabilities.objects.get(player=player).security_resources.get(classification=security_resource.classification)
-                c.active = True
-                c.save()
+            # print "the resource is "
+            # print security_resource.classification
+            # Record players action as "Security"
+            player_tick.action = SECURITY
 
-                # End players move
-                player_tick.save()
+            # After security resource is activated, reactivate capability if necessary
+            c = Capabilities.objects.get(player=player).security_resources.get(
+                classification=security_resource.classification)
+            c.active = True
+            c.save()
 
-                #update Statistics table data; note the number corresponding to the one in the model
-                stats = Statistics(game = player.game, player = player, player_tick = player_tick)
-                if security_resource.classification == 1: #blue
-                    stats.nf_finished_task = player.nf_blue
-                    stats.type_of_task = 5
-                elif security_resource.classification == 2: #red
-                    stats.nf_finished_task = player.nf_red
-                    stats.type_of_task = 3
-                else: #for yellow, classification = 3
-                    stats.nf_finished_task = player.nf_yellow
-                    stats.type_of_task = 4
-                #print stats
-                stats.save()
+            # End players move
+            player_tick.save()
 
+            # update Statistics table data; note the number corresponding to the one in the model
+            stats = Statistics(game=player.game, player=player, player_tick=player_tick)
+            if security_resource.classification == 1:  # blue
+                stats.nf_finished_task = player.nf_blue
+                stats.type_of_task = 5
+            elif security_resource.classification == 2:  # red
+                stats.nf_finished_task = player.nf_red
+                stats.type_of_task = 3
+            else:  # for yellow, classification = 3
+                stats.nf_finished_task = player.nf_yellow
+                stats.type_of_task = 4
+            # print stats
+            stats.save()
 
-                response_data['result'] = str(security_resource) + ' Activated!  ' + str(security_resource.get_classification_display().capitalize()) + ' capability restored.'
+            response_data['result'] = str(security_resource) + ' Activated!  ' + str(
+                security_resource.get_classification_display().capitalize()) + ' capability restored.'
 
-                response_data['pk'] = security_resource.pk
-                response_data['active'] = security_resource.active
+            response_data['pk'] = security_resource.pk
+            response_data['active'] = security_resource.active
 
-                return HttpResponse(
-                    json.dumps(response_data),
-                    content_type="application/json"
-                )
-            elif player.sanctioned:
-                return HttpResponse(
-                    json.dumps({"result": "You have been sanctioned by other player(s). You may not move this round."}),
-                    content_type="application/json"
-                )
-            else:
-                return HttpResponse(
-                    json.dumps({"result": "You have already moved this round."}),
-                    content_type="application/json"
+            return HttpResponse(
+                json.dumps(response_data),
+                content_type="application/json"
+            )
+        elif player.sanctioned:
+            return HttpResponse(
+                json.dumps({"result": "You have been sanctioned by other player(s). You may not move this round."}),
+                content_type="application/json"
             )
         else:
             return HttpResponse(
-                json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
+                json.dumps({"result": "You have already moved this round."}),
                 content_type="application/json"
             )
+    else:
+        return HttpResponse(
+            json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
+            content_type="application/json"
+        )
+
+
+@csrf_exempt
+def player_peer_sanctioned(request):
+    if request.method == 'POST':
+        sanctioner = Player.objects.get(pk=request.POST.get("sanctioner_pk"))
+        if sanctioner.manager_sanctioned:
+            return HttpResponse(
+                json.dumps({
+                    "result": "You have been sanctioned by the manager. You can only click on the 'Pass' button to pass this round."}),
+                content_type="application/json"
+            )
+        elif sanctioner.sanctioned:
+            return HttpResponse(
+                json.dumps({
+                    "result": "You have been peer sanctioned. You can only click on the 'Pass' button to pass this round."}),
+                content_type="application/json"
+            )
+        elif sanctioner.can_move:
+            player_tick = PlayerTick(player=sanctioner, tick=sanctioner.game.current_tick)
+            player_tick.action = SANCTION
+            player_tick.save()
+            tick = Tick.objects.get(pk=request.POST.get("tick_pk"))
+            sanctionee = Player.objects.get(pk=request.POST.get("sanctionee_pk"))
+            Sanction.create(sanctioner, sanctionee, tick)
+            response_data = {}
+            response_data["sanctioned"] = True
+            response_data['result'] = "You have sanctioned Player " + apnumber(sanctionee.number).capitalize()
+            return HttpResponse(
+                json.dumps(response_data),
+                content_type="application/json"
+            )
+        else:
+            return HttpResponse(
+                json.dumps({"result": "You have already moved this round."}),
+                content_type="application/json"
+            )
+    else:
+        return HttpResponse(
+            json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
+            content_type="application/json"
+        )
+
 
 @csrf_exempt
 def research_resource_complete(request):
-        if request.method == 'POST':
-            player = Player.objects.get(pk=request.POST.get('player_pk'))
-            player_tick = PlayerTick(player=player, tick=player.game.current_tick)
-            if player.manager_sanctioned:
-                return HttpResponse(
-                    json.dumps({"result": "You have been sanctioned by the manager. You can only click on the 'Pass' button to pass this round."}),
-                    content_type="application/json"
-                    )
-            elif player.can_move:
-                pk = request.POST.get('pk')
-                response_data = {}
+    if request.method == 'POST':
+        player = Player.objects.get(pk=request.POST.get('player_pk'))
+        player_tick = PlayerTick(player=player, tick=player.game.current_tick)
+        if player.manager_sanctioned:
+            return HttpResponse(
+                json.dumps({
+                    "result": "You have been sanctioned by the manager. You can only click on the 'Pass' button to pass this round."}),
+                content_type="application/json"
+            )
+        elif player.sanctioned:
+            return HttpResponse(
+                json.dumps({
+                    "result": "You have been peer sanctioned. You can only click on the 'Pass' button to pass this round."}),
+                content_type="application/json"
+            )
+        elif player.can_move:
+            pk = request.POST.get('pk')
+            response_data = {}
 
-                research_resource = ResearchResource.objects.get(pk=pk)
-                capable = player.capabilities.security_resources.get(classification = research_resource.classification)
-                if capable.active:
-                    research_resource.complete=True
-                    research_resource.save()
+            research_resource = ResearchResource.objects.get(pk=pk)
+            capable = player.capabilities.security_resources.get(classification=research_resource.classification)
+            if capable.active:
+                research_resource.complete = True
+                research_resource.save()
 
-                    # Record Player's action as "Research Task"
-                    player_tick.action = RESEARCH_TASK
+                # Record Player's action as "Research Task"
+                player_tick.action = RESEARCH_TASK
 
-                else:
-                    return HttpResponse(
-                    json.dumps({"result": "You are not capable of completing this task. Make sure you patch your vulnerabilities."}),
-                    content_type="application/json"
-                    )
-
-                objective_completed = True
-                objective = research_resource.researchobjective_set.all().first()
-                for resource in objective.research_resources.all():
-                    if resource.complete == False:
-                        objective_completed = False
-
-                response_data['result'] = str(research_resource) + ' Completed!'
-
-                if objective_completed:
-                    objective.complete = True
-
-                    # Record Player's action as "Research Objective"
-                    player_tick.action = RESEARCH_OBJ
-
-                    player = objective.player
-                    player.score += objective.value
-                    #update number of finished research tasks; note the number corresponding to the one in the model
-                    if objective.name == 1:
-                        player.nf_workshop += 1
-                    elif objective.name == 2:
-                        player.nf_conference += 1
-                    else:
-                        player.nf_journal += 1                        
-                    player.save()
-                    objective.save()
-                    response_data['result'] = str(objective) + " Completed!"
-                # End players move
-                player_tick.save()
-
-                if objective_completed:
-                    #update Statistics table data; note the number corresponding to the one in the model
-                    stats = Statistics(game = player.game, player = player, player_tick = player_tick)
-                    if objective.name == 1: #workshop 
-                        stats.nf_finished_task = player.nf_workshop
-                        stats.type_of_task = 0
-                    elif objective.name == 2: #conference
-                        stats.nf_finished_task = player.nf_conference
-                        stats.type_of_task = 1
-                    else:  # ==3: journal
-                        stats.nf_finished_task = player.nf_journal
-                        stats.type_of_task = 2
-                    #print stats
-                    stats.save()
-
-                response_data['pk'] = research_resource.pk
-                response_data['resource_complete'] = research_resource.complete
-                response_data['objective_complete'] = objective_completed
-
-                return HttpResponse(
-                    json.dumps(response_data),
-                    content_type="application/json"
-                )
-            
-            elif player.sanctioned:
-                return HttpResponse(
-                    json.dumps({"result": "You have been sanctioned by other player(s). You may not move this round."}),
-                    content_type="application/json"
-                )
             else:
                 return HttpResponse(
-                    json.dumps({"result": "You have already moved this round."}),
+                    json.dumps({
+                        "result": "You are not capable of completing this task. Make sure you patch your vulnerabilities."}),
                     content_type="application/json"
                 )
+
+            objective_completed = True
+            objective = research_resource.researchobjective_set.all().first()
+            for resource in objective.research_resources.all():
+                if resource.complete == False:
+                    objective_completed = False
+
+            response_data['result'] = str(research_resource) + ' Completed!'
+
+            if objective_completed:
+                objective.complete = True
+
+                # Record Player's action as "Research Objective"
+                player_tick.action = RESEARCH_OBJ
+
+                player = objective.player
+                player.score += objective.value
+                # update number of finished research tasks; note the number corresponding to the one in the model
+                if objective.name == 1:
+                    player.nf_workshop += 1
+                elif objective.name == 2:
+                    player.nf_conference += 1
+                else:
+                    player.nf_journal += 1
+                player.save()
+                objective.save()
+                response_data['result'] = str(objective) + " Completed!"
+            # End players move
+            player_tick.save()
+
+            if objective_completed:
+                # update Statistics table data; note the number corresponding to the one in the model
+                stats = Statistics(game=player.game, player=player, player_tick=player_tick)
+                if objective.name == 1:  # workshop
+                    stats.nf_finished_task = player.nf_workshop
+                    stats.type_of_task = 0
+                elif objective.name == 2:  # conference
+                    stats.nf_finished_task = player.nf_conference
+                    stats.type_of_task = 1
+                else:  # ==3: journal
+                    stats.nf_finished_task = player.nf_journal
+                    stats.type_of_task = 2
+                # print stats
+                stats.save()
+
+            response_data['pk'] = research_resource.pk
+            response_data['resource_complete'] = research_resource.complete
+            response_data['objective_complete'] = objective_completed
+
+            return HttpResponse(
+                json.dumps(response_data),
+                content_type="application/json"
+            )
+
+
         else:
             return HttpResponse(
-                json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
+                json.dumps({"result": "You have already moved this round."}),
                 content_type="application/json"
             )
-
-
-@csrf_exempt
-def sanction(request):
-    if request.method == 'POST':
-            sanctioner = Player.objects.get(pk=request.POST.get("sanctioner_pk"))
-            if sanctioner.manager_sanctioned:
-                return HttpResponse(
-                    json.dumps({"result": "You have been sanctioned by the manager. You can only click on the 'Pass' button to pass this round."}),
-                    content_type="application/json"
-                    )
-            elif sanctioner.can_move:
-                sanctionee = Player.objects.get(pk=request.POST.get("sanctionee_pk"))
-                tick = Tick.objects.get(pk=request.POST.get("tick_pk"))
-                response_data = {}
-
-                # Perform Sanction
-                sanction = Sanction.create(sanctioner, sanctionee, tick)
-
-                # Announce Sanction
-                message_text = "Player %s has sanctioned Player %s" %(apnumber(sanctioner.number).capitalize(), apnumber(sanctionee.number).capitalize())
-                tick = sanctioner.game.current_tick
-                message = Message(content=message_text, created_by=None, game=sanctioner.game, tick=tick)
-                message.save()
-
-                # Record player's "Sanction" action and end players move
-                sanctioners_tick = PlayerTick(player=sanctioner, tick=sanctioner.game.current_tick)
-                sanctioners_tick.action = SANCTION
-                sanctioners_tick.save()
-
-                response_data["sanctioned"] = True
-                response_data['result'] = "You have sanctioned Player " + apnumber(sanctionee.number).capitalize()
-
-                return HttpResponse(
-                    json.dumps(response_data),
-                    content_type="application/json"
-                )
-            elif sanctioner.sanctioned:
-                return HttpResponse(
-                    json.dumps({"result": "You have been sanctioned by other player(s). You may not move this round."}),
-                    content_type="application/json"
-                )
-            else:
-                return HttpResponse(
-                    json.dumps({"result": "You have already moved this round."}),
-                    content_type="application/json"
-                )
     else:
-            return HttpResponse(
-                json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
-                content_type="application/json"
-            )
+        return HttpResponse(
+            json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
+            content_type="application/json"
+        )
+
+
+# @csrf_exempt
+# def sanction(request):
+#     if request.method == 'POST':
+#         sanctioner = Player.objects.get(pk=request.POST.get("sanctioner_pk"))
+#         if sanctioner.manager_sanctioned:
+#             return HttpResponse(
+#                 json.dumps({
+#                     "result": "You have been sanctioned by the manager. You can only click on the 'Pass' button to pass this round."}),
+#                 content_type="application/json"
+#             )
+#         elif sanctioner.can_move:
+#             sanctionee = Player.objects.get(pk=request.POST.get("sanctionee_pk"))
+#             tick = Tick.objects.get(pk=request.POST.get("tick_pk"))
+#             response_data = {}
+#
+#             # Perform Sanction
+#             sanction = Sanction.create(sanctioner, sanctionee, tick)
+#
+#             # Announce Sanction
+#             message_text = "Player %s has sanctioned Player %s" % (
+#                 apnumber(sanctioner.number).capitalize(), apnumber(sanctionee.number).capitalize())
+#             tick = sanctioner.game.current_tick
+#             message = Message(content=message_text, created_by=None, game=sanctioner.game, tick=tick)
+#             message.save()
+#
+#             # Record player's "Sanction" action and end players move
+#             sanctioners_tick = PlayerTick(player=sanctioner, tick=sanctioner.game.current_tick)
+#             sanctioners_tick.action = SANCTION
+#             sanctioners_tick.save()
+#
+#             response_data["sanctioned"] = True
+#             response_data['result'] = "You have sanctioned Player " + apnumber(sanctionee.number).capitalize()
+#
+#             return HttpResponse(
+#                 json.dumps(response_data),
+#                 content_type="application/json"
+#             )
+#         elif sanctioner.sanctioned:
+#             return HttpResponse(
+#                 json.dumps({"result": "You have been sanctioned by other player(s). You may not move this round."}),
+#                 content_type="application/json"
+#             )
+#         else:
+#             return HttpResponse(
+#                 json.dumps({"result": "You have already moved this round."}),
+#                 content_type="application/json"
+#             )
+#     else:
+#         return HttpResponse(
+#             json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
+#             content_type="application/json"
+#         )
 
 
 @csrf_exempt
@@ -417,24 +481,27 @@ def give_props(request):
             sanctionee.save()
 
             # Announce Props!
-            message_text = "Player %s has given Like to Player %s" %(apnumber(sanctioner.number).capitalize(), apnumber(sanctionee.number).capitalize())
+            message_text = "Player %s has given Like to Player %s" % (
+                apnumber(sanctioner.number).capitalize(), apnumber(sanctionee.number).capitalize())
             tick = sanctioner.game.current_tick
             message = Message(content=message_text, created_by=None, game=sanctioner.game, tick=tick)
             message.save()
 
             response_data["props!"] = True
-            response_data['result'] = "You gave Like to Player " + apnumber(sanctionee.number).capitalize() + "to show your appreciation"
+            response_data['result'] = "You gave Like to Player " + apnumber(
+                sanctionee.number).capitalize() + "to show your appreciation"
 
             return HttpResponse(
                 json.dumps(response_data),
                 content_type="application/json"
-                    )
-        elif player.manager_sanctioned:
-                return HttpResponse(
-                    json.dumps({"result": "You have been sanctioned by the manager. You can only click on the 'Pass' button to pass this round."}),
-                    content_type="application/json"
-                    )
-        elif player.sanctioned:
+            )
+        elif sanctioner.manager_sanctioned:
+            return HttpResponse(
+                json.dumps({
+                    "result": "You have been sanctioned by the manager. You can only click on the 'Pass' button to pass this round."}),
+                content_type="application/json"
+            )
+        elif sanctioner.sanctioned:
             return HttpResponse(
                 json.dumps({"result": "You have been sanctioned by other player(s). You may not move this round."}),
                 content_type="application/json"
@@ -454,13 +521,13 @@ def check_tick_complete(request):
 
         # End the game if it's complete
         if tick.game.ticks < 0:
-            tick.game.complete =  True
+            tick.game.complete = True
             tick.game.save()
 
         response_data["game_complete"] = tick.game.complete
         response_data["tick_complete"] = tick.complete
 
-        if tick.complete == True: 
+        if tick.complete == True:
             manager_sanction(tick, request, response_data)
 
         return HttpResponse(
@@ -474,35 +541,36 @@ def check_tick_complete(request):
             content_type="application/json"
         )
 
+
 @csrf_exempt
 def manager_sanction(tick, request, response_data):
     # A threshold (the number of ticks), for how long a vulnerability hasn't fixed would be taken into account when considering the probability of manager sanction
     THRESHOLD = 3
     num_of_resource = 3
 
-    #individual sanction
+    # individual sanction
     if tick.game.manager_sanc == 1:
-        players = Player.objects.filter(game = tick.game)
+        players = Player.objects.filter(game=tick.game)
 
         for player in players:
             print " "
-            print "At tick %s" %(tick.number)
-            print "player %s in manager_sanction function" %(player.user.username)
-            #if status == False, corresponding security task satisfy the condition of being counted in the prob. of manager sanction
-            #blue
+            print "At tick %s" % (tick.number)
+            print "player %s in manager_sanction function" % (player.user.username)
+            # if status == False, corresponding security task satisfy the condition of being counted in the prob. of manager sanction
+            # blue
             resource = player.vulnerabilities.security_resources.get(classification=1)
             if resource.active == True:
                 player.last_tick_blue = tick.number
- 
-            #red
+
+            # red
             resource = player.vulnerabilities.security_resources.get(classification=2)
             if resource.active == True:
-                player.last_tick_red = tick.number    
+                player.last_tick_red = tick.number
 
-            #yellow
+                # yellow
             resource = player.vulnerabilities.security_resources.get(classification=3)
             if resource.active == True:
-                player.last_tick_yellow = tick.number   
+                player.last_tick_yellow = tick.number
 
             player.save()
 
@@ -512,46 +580,46 @@ def manager_sanction(tick, request, response_data):
                 t_yellow_status = True
 
                 count = 0
-                #blue
+                # blue
                 resource = player.vulnerabilities.security_resources.get(classification=1)
                 if resource.active == False:
-                    #to record the status of blue security task
+                    # to record the status of blue security task
                     t_blue_status = False
                     if tick.number - player.last_tick_blue >= THRESHOLD:
                         count = count + 1
 
-                #print resource
-                #print "for blue: last tick is %s, count is %s" %(player.last_tick_blue, count)
-     
-                #red
+                # print resource
+                # print "for blue: last tick is %s, count is %s" %(player.last_tick_blue, count)
+
+                # red
                 resource = player.vulnerabilities.security_resources.get(classification=2)
                 if resource.active == False:
                     t_red_status = False
                     if tick.number - player.last_tick_red >= THRESHOLD:
                         count = count + 1
-                    
-                #print resource
-                #print "for red: last tick is %s, count is %s" %(player.last_tick_red, count)
 
-                #yellow
+                # print resource
+                # print "for red: last tick is %s, count is %s" %(player.last_tick_red, count)
+
+                # yellow
                 resource = player.vulnerabilities.security_resources.get(classification=3)
                 if resource.active == False:
                     t_yellow_status = False
                     if tick.number - player.last_tick_yellow >= THRESHOLD:
                         count = count + 1
-                    
-                #print resource
-                #print "for yellow: last tick is %s, count is %s" %(player.last_tick_yellow, count)
+
+                # print resource
+                # print "for yellow: last tick is %s, count is %s" %(player.last_tick_yellow, count)
 
 
                 sanction_prob = 1.0 * count / num_of_resource
-                #print "individual sanction probability is %s" %(sanction_prob)
+                # print "individual sanction probability is %s" %(sanction_prob)
                 x = random.random();
-                #print "random number is %s" %(x)
+                # print "random number is %s" %(x)
 
                 if x < sanction_prob:
                     print "The manager decided to sanction..."
-                    #sanction the player for "2 * count" number of ticks
+                    # sanction the player for "2 * count" number of ticks
                     num_of_vul = player.number_of_vulnerabilities()
                     diff = tick.game._ticks - tick.number
 
@@ -562,49 +630,51 @@ def manager_sanction(tick, request, response_data):
                     player.counter_sum = 2 * num_of_vul
                     player.save()
 
-                    message_text = "Created Manager Sanction: Player %s is sanctioned by the lab manager for %s tick(s) at tick" %(apnumber(player.number).capitalize(), num_of_vul * 2)
+                    message_text = "Created Manager Sanction: Player %s is sanctioned by the lab manager for %s tick(s) at tick" % (
+                        apnumber(player.number).capitalize(), num_of_vul * 2)
 
                     for i in range(1, num_of_vul * 2 + 1):
                         if diff - i >= 0:
-                            message_text += " %s" %(diff - i) 
+                            message_text += " %s" % (diff - i)
 
                     message = Message(content=message_text, created_by=None, game=tick.game, tick=tick)
                     message.save()
                     print " "
                     print message
-   
-    #group sanction, fill in later
+
+    # group sanction, fill in later
     if tick.game.manager_sanc == 2:
         pass
 
-    #no sanction, do nothing
-    if tick.game.manager_sanc ==  0:
+    # no sanction, do nothing
+    if tick.game.manager_sanc == 0:
         pass
+
 
 @csrf_exempt
 def pass_round(request):
     if request.method == 'POST':
-        player = Player.objects.get(pk=request.POST.get('player_pk'))       
-        player_tick = PlayerTick.objects.filter(player=player, tick=player.game.current_tick) 
-        if player.manager_sanctioned:            
+        player = Player.objects.get(pk=request.POST.get('player_pk'))
+        player_tick = PlayerTick.objects.filter(player=player, tick=player.game.current_tick)
+        if player.manager_sanctioned:
             response_data = {}
-            
+
             # fix security tasks if counter is odd; since we fix a security task when clicked twice
             print " "
             print "pass button pressed, fix security task(s) in manager sanction in pass_round function"
             print "hi"
             print player_tick
-            stats = Statistics(game = player.game, player = player, player_tick = player_tick)
-            
+            stats = Statistics(game=player.game, player=player, player_tick=player_tick)
+
             player.counter = player.counter + 1
-            if player.counter % 2 == 0: 
+            if player.counter % 2 == 0:
                 if player.blue_status == False:
                     response_data["resource"] = "blue"
                     player.blue_status = True
                     vulnerability.active = True
                     vulnerability.save()
                     player.nf_blue += 1
-                    player.save() 
+                    player.save()
 
                     c = Capabilities.objects.get(player=player).security_resources.get(classification=1)
                     c.active = True
@@ -642,9 +712,9 @@ def pass_round(request):
                     stats.nf_finished_task = player.nf_yellow
                     stats.type_of_task = 4
                     response_data['result'] = "You've fixed yellow vulnerability"
-                    print "fixed yellow vulnerability"                               
+                    print "fixed yellow vulnerability"
                 stats.save()
-                #print stats 
+                # print stats
             else:
                 response_data['resource'] = "null"
                 response_data['result'] = "You've clicked pass."
@@ -663,7 +733,7 @@ def pass_round(request):
                 json.dumps(response_data),
                 content_type="application/json"
             )
-            
+
         else:
             print "Something wrong. You shouldn't see the pass button if you are not sanctioned by the manager."
             return HttpResponse(

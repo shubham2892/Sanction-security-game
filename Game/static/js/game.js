@@ -218,6 +218,46 @@ $(document).on('click', '.clickable.incomplete', function(event){
     return false;
 });
 
+
+// AJAX POST sanction other player
+$(document).on('click', '.sanction', function(event){
+    var sanctionee_pk = $(this).attr("sanctionee");
+    var sanctioner_pk = $(this).attr("sanctioner");
+    var tick_pk = $("#time-remaining").attr("value");
+    event.preventDefault();
+    sanction_other_player(sanctionee_pk, sanctioner_pk, tick_pk);
+    return false;
+
+});
+
+function sanction_other_player(sanctionee_pk, sanctioner_pk, tick_pk) {
+    $.ajax({
+        url : "/player/sanction/", // the endpoint
+        type : "POST", // http method
+        data : { sanctionee_pk : sanctionee_pk, sanctioner_pk: sanctioner_pk, tick_pk : tick_pk }, // data sent with the post request
+
+        // handle a successful response
+        success : function(json) {
+            if (json["sanctioned"]) {
+                $("#my-score").load(location.href +" #my-score>*","");
+                alertSuccess(json["result"]);
+            } else {
+                alertFailure(json["result"]);
+            }
+        },
+
+        // handle a non-successful response
+        error : function(xhr,errmsg,err) {
+            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
+                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
+            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+        }
+    });
+    return false;
+
+};
+
+
 function complete_research_resource(clicked_resource) {
     $.ajax({
         url : "/resource/complete/", // the endpoint
@@ -250,7 +290,7 @@ function complete_research_resource(clicked_resource) {
 };
 
 // AJAX POST impose sanction on player
-$(document).on("click", ".sanction", function(event){
+$(document).on("click", ".sanction_abc", function(event){
     var sanctionee_pk = $(this).attr("sanctionee");
     var sanctioner_pk = $(this).attr("sanctioner");
     var tick_pk = $("#time-remaining").attr("value");
