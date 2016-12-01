@@ -537,7 +537,6 @@ def manager_sanction(tick, request, response_data):
 
     # group sanction, fill in later
     elif tick.game.manager_sanc == 2:
-        pass
         players = Player.objects.filter(game=tick.game)
         is_a_player_sanctioned = False
         for player in players:

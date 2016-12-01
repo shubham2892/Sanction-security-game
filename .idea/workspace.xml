@@ -32,8 +32,8 @@
       <file leaf-file-name="views.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Game/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="282">
-              <caret line="621" column="54" lean-forward="true" selection-start-line="621" selection-start-column="54" selection-end-line="621" selection-end-column="54" />
+            <state relative-caret-position="207">
+              <caret line="539" column="12" lean-forward="false" selection-start-line="539" selection-start-column="12" selection-end-line="539" selection-end-column="12" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -1045,8 +1045,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Game/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="282">
-          <caret line="621" column="54" lean-forward="true" selection-start-line="621" selection-start-column="54" selection-end-line="621" selection-end-column="54" />
+        <state relative-caret-position="207">
+          <caret line="539" column="12" lean-forward="false" selection-start-line="539" selection-start-column="12" selection-end-line="539" selection-end-column="12" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
           </folding>
