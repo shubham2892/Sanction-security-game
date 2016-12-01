@@ -614,7 +614,7 @@ def manager_sanction(tick, request, response_data):
 
                 sanction_prob = 1.0 * count / num_of_resource
                 # print "individual sanction probability is %s" %(sanction_prob)
-                x = random.random();
+                x = random.random()
                 # print "random number is %s" %(x)
 
                 if x < sanction_prob:
@@ -655,7 +655,8 @@ def manager_sanction(tick, request, response_data):
 def pass_round(request):
     if request.method == 'POST':
         player = Player.objects.get(pk=request.POST.get('player_pk'))
-        player_tick = PlayerTick.objects.filter(player=player, tick=player.game.current_tick)
+        player_tick = PlayerTick(player=player, tick=player.game.current_tick)
+        print player_tick
         if player.manager_sanctioned:
             response_data = {}
 
@@ -667,10 +668,11 @@ def pass_round(request):
             stats = Statistics(game=player.game, player=player, player_tick=player_tick)
 
             player.counter = player.counter + 1
-            if player.counter % 2 == 0:
+            if player.sanctionee_by_manager.latest("tick_number").tick_number == player.game.current_tick_number:
                 if player.blue_status == False:
                     response_data["resource"] = "blue"
                     player.blue_status = True
+                    vulnerability = Vulnerabilities.objects.get(player=player).security_resources.get(classification=1)
                     vulnerability.active = True
                     vulnerability.save()
                     player.nf_blue += 1
@@ -686,11 +688,11 @@ def pass_round(request):
                 if player.red_status == False:
                     response_data["resource"] = "red"
                     player.red_status = True
+                    vulnerability = Vulnerabilities.objects.get(player=player).security_resources.get(classification=2)
                     vulnerability.active = True
                     vulnerability.save()
                     player.nf_red += 1
                     player.save()
-
                     c = Capabilities.objects.get(player=player).security_resources.get(classification=2)
                     c.active = True
                     c.save()
@@ -701,6 +703,7 @@ def pass_round(request):
                 if player.yellow_status == False:
                     response_data["resource"] = "yellow"
                     player.yellow_status = True
+                    vulnerability = Vulnerabilities.objects.get(player=player).security_resources.get(classification=3)
                     vulnerability.active = True
                     vulnerability.save()
                     player.nf_yellow += 1
@@ -728,12 +731,14 @@ def pass_round(request):
                 player.save()
 
             print "after fix vulnerability, capability:"
-
-            return HttpResponse(
-                json.dumps(response_data),
-                content_type="application/json"
-            )
-
+            return HttpResponse(json.dumps(response_data), content_type="application/json")
+        elif player.sanctioned:
+            player_tick.action = PASS
+            player_tick.save()
+            response_data = {}
+            response_data['resource'] = "null"
+            response_data['result'] = "You've clicked pass."
+            return HttpResponse(json.dumps(response_data), content_type="application/json")
         else:
             print "Something wrong. You shouldn't see the pass button if you are not sanctioned by the manager."
             return HttpResponse(

@@ -638,10 +638,12 @@ class PlayerTick(models.Model):
 
 
 def update_tick(sender, instance, **kwargs):
+    print "updating tick"
     game = instance.player.game
     players = Player.objects.filter(game=game)
     for player in players:
         if player.can_move:
+            print "Returning"
             return
 
     t = game.tick_set.last()
