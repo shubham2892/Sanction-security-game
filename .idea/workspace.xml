@@ -2,10 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="401e4472-3700-4ae2-ae99-25b9974b61f3" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Game/models.py" afterPath="$PROJECT_DIR$/Game/models.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Game/static/js/game.js" afterPath="$PROJECT_DIR$/Game/static/js/game.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Game/urls.py" afterPath="$PROJECT_DIR$/Game/urls.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Game/views.py" afterPath="$PROJECT_DIR$/Game/views.py" />
     </list>
     <ignored path="Sanction-Security-Game.iws" />
@@ -36,8 +32,8 @@
       <file leaf-file-name="views.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Game/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="792">
-              <caret line="738" column="51" lean-forward="false" selection-start-line="738" selection-start-column="51" selection-end-line="738" selection-end-column="51" />
+            <state relative-caret-position="282">
+              <caret line="621" column="54" lean-forward="true" selection-start-line="621" selection-start-column="54" selection-end-line="621" selection-end-column="54" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -1049,8 +1045,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Game/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="792">
-          <caret line="738" column="51" lean-forward="false" selection-start-line="738" selection-start-column="51" selection-end-line="738" selection-end-column="51" />
+        <state relative-caret-position="282">
+          <caret line="621" column="54" lean-forward="true" selection-start-line="621" selection-start-column="54" selection-end-line="621" selection-end-column="54" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
           </folding>
