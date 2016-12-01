@@ -270,7 +270,6 @@ def set_player_defaults(sender, instance, **kwargs):
 
     if not hasattr(instance, 'vulnerabilities'):
         Vulnerabilities.create(instance)
-
     if not hasattr(instance, 'capabilities'):
         Capabilities.create(instance)
 

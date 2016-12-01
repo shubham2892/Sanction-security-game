@@ -749,67 +749,71 @@ def pass_round(request):
     if request.method == 'POST':
         player = Player.objects.get(pk=request.POST.get('player_pk'))
         player_tick = PlayerTick(player=player, tick=player.game.current_tick)
-        print player_tick
         if player.manager_sanctioned:
             response_data = {}
 
             # fix security tasks if counter is odd; since we fix a security task when clicked twice
-            print " "
-            print "pass button pressed, fix security task(s) in manager sanction in pass_round function"
-            print "hi"
-            print player_tick
-            stats = Statistics(game=player.game, player=player, player_tick=player_tick)
-
+            # stats = Statistics(game=player.game, player=player, player_tick=player_tick)
             player.counter = player.counter + 1
-            if player.sanctionee_by_manager.latest("tick_number").tick_number == player.game.current_tick_number:
+            if player.sanctionee_by_manager.latest("tick_number").tick_number == player.game.current_tick:
                 if player.blue_status == False:
+                    print "trying to fix blue"
                     response_data["resource"] = "blue"
                     player.blue_status = True
-                    vulnerability = Vulnerabilities.objects.get(player=player).security_resources.get(classification=1)
-                    vulnerability.active = True
-                    vulnerability.save()
+
+                    for vulnerability in player.vulnerabilities.security_resources.filter(classification=1):
+                        vulnerability.active = True
+                        vulnerability.save()
+                    print "vulnerabilities fixed"
                     player.nf_blue += 1
                     player.save()
+                    print "trying to fix capabilities"
+                    for capability in player.capabilities.security_resources.filter(classification=1):
+                        capability.active = True
+                        capability.save()
+                    print "capabilities fixed"
 
-                    c = Capabilities.objects.get(player=player).security_resources.get(classification=1)
-                    c.active = True
-                    c.save()
-                    stats.nf_finished_task = player.nf_blue
-                    stats.type_of_task = 5
+                    # stats.nf_finished_task = player.nf_blue
+                    # stats.type_of_task = 5
                     response_data['result'] = "You've fixed blue vulnerability"
                     print "fixed blue vulnerability"
                 if player.red_status == False:
                     response_data["resource"] = "red"
                     player.red_status = True
-                    vulnerability = Vulnerabilities.objects.get(player=player).security_resources.get(classification=2)
-                    vulnerability.active = True
-                    vulnerability.save()
+                    for vulnerability in player.vulnerabilities.security_resources.filter(classification=2):
+                        vulnerability.active = True
+                        vulnerability.save()
+
                     player.nf_red += 1
                     player.save()
-                    c = Capabilities.objects.get(player=player).security_resources.get(classification=2)
-                    c.active = True
-                    c.save()
-                    stats.nf_finished_task = player.nf_red
-                    stats.type_of_task = 3
+                    for capability in player.capabilities.security_resources.filter(classification=1):
+                        capability.active = True
+                        capability.save()
+
+
+                    # stats.nf_finished_task = player.nf_red
+                    # stats.type_of_task = 3
                     response_data['result'] = "You've fixed red vulnerability"
                     print "fixed red vulnerability"
                 if player.yellow_status == False:
                     response_data["resource"] = "yellow"
                     player.yellow_status = True
-                    vulnerability = Vulnerabilities.objects.get(player=player).security_resources.get(classification=3)
-                    vulnerability.active = True
-                    vulnerability.save()
+                    for vulnerability in player.vulnerabilities.security_resources.filter(classification=3):
+                        vulnerability.active = True
+                        vulnerability.save()
+
                     player.nf_yellow += 1
                     player.save()
 
-                    c = Capabilities.objects.get(player=player).security_resources.get(classification=3)
-                    c.active = True
-                    c.save()
-                    stats.nf_finished_task = player.nf_yellow
-                    stats.type_of_task = 4
+                    for capability in player.capabilities.security_resources.filter(classification=3):
+                        capability.active = True
+                        capability.save()
+
+                    # stats.nf_finished_task = player.nf_yellow
+                    # stats.type_of_task = 4
                     response_data['result'] = "You've fixed yellow vulnerability"
                     print "fixed yellow vulnerability"
-                stats.save()
+                # stats.save()
                 # print stats
             else:
                 response_data['resource'] = "null"
