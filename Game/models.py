@@ -122,7 +122,7 @@ class Game(models.Model):
             Tick.create(game=self)
 
 
-''' A Player objec to hold player state '''
+''' A Player object to hold player state '''
 
 
 class Player(models.Model):
@@ -209,13 +209,8 @@ class Player(models.Model):
     # Returns true if a player can make a move at a given instance;
     @property
     def can_move(self):
-        if self.manager_sanctioned or self.sanctioned:
-            if self.passed:
-                return False
-            else:
-                return True
         return not self.playertick_set.filter(
-            tick=self.game.current_tick) and not self.game.complete
+            tick=self.game.current_tick).exists() and not self.game.complete
 
     # Returns true if the player clicked the pass button
     @property
@@ -235,8 +230,8 @@ class Player(models.Model):
     # Returns true if a player is peer sanctioned at a given instance
     @property
     def sanctioned(self):
-        if self.sanctionee.exists() and (
-            self.sanctionee.latest("tick_number").tick_number == self.game.current_tick.number):
+        current_tick = self.game.current_tick.number
+        if self.sanctionee.exists() and self.sanctionee.filter(tick_number=current_tick, game=self.game).exists():
             return True
         else:
             return False
@@ -244,9 +239,9 @@ class Player(models.Model):
     # Returns true if a player is sanctioned by the manager at a given instance
     @property
     def manager_sanctioned(self):
+        current_tick = self.game.current_tick.number
         if self.sanctionee_by_manager.exists() and (
-            self.sanctionee_by_manager.latest("tick_number").tick_number >= self.game.current_tick.number):
-            # print "manager sanctioned"
+                self.sanctionee_by_manager.filter(tick_number=current_tick, game=self.game).exists()):
             return True
         else:
             return False
@@ -588,23 +583,21 @@ class Tick(models.Model):
             tick.save()
 
             # Take away  player's turn because of other players' sanction
-            sanctions = Sanction.objects.filter(tick_number=tick.number, game=tick.game)
-            if sanctions:
-                for sanction in sanctions:
-                    # default action is REST = 0
-                    PlayerTick(tick=tick, player=sanction.sanctionee).save()
-                    print "Created a playertick: %s, peer sanction, tick %s" % (
-                    sanction.sanctionee.user.username, tick.number)
+            # sanctions = Sanction.objects.filter(tick_number=tick.number, game=tick.game)
+            # if sanctions:
+            #     for sanction in sanctions:
+            #         # default action is REST = 0
+            #         PlayerTick(tick=tick, player=sanction.sanctionee).save()
 
             # Take away player's turn because of manager sanction
-            sanctions = ManagerSanction.objects.filter(tick_number=tick.number, game=tick.game)
-            if sanctions:
-                for sanction in sanctions:
-                    temp = PlayerTick.objects.filter(tick=tick, player=sanction.sanctionee)
-                    if not temp:
-                        PlayerTick(tick=tick, player=sanction.sanctionee).save()
-                        print "Created a playertick: %s, manager sanction, tick %s" % (
-                        sanction.sanctionee.user.username, tick.number)
+            # sanctions = ManagerSanction.objects.filter(tick_number=tick.number, game=tick.game)
+            # if sanctions:
+            #     for sanction in sanctions:
+            #         temp = PlayerTick.objects.filter(tick=tick, player=sanction.sanctionee)
+            #         if not temp:
+            #             PlayerTick(tick=tick, player=sanction.sanctionee).save()
+            #             print "Created a playertick: %s, manager sanction, tick %s" % (
+            #                 sanction.sanctionee.user.username, tick.number)
             return tick
 
 
@@ -637,12 +630,10 @@ class PlayerTick(models.Model):
 
 
 def update_tick(sender, instance, **kwargs):
-    print "updating tick"
     game = instance.player.game
     players = Player.objects.filter(game=game)
     for player in players:
         if player.can_move:
-            print "Returning"
             return
 
     t = game.tick_set.last()
@@ -689,7 +680,7 @@ class Sanction(models.Model):
 
     def __unicode__(self):
         return u'%s sanctioned %s in game %s' % (
-        self.sanctioner.user.username, self.sanctionee.user.username, self.sanctionee.game.game_key)
+            self.sanctioner.user.username, self.sanctionee.user.username, self.sanctionee.game.game_key)
 
     @classmethod
     def create(cls, sanctioner, sanctionee, tick):
@@ -717,7 +708,6 @@ class ManagerSanction(models.Model):
         for i in range(1, num_of_ticks_sanc + 1):
             sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + i), game=tick.game)
             sanction.save()
-            print sanction
 
 
 WORKSHOP_TASK = 0
@@ -748,5 +738,6 @@ class Statistics(models.Model):
 
     def __unicode__(self):
         return u'In game %s, %s finished %s at tick %s. Total number of finished task of this type is %s' % (
-        self.game.game_key, self.player.user.username, self.get_type_of_task_display(), self.player_tick.tick.number,
-        self.nf_finished_task)
+            self.game.game_key, self.player.user.username, self.get_type_of_task_display(),
+            self.player_tick.tick.number,
+            self.nf_finished_task)
