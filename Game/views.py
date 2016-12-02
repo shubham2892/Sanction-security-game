@@ -561,7 +561,7 @@ def manager_sanction(tick, request, response_data):
 
             player.save()
 
-            if not player.manager_sanctioned and player.sanctioned:
+            if not player.manager_sanctioned and not player.sanctioned:
                 t_blue_status = True
                 t_red_status = True
                 t_yellow_status = True
