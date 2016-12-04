@@ -425,7 +425,6 @@ def check_tick_complete(request):
         response_data["tick_complete"] = tick.complete
 
         if tick.complete:
-            "----------Calling Manager Sanction-----------------"
             manager_sanction(tick, request, response_data)
 
         return HttpResponse(json.dumps(response_data), content_type="application/json")
@@ -439,7 +438,11 @@ def check_tick_complete(request):
 @csrf_exempt
 def manager_sanction(tick, request, response_data):
     # A threshold (the number of ticks), for how long a vulnerability hasn't fixed would be taken into account when considering the probability of manager sanction
-    THRESHOLD = 3
+    if tick.game.peer_sanc:
+        THRESHOLD = 6
+    else:
+        THRESHOLD = 4
+
     num_of_resource = 3
     print "Trying to manager sanction for tick:{}".format(tick)
     # individual sanction

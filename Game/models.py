@@ -503,8 +503,11 @@ class AttackResource(models.Model):
                 if random.randint(0, 100) < prob_LAB_attack:
                     attack_resource = cls(classification=LAB)
                     attack_resource.save()
+                    content = "Lab Attack occurred at tick:{}".format(game.ticks)
+                    message = Message(content=content, game=game, tick=game.current_tick, created_by=None)
+                    message.save()
 
-                    # If attack occurs, peform the attack.
+                    # If attack occurs, perform the attack.
                     for player in game.player_set.all():
                         for resource in player.vulnerabilities.security_resources.all():
                             if not cls.deactivate_security(player, resource.classification):
@@ -521,9 +524,13 @@ class AttackResource(models.Model):
                                           (blue + red, blue + red + yellow, YELLOW)]
                     rand = random.randint(1, 100)
                     for lo, hi, classification in attack_probability:
-                        if rand >= lo and rand < hi:
+                        if lo <= rand < hi:
                             attack_resource = cls(classification=classification)
                             attack_resource.save()
+                            content = "{} Attack occurred at tick:{}".format(RESOURCE_CLASSIFICATIONS[classification][1],
+                                                                             game.ticks)
+                            message = Message(content=content, game=game, tick=game.current_tick, created_by=None)
+                            message.save()
                             break
 
                     # Once the color of the attack is determined, perform the attack on the player
@@ -581,7 +588,6 @@ class Tick(models.Model):
             tick.attack = AttackResource.create(game)
             tick.next_attack_probability = AttackProbability.create()
             tick.save()
-
             # Take away  player's turn because of other players' sanction
             # sanctions = Sanction.objects.filter(tick_number=tick.number, game=tick.game)
             # if sanctions:
@@ -630,15 +636,18 @@ class PlayerTick(models.Model):
 
 
 def update_tick(sender, instance, **kwargs):
+    print "update tick called"
     game = instance.player.game
     players = Player.objects.filter(game=game)
     for player in players:
         if player.can_move:
+            print "returning because other players can move"
             return
 
     t = game.tick_set.last()
     t.complete = True
     t.save()
+    print "now creating new tick"
     Tick.create(game=game)
 
 
