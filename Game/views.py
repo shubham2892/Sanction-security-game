@@ -526,7 +526,7 @@ def manager_sanction(tick, request, response_data):
                     player.counter_sum = 2 * num_of_vul
                     player.save()
 
-                    message_text = "Created Manager Sanction: Player %s is sanctioned by the lab manager for %s tick(s) at tick" % (
+                    message_text = "%s is sanctioned by the lab manager for %s tick(s) at tick" % (
                     player.user.username, num_of_vul * 2)
 
                     for i in range(1, num_of_vul * 2 + 1):
@@ -535,8 +535,6 @@ def manager_sanction(tick, request, response_data):
 
                     message = Message(content=message_text, created_by=None, game=tick.game, tick=tick)
                     message.save()
-                    print " "
-                    print message
 
     # group sanction, fill in later
     elif tick.game.manager_sanc == 2:

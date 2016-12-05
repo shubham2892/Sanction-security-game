@@ -10,14 +10,36 @@
     <div class="game-header">
         <div class="row">
             <div class="col-md-3">
-                <h3 id="game-number">Game&nbsp;#<span id="game-key">{{ game.game_key }}</span></h3>
+                <div class="row">
+
+                    <h4 id="game-number">Score:  {{ me.score }}   </h4>
+                </div>
+                <div class="row">
+
+                    <h4 id="game-number">Status:
+                        {% if me.manager_sanctioned and not player.passed %}
+                                Manager Sanctioned
+                            {% elif me.can_move %}
+                                Your Move
+                            {% elif me.sanctioned %}
+                                Peer Sanctioned
+                            {% else %}
+                                Moved
+                            {% endif %}
+
+
+                        </h4>
+                </div>
+
+
             </div> <!-- end .col-md-3 -->
+
             <div class="col-md-6">
                 <p class="response center-block"></p>
             </div> <!-- end .col-md-6 -->
             <div class="col-md-3">
-                <h3 id="time-remaining" value="{{ game.current_tick.pk }}"> {% if game.ticks >= 0 %} Remaining Rounds:
-                    {{ game.ticks }}  {% else %} Game Over! {% endif %}</h3>
+                <h4 id="time-remaining" value="{{ game.current_tick.pk }}"> {% if game.ticks >= 0 %} Remaining Rounds:
+                    {{ game.ticks }}  {% else %} Game Over! {% endif %}</h4>
             </div> <!-- end .col-md-3  -->
         </div> <!-- end .row -->
     </div> <!-- end .game-header -->
@@ -25,34 +47,32 @@
     <div id="test">
     </div>
 
-    <table style="width:40%" border="1" align="center" class="player-stat-info">
-        <tr>
-            <td>Player</td>
-            <td>Finished Research Objectives</td>
-            <td>Finished Security Objectives</td>
-        </tr>
-        {% for player in players %}
-            <tr>
-                <td>
-                    {% if player == me %}
-                        Player {{ player.number|apnumber|capfirst }} <strong>(Me)</strong>
-                    {% else %}
-                        Player {{ player.number|apnumber|capfirst }}
-                    {% endif %}
-                </td>
-                <td>
-                    Workshop: {{ player.nf_workshop }}, Conference: {{ player.nf_conference }},
-                    Journal: {{ player.nf_journal }}
-                </td>
-                <td>
-                    Blue: {{ player.nf_blue }}, Red: {{ player.nf_red }}, Yellow: {{ player.nf_yellow }}
-                </td>
-            </tr>
-        {% endfor %}
-    </table>
+    {#    <table style="width:40%" border="1" align="center" class="player-stat-info">#}
+    {#        <tr>#}
+    {#            <td>Player</td>#}
+    {#            <td>Finished Research Objectives</td>#}
+    {#            <td>Finished Security Objectives</td>#}
+    {#        </tr>#}
+    {#        {% for player in players %}#}
+    {#            <tr>#}
+    {#                <td>#}
+    {#                    {% if player == me %}#}
+    {#                        Player {{ player.number|apnumber|capfirst }} <strong>(Me)</strong>#}
+    {#                    {% else %}#}
+    {#                        Player {{ player.number|apnumber|capfirst }}#}
+    {#                    {% endif %}#}
+    {#                </td>#}
+    {#                <td>#}
+    {#                    Workshop: {{ player.nf_workshop }}, Conference: {{ player.nf_conference }},#}
+    {#                    Journal: {{ player.nf_journal }}#}
+    {#                </td>#}
+    {#                <td>#}
+    {#                    Blue: {{ player.nf_blue }}, Red: {{ player.nf_red }}, Yellow: {{ player.nf_yellow }}#}
+    {#                </td>#}
+    {#            </tr>#}
+    {#        {% endfor %}#}
+    {#    </table>#}
 
-    <br/>
-    <br/>
 
 
 {% endblock %}
@@ -65,100 +85,102 @@
     <!-- START Game Information -->
     <div id="game-info" class="col-md-3">
         {% for player in players %}
-            <div class="panel panel-primary info-panel">
-            {% if player.sanctioned %}
-                <div class="panel-heading sanctioned">
-            {% else %}
-                <div class="panel-heading">
-            {% endif %}
-        <div>
-            {% if player == me %}
-                <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst }}
-                <strong>(Me)</strong>
-            {% else %}
-                <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst }}
-                {% if game.peer_sanc == True %}
-                    <button type="button" sanctionee="{{ player.pk }}" sanctioner="{{ me.pk }}"
-                            class="btn btn-sm btn-danger pull-right sanction">
-                        Sanction
-                    </button>
-                {% endif %}
+            {% if player.id != me.id %}
 
-            {% endif %}
-        </div>
-        </div>
-        <div class="panel-body info-text">
-            <table>
-                <tbody>
+                <div class="panel panel-primary info-panel">
+                {% if player.sanctioned %}
+                    <div class="panel-heading sanctioned">
+                {% else %}
+                    <div class="panel-heading">
+                {% endif %}
+            <div>
                 {% if player == me %}
-                    <tr id="my-score" player-score="{{ player.score }}">
-                        {% else %}
-                    <tr id="their-score" player-score="{{ player.score }}">
-                {% endif %}
-                <td>
-                    Score: {{ player.score }}
-                </td>
-                <td colspan="3">
-                    <div class="progress">
-                        <p style="display:none">{% widthratio player.score highscore 100 as norm_score %}</p>
-                        {% if norm_score|add:"0" <= 20 %}
-                            <div class="progress-bar progress-bar-danger" role="progressbar"
-                                 aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"
-                                 style="width: {{ norm_score }}%;">
-                                <span class="sr-only">{{ norm_score }}% Complete</span>
-                            </div>
-                        {% elif norm_score|add:"0" <= 80 %}
-                            <div class="progress-bar progress-bar-warning" role="progressbar"
-                                 aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"
-                                 style="width: {{ norm_score }}%;">
-                                <span class="sr-only">{{ norm_score }}% Complete</span>
-                            </div>
-                        {% else %}
-                            <div class="progress-bar progress-bar-success" role="progressbar"
-                                 aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"
-                                 style="width: {{ norm_score }}%;">
-                            <span class="sr-only">{{ norm_score }}% Complete</span>
-                        {% endif %}
-                        </div>
-                </td>
-                <td colspan="1">
-
-                    {% if player.manager_sanctioned and not player.passed %}
-                        <h5><strong>sanctioned by manager.</strong>
-                    {% elif player.can_move %}
-                        <h5><strong>thinking...</strong>
-                    {% elif player.sanctioned %}
-                        <h5><strong>sanctioned by peers.</strong>
-                    {% else %}
-                        <h5><strong>moved.</strong>
+                    <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst }}
+                    <strong>(Me)</strong>
+                {% else %}
+                    <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst }}
+                    {% if game.peer_sanc == True %}
+                        <button type="button" sanctionee="{{ player.pk }}" sanctioner="{{ me.pk }}"
+                                class="btn btn-sm btn-danger pull-right sanction">
+                            Sanction
+                        </button>
                     {% endif %}
-                </td>
-                </tr>
-                {% if player == me %}
-                    <tr id="my-vulnerabilities">
-                        {% else %}
-                    <tr id="their-vulnerabilities">
+
                 {% endif %}
-                <td class="title">
-                    Immunities:
-                </td>
-                {% for vulnerability in player.vulnerabilities.security_resources.all %}
-                    <td>
-                        {% if vulnerability.active %}
-                            <div id="{{ vulnerability.get_classification_display }}" class="resource-container active">
-                        {% else %}
-                            <div id="{{ vulnerability.get_classification_display }}"
-                                 class="resource-container inactive">
-                        {% endif %}
-                        <span class="centerer"></span><span class='centered'></span>
-                        </div>
+            </div>
+            </div>
+            <div class="panel-body info-text">
+                <table>
+                    <tr>
+
+                        <td>
+                            Score: {{ player.score }}
+                        </td>
+                        <td colspan="3">
+                            <div class="progress">
+                                <p style="display:none">{% widthratio player.score highscore 100 as norm_score %}</p>
+                                {% if norm_score|add:"0" <= 20 %}
+                                    <div class="progress-bar progress-bar-danger" role="progressbar"
+                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"
+                                         style="width: {{ norm_score }}%;">
+                                        <span class="sr-only">{{ norm_score }}% Complete</span>
+                                    </div>
+                                {% elif norm_score|add:"0" <= 80 %}
+                                    <div class="progress-bar progress-bar-warning" role="progressbar"
+                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"
+                                         style="width: {{ norm_score }}%;">
+                                        <span class="sr-only">{{ norm_score }}% Complete</span>
+                                    </div>
+                                {% else %}
+                                    <div class="progress-bar progress-bar-success" role="progressbar"
+                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"
+                                         style="width: {{ norm_score }}%;">
+                                    <span class="sr-only">{{ norm_score }}% Complete</span>
+                                {% endif %}
+                                </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="title">Status:</td>
+                        <td colspan="3">
+
+                            {% if player.manager_sanctioned and not player.passed %}
+                                <h5><strong>Manager Sanctioned</strong></h5>
+                            {% elif player.can_move %}
+                                <h5><strong>Thinking..</strong></h5>
+                            {% elif player.sanctioned %}
+                                <h5><strong>Peer Sanctioned</strong></h5>
+                            {% else %}
+                                <h5><strong>Moved</strong></h5>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    </tr>
+
+                    <td class="title">
+                        Immunities:
                     </td>
-                {% endfor %}
-                </tr>
-                </tbody>
-            </table>
-        </div>
-        </div>
+                    {% for vulnerability in player.vulnerabilities.security_resources.all %}
+                        <td>
+                            {% if vulnerability.active %}
+                                <div id="{{ vulnerability.get_classification_display }}"
+                                     class="resource-container active">
+                            {% else %}
+                                <div id="{{ vulnerability.get_classification_display }}"
+                                     class="resource-container inactive">
+                            {% endif %}
+                            <span class="centerer"></span><span class='centered'></span>
+                            </div>
+                        </td>
+                    {% endfor %}
+                    </tr>
+                </table>
+            </div>
+            </div>
+            {% endif %}
+
         {% endfor %}
         </div>
 
@@ -172,10 +194,7 @@
                     <div>
                             <span><span class="glyphicon glyphicon-user"></span>
                             <span id="player" style="display:none">{{ me.pk }}</span>
-                            &nbsp;Player {{ me.number|apnumber|capfirst }} <strong>(Me)</strong></span>
-                        <span id="score">
-                                &nbsp;Score: <b> {{ me.score }}</b>
-                            </span>
+                            <strong>Me</strong></span>
                     </div>
                 </div>
 
@@ -360,7 +379,6 @@
             </div>
 
 
-
         </div><!-- close .col-md-2 -->
 
         <!-- END Attack Information -->
@@ -373,7 +391,7 @@
         <div class="col-md-3">
             <div class="panel panel-primary">
                 <div class="panel-heading">
-                    <span class="glyphicon glyphicon-comment"></span>&nbsp;Group Chat
+                    <span class="glyphicon glyphicon-comment"></span>&nbsp;Announcements
                 </div>
                 <div class="panel-body chat">
                     <ul id="talk" class="chat">
@@ -385,7 +403,6 @@
                                             <strong class="primary-font">Player {{ message.created_by.number | apnumber | capfirst }}
                                                 (Me)</strong>
                                         {% elif message.created_by == None %}
-                                            <strong class="primary-font">***Announcement***</strong>
                                         {% else %}
                                             <strong class="primary-font">Player {{ message.created_by.number | apnumber | capfirst }}</strong>
                                         {% endif %}
@@ -398,22 +415,7 @@
                         {% endfor %}
                     </ul>
                 </div>
-                <div class="panel-footer">
-                    <form action="/message/create/" class="form-inline" method="POST" id="message-form">
-                        {% csrf_token %}
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div class="fieldWrapper" id="the_message">
-                                    <input type="text" class="form-control" name="{{ message.content.name }}"
-                                           id="id_{{ message.content.name }}"/>
-                                </div>
-                            </div>
-                            <div class="col-md-2">
-                                <input class="btn btn-warning btn-sm" id="btn-chat" type="submit" value="Send"></input>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+
             </div>
         </div>
     </div>
