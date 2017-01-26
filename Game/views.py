@@ -1,6 +1,7 @@
 import json
 from random import random
 
+import requests
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
 from django.contrib.auth.forms import AuthenticationForm
@@ -147,6 +148,34 @@ class GameView(TemplateView):
         return context
 
 
+def create_event_stream(tick):
+    attack = tick.attack.get_classification_display
+    remaining_rounds = tick.game._ticks - tick.number
+
+    update_url = '/event-attack'
+    data = "{}\n{}\n\n".format(attack, remaining_rounds)
+    headers = {'content_type': 'text/event-stream', 'Cache-Control': 'no-cache'}
+    r = requests.get(update_url, data={'data': data}, headers=headers)
+
+
+def event_stream_player_score_update(player):
+    if player.manager_sanctioned:
+        status = 'Manager Sanctioned'
+    elif player.peer_sanctioned:
+        status = 'Peer Sanctioned'
+    else:
+        status = 'moved'
+    score = player.score
+    vulnerabilities = []
+    for vulenerability in player.vulnerability.security_resources.all():
+        if vulenerability.active:
+            vulnerabilities.append(vulenerability.get_classification_display)
+    update_url = '/event-score-update'
+    data = "{}\n{}\n{}\n".format(status, score, vulnerabilities)
+    headers = {'content_type': 'text/event-stream', 'Cache-Control': 'no-cache'}
+    r = requests.get(update_url, data={'data': data}, headers=headers)
+
+
 @csrf_exempt
 def create_message(request):
     if request.method == 'POST':
@@ -286,10 +315,10 @@ def player_peer_sanctioned(request):
                 )
             else:
                 # TODO: Add check if sanctionee has been already peer sanctioned or manager sanctioned
+                # TODO: Notify other players about status and score update
 
                 player_tick = PlayerTick(player=sanctioner, tick=sanctioner.game.current_tick)
                 player_tick.action = SANCTION
-                print "Saving ticket 4"
                 player_tick.save()
                 tick = Tick.objects.get(pk=request.POST.get("tick_pk"))
                 sanctionee = Player.objects.get(pk=request.POST.get("sanctionee_pk"))
@@ -392,6 +421,8 @@ def research_resource_complete(request):
                 response_data['pk'] = research_resource.pk
                 response_data['resource_complete'] = research_resource.complete
                 response_data['objective_complete'] = objective_completed
+
+                # TODO Notify other players about updated score and status
 
                 return HttpResponse(
                     json.dumps(response_data),
@@ -509,6 +540,7 @@ def manager_sanction(tick, request, response_data):
 
 
                 sanction_prob = 1.0 * count / num_of_resource
+                # manager_obs_random = random.random()
                 # print "individual sanction probability is %s" %(sanction_prob)
                 x = random.random()
                 # print "random number is %s" %(x)
@@ -527,7 +559,7 @@ def manager_sanction(tick, request, response_data):
                     player.save()
 
                     message_text = "%s is sanctioned by the lab manager for %s tick(s) at tick" % (
-                    player.user.username, num_of_vul * 2)
+                        player.user.username, num_of_vul * 2)
 
                     for i in range(1, num_of_vul * 2 + 1):
                         if diff - i >= 0:
@@ -641,6 +673,9 @@ def manager_sanction(tick, request, response_data):
 @csrf_exempt
 def pass_round(request):
     if request.method == 'POST':
+
+        # TODO: Notify other players about status and score update
+
         player = Player.objects.get(pk=request.POST.get('player_pk'))
         player_tick = PlayerTick(player=player, tick=player.game.current_tick)
         if player.can_move:
@@ -707,7 +742,7 @@ def pass_round(request):
 
                         # stats.nf_finished_task = player.nf_yellow
                         # stats.type_of_task = 4
-                        vulnerabilities_fixed +=" yellow"
+                        vulnerabilities_fixed += " yellow"
                         response_data['result'] = "You've fixed {} vulnerability".format(vulnerabilities_fixed)
                         print "fixed yellow vulnerability"
                         # stats.save()
@@ -748,3 +783,15 @@ def pass_round(request):
             json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
             content_type="application/json"
         )
+
+
+# @csrf_exempt
+# def event_stream(request):
+#     def eventStream():
+#         yield "data:Server Sent Data\n\n"
+#
+#     response = HttpResponse(eventStream(), content_type="text/event-stream")
+#     response['Cache-Control'] = 'no-cache'
+#     return response
+
+

@@ -1,9 +1,7 @@
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
-from django.views.generic import TemplateView
 
 from . import views
-from P1 import settings
 
 urlpatterns = [
     url(r'^$', login_required(views.HomeView.as_view()), name='home'),
@@ -17,4 +15,6 @@ urlpatterns = [
     # url(r'^sanction/$', login_required(views.sanction), name='sanction'),
     url(r'^tick/complete/$', login_required(views.check_tick_complete), name='check_tick_complete'),
     url(r'^passround/$', login_required(views.pass_round), name='passround'),
+    # url(r'^event-stream/$', MySseEvents.as_view(), name="event-stream"),
 ]
+

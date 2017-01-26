@@ -1,42 +1,148 @@
-$(function() {
+$(function () {
     update_attack_probabilities();
     scrollChat();
     //manager_sanction();
     return false;
 });
 
+
+// var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+// var chat_socket = new WebSocket(ws_scheme + '://' + window.location.host + "/webs" + window.location.pathname);
+
+// Note that the path doesn't matter for routing; any WebSocket
+// connection gets bumped over to WebSocket consumers
+socket = new WebSocket("ws://" + window.location.host + "/chat/");
+socket.onmessage = function (message) {
+    var data = JSON.parse(message.data);
+    console.log(data);
+    if (data['type'] === 'research_complete_response') {
+        // Research resource complete action reply
+        complete_research_resource_reply(data['response_message']);
+    } else if (data['type'] === 'security_resource_activate_response') {
+        // Security resource complete reply
+        activate_security_resource_reply(data['response_message']);
+    } else if (data['type'] === 'player_sanction_response') {
+        // Player sanction reply
+        sanction_player_reply(data['response_message']);
+    } else if (data['type'] === 'pass_button_response') {
+        // Pass button reply
+        pass_round_reply(data['response_message']);
+    } else if (data['type'] === 'player_update') {
+        update_player(data)
+    } else if (data['type'] === 'update_message_board') {
+
+    } else if (data['type'] === 'game_complete') {
+
+    } else if (data['type'] === 'tick_complete') {
+        update_ticks(data["new_tick_count"]);
+    }
+};
+socket.onopen = function () {
+
+};
+// Call onopen directly if socket is already open
+if (socket.readyState == WebSocket.OPEN) socket.onopen();
+
+// $('#chatform').on('submit', function(event) {
+//     var message = {
+//         handle: $('#handle').val(),
+//         message: $('#message').val(),
+//     }
+//     chat_socket.send(JSON.stringify(message));
+//     return false;
+// });
+//
+// chatsock.onmessage = function(message) {
+//     var data = JSON.parse(message.data);
+//     $('#chat').append('<tr>'
+//         + '<td>' + data.timestamp + '</td>'
+//         + '<td>' + data.handle + '</td>'
+//         + '<td>' + data.message + ' </td>'
+//     + '</tr>');
+// };
+
+function update_player(player_object){
+    var tableObject = document.getElementById(player_object["id"]);
+    if (tableObject != null){
+        tableObject.rows[0].cells[0].textContent = "Score:" + player_object["score"];
+        tableObject.rows[1].cells[1].textContent = player_object["status"];
+        if (player_object["vulnerabilities"][0].active) {
+            tableObject.rows[2].cells[1].className = "resource-container active"
+        }else{
+            tableObject.rows[2].cells[1].className = "resource-container inactive"
+        }
+
+        if (player_object["vulnerabilities"][1].active) {
+            tableObject.rows[2].cells[2].className = "resource-container active"
+        }else{
+            tableObject.rows[2].cells[2].className = "resource-container inactive"
+        }
+
+        if (player_object["vulnerabilities"][2].active) {
+            tableObject.rows[2].cells[3].className = "resource-container active"
+        }else{
+            tableObject.rows[2].cells[3].className = "resource-container inactive"
+        }
+    }
+}
+
+function update_ticks(new_tick_count) {
+    // Update html of new rounds
+    if (new_tick_count > 0) {
+        $(".time-remaining").textContent = new_tick_count;
+    } else {
+        $(".time-remaining").textContent = "Game over!";
+    }
+}
+
+function update_player_scores(player_score) {
+
+}
+
+function update_player_immunities() {
+
+}
+
+function update_player_progress() {
+
+}
+
+function update_message_board() {
+
+}
+
 function alertSuccess(message) {
     $(".response").empty();
     $(".response").append(
-        '<div class="alert alert-success alert-dismissable">'+
-            '<button type="button" class="close" ' +
-                    'data-dismiss="alert" aria-hidden="true">' +
-                '&times;' +
-            '</button>' +
-            '<strong>Success:&nbsp;</strong>' +
-            message +
-         '</div>');
+        '<div class="alert alert-success alert-dismissable">' +
+        '<button type="button" class="close" ' +
+        'data-dismiss="alert" aria-hidden="true">' +
+        '&times;' +
+        '</button>' +
+        '<strong>Success:&nbsp;</strong>' +
+        message +
+        '</div>');
     return false;
 };
 
 function alertFailure(message) {
     $(".response").empty();
     $(".response").append(
-        '<div class="alert alert-danger alert-dismissable">'+
-            '<button type="button" class="close" ' +
-                    'data-dismiss="alert" aria-hidden="true">' +
-                '&times;' +
-            '</button>' +
-            '<strong>Failure:&nbsp;</strong>' +
-            message +
-         '</div>');
+        '<div class="alert alert-danger alert-dismissable">' +
+        '<button type="button" class="close" ' +
+        'data-dismiss="alert" aria-hidden="true">' +
+        '&times;' +
+        '</button>' +
+        '<strong>Failure:&nbsp;</strong>' +
+        message +
+        '</div>');
     return false;
 };
 
 // Function for Attack Threat vertical bar
-function update_attack_probabilities(){
+function update_attack_probabilities() {
 
-    var animation_speed = 1000
+    var animation_speed = 1000;
 
     // Get blue threat
     var blueBar = $('.attack-threat').find('.inner.blue');
@@ -47,7 +153,7 @@ function update_attack_probabilities(){
         height: blueThreat
     }, animation_speed);
 
-     // Get blue threat
+    // Get blue threat
     var redBar = $('.attack-threat').find('.inner.red');
     var redThreat = parseInt(redBar.attr("red-threat")) + parseInt(blueThreat);
     var redCent = redThreat + "%";
@@ -68,93 +174,37 @@ function update_attack_probabilities(){
     }, animation_speed);
 
     return false;
-};
+}
 
-
-// AJAX POST message for game chat
-$('#message-form').on('submit', function(event){
-    event.preventDefault();
-    create_message();
-    return false;
-});
-
-function create_message() {
-    $.ajax({
-        url : "/message/create/", // the endpoint
-        type : "POST", // http method
-        data : { the_message : $('#id_content').val(), game_key : $('#game-key').text()}, // data sent with the post request
-
-        // handle a successful response
-        success : function(json) {
-            $('#id_content').val(''); // remove the value from the input
-            updateChat();
-            scrollChat();
-        },
-
-        // handle a non-successful response
-        error : function(xhr,errmsg,err) {
-            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-        }
+function game_complete() {
+    $('#game-over-modal').modal({
+        backdrop: "static",
+        keyboard: false
     });
-    return false;
-};
+    clearinterval(roundUpdate);
 
+}
 
-// Updates round after all players have moved
-function updateRound() {
-    $.ajax({
-        url : "/tick/complete/", // the endpoint
-        type : "POST", // http method
-        data : { tick_pk : $("#time-remaining").attr('value')}, // data sent with the post request
-
-        // handle a successful response
-        success : function(json) {
-            if (json["game_complete"] === true) {
-                $('#game-over-modal').modal({
-                    backdrop : "static",
-                    keyboard : false,
-                    });
-                clearinterval(roundUpdate);
-            } else if (json["tick_complete"] === true) {
-                //if a tick is complete, do manager sanction in check_tick_complete in views.py           
-                window.location.reload();
-            } else {
-                updatePage();
-            }
-        },
-
-        // handle a non-successful response
-        error : function(xhr,errmsg,err) {
-            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-        }
-    });
-    return false;
-};
-
-var roundUpdate = setInterval(function() {updateRound() }, 3000);  //call updateRound() function every 3 seconds
+function tick_complete() {
+    window.location.reload();
+}
 
 // Refreshes talk for new messages
 function updateChat() {
-    $("#talk").load(location.href +  ' #talk');
+    $("#talk").load(location.href + ' #talk');
     return false;
-};
-
+}
 // Scrolls chat to bottom of screen when a message is send
 function scrollChat() {
     var chatWindow = $(".panel-body.chat");
-    $(chatWindow).animate({scrollTop:$(chatWindow)[0].scrollHeight}, 1000);
+    $(chatWindow).animate({scrollTop: $(chatWindow)[0].scrollHeight}, 1000);
     return false;
-};
-
+}
 // Updates Chat and the Left Panel
 function updatePage() {
     $.ajax({
         url: location.href,
-        success: function(json) {
+        success: function (json) {
 
             // Update left panel
             var gameInfo = $(json).find("#game-info").html();
@@ -172,205 +222,117 @@ function updatePage() {
     return false;
 }
 
-// AJAX POST activate security resource
-$(document).on('click', '.clickable.inactive',function(event){
+// activate security resource
+$(document).on('click', '.clickable.inactive', function (event) {
+    event.preventDefault();
+    var message = {
+        type: 'security_resource_activate',
+        player_pk: $("#player").text(),
+        security_resource_pk: $(this).attr('value')
+    };
+    socket.send(JSON.stringify(message));
+    return false;
+});
+
+
+function activate_security_resource_reply(response_message) {
+    if (response_message["active"] == true) {
+        $(clicked_resource).removeClass("inactive").addClass("active");
+        // $("#my-score").load(location.href +" #my-score>*","");
+        $("#my-vulnerabilities").load(location.href + " #my-vulnerabilities>*", "");
+        $("#capability-list").load(location.href + " #capability-list>*", "");
+        alertSuccess(response_message["result"]);
+    } else {
+        alertFailure(response_message["result"]);
+    }
+}
+
+// complete research resource
+$(document).on('click', '.clickable.incomplete', function (event) {
     var clicked_resource = $(this);
     event.preventDefault();
-    activate_security_resource(clicked_resource);
+    var message = {
+        resource_pk: $(clicked_resource).attr('value'),
+        player_pk: $("#player").text(),
+        type: 'resource_complete'
+
+    };
+    socket.send(JSON.stringify(message));
     return false;
 });
 
-function activate_security_resource(clicked_resource) {
-    $.ajax({
-        url : "/resource/activate/", // the endpoint
-        type : "POST", // http method
-        data : { pk : $(clicked_resource).attr('value'), player_pk : $("#player").text() }, // data sent with the post request
 
-        // handle a successful response
-        success : function(json) {
-            if (json["active"] === true) {
-                $(clicked_resource).removeClass("inactive").addClass("active")
-                $("#my-score").load(location.href +" #my-score>*","");
-                $("#my-vulnerabilities").load(location.href +" #my-vulnerabilities>*","");
-                $("#capability-list").load(location.href +" #capability-list>*","");
-                alertSuccess(json["result"]);
-            } else {
-                alertFailure(json["result"]);
-            }
-
-        },
-
-        // handle a non-successful response
-        error : function(xhr,errmsg,err) {
-            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-        }
-    });
+// sanction other player
+$(document).on('click', '.sanction', function (event) {
+    event.preventDefault();
+    var message = {
+        sanctionee_pk: $(this).attr("sanctionee"),
+        sanctioner_pk: $(this).attr("sanctioner"),
+        tick_pk: $("#time-remaining").attr("value"),
+        type: "player_sanction"
+    };
+    socket.send(JSON.stringify(message));
     return false;
-};
 
-// AJAX POST complete research resource
-$(document).on('click', '.clickable.incomplete', function(event){
+});
+
+function sanction_player_reply(response_message) {
+    if ("sanctioned" in response_message && response_message["sanctioned"]) {
+        // $("#my-score").load(location.href +" #my-score>*","");
+        alertSuccess(response_message["result"]);
+    } else {
+        alertFailure(response_message["result"]);
+    }
+}
+
+
+function complete_research_resource_reply(response_message) {
+    if (response_message["resource_complete"] === true) {
+        $(response_message[clicked_resource]).removeClass("incomplete").addClass("complete");
+        // $("#my-score").load(location.href +" #my-score>*","");
+        alertSuccess(json["result"]);
+    } else {
+        alertFailure(json["result"]);
+    }
+    if (response_message["objective_complete"] === true) {
+        $("#research-objectives").load(location.href + " #research-objectives>*", "");
+    }
+}
+
+
+// when clicking on pass round button
+$(document).on('click', '#passbtn', function (event) {
     var clicked_resource = $(this);
     event.preventDefault();
-    complete_research_resource(clicked_resource);
+    var message = {
+        player_pk: $("#player").text(),
+        type: 'pass_button'
+
+    };
+    socket.send(JSON.stringify(message));
     return false;
 });
 
+function pass_round_reply(response_message) {
+    if (response_message["resource"] == "blue") {
+        $('#blue').removeClass("inactive").addClass("active");
+        $("#my-vulnerabilities").load(location.href + " #my-vulnerabilities>*", "");
+        $("#capability-list").load(location.href + " #capability-list>*", "");
+        alertSuccess(response_message["result"]);
+    } else if (response_message["resource"] == "red") {
+        $('#red').removeClass("inactive").addClass("active");
+        $("#my-vulnerabilities").load(location.href + " #my-vulnerabilities>*", "");
+        $("#capability-list").load(location.href + " #capability-list>*", "");
+        alertSuccess(response_message["result"]);
+    } else if (response_message["resource"] == "yellow") {
+        $('#yellow').removeClass("inactive").addClass("active");
+        $("#my-vulnerabilities").load(location.href + " #my-vulnerabilities>*", "");
+        $("#capability-list").load(location.href + " #capability-list>*", "");
+        alertSuccess(response_message["result"]);
+    } else if (response_message["resource"] == "null") {
+        alertSuccess(response_message["result"]);
+    } else {
+        alertFailure(response_message["result"]);
+    }
+}
 
-// AJAX POST sanction other player
-$(document).on('click', '.sanction', function(event){
-    var sanctionee_pk = $(this).attr("sanctionee");
-    var sanctioner_pk = $(this).attr("sanctioner");
-    var tick_pk = $("#time-remaining").attr("value");
-    event.preventDefault();
-    sanction_other_player(sanctionee_pk, sanctioner_pk, tick_pk);
-    return false;
-
-});
-
-function sanction_other_player(sanctionee_pk, sanctioner_pk, tick_pk) {
-    $.ajax({
-        url : "/player/sanction/", // the endpoint
-        type : "POST", // http method
-        data : { sanctionee_pk : sanctionee_pk, sanctioner_pk: sanctioner_pk, tick_pk : tick_pk }, // data sent with the post request
-
-        // handle a successful response
-        success : function(json) {
-            if (json["sanctioned"]) {
-                $("#my-score").load(location.href +" #my-score>*","");
-                alertSuccess(json["result"]);
-            } else {
-                alertFailure(json["result"]);
-            }
-        },
-
-        // handle a non-successful response
-        error : function(xhr,errmsg,err) {
-            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-        }
-    });
-    return false;
-
-};
-
-
-function complete_research_resource(clicked_resource) {
-    $.ajax({
-        url : "/resource/complete/", // the endpoint
-        type : "POST", // http method
-        data : { pk : $(clicked_resource).attr('value'), player_pk : $("#player").text() }, // data sent with the post request
-
-        // handle a successful response
-        success : function(json) {
-            if (json["resource_complete"] === true) {
-                $(clicked_resource).removeClass("incomplete").addClass("complete");
-                $("#my-score").load(location.href +" #my-score>*","");
-                alertSuccess(json["result"]);
-            } else {
-                alertFailure(json["result"]);
-            }
-            if (json["objective_complete"] === true) {
-                $("#research-objectives").load(location.href +" #research-objectives>*","");
-            }
-
-        },
-
-        // handle a non-successful response
-        error : function(xhr,errmsg,err) {
-            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-        }
-    });
-    return false;
-};
-
-// AJAX POST impose sanction on player
-$(document).on("click", ".sanction_abc", function(event){
-    var sanctionee_pk = $(this).attr("sanctionee");
-    var sanctioner_pk = $(this).attr("sanctioner");
-    var tick_pk = $("#time-remaining").attr("value");
-    event.preventDefault();
-    sanction_player(sanctionee_pk, sanctioner_pk, tick_pk);
-    return false;
-});
-
-function sanction_player(sanctionee_pk, sanctioner_pk, tick_pk) {
-    $.ajax({
-        url : "/sanction/", // the endpoint
-        type : "POST", // http method
-        data : { sanctionee_pk : sanctionee_pk, sanctioner_pk: sanctioner_pk, tick_pk : tick_pk }, // data sent with the post request
-
-        // handle a successful response
-        success : function(json) {
-            if (json["sanctioned"]) {
-                $("#my-score").load(location.href +" #my-score>*","");
-                alertSuccess(json["result"]);
-            } else {
-                alertFailure(json["result"]);
-            }
-        },
-
-        // handle a non-successful response
-        error : function(xhr,errmsg,err) {
-            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-        }
-    });
-    return false;
-};
-
-
-// AJAX POST when clicking on pass round button
-$(document).on('click', '#passbtn', function(event){
-    var clicked_resource = $(this);
-    event.preventDefault();
-    pass_round(clicked_resource);
-    return false;
-});
-
-//skip one round
-function pass_round(clicked_resource) {
-    $.ajax({
-        url : "/passround/", // the endpoint
-        type : "POST", // http method
-        data : {player_pk : $("#player").text() }, // data sent with the post request
-
-        // handle a successful response
-        success : function(json) {
-            if (json["resource"] == "blue") {
-                $('#blue').removeClass("inactive").addClass("active");
-                $("#my-vulnerabilities").load(location.href +" #my-vulnerabilities>*","");
-                $("#capability-list").load(location.href +" #capability-list>*","");
-                alertSuccess(json["result"]);
-            } else if (json["resource"] == "red") {
-                $('#red').removeClass("inactive").addClass("active");
-                $("#my-vulnerabilities").load(location.href +" #my-vulnerabilities>*","");
-                $("#capability-list").load(location.href +" #capability-list>*","");
-                alertSuccess(json["result"]);
-            } else if (json["resource"] == "yellow") {
-                $('#yellow').removeClass("inactive").addClass("active");
-                $("#my-vulnerabilities").load(location.href +" #my-vulnerabilities>*","");
-                $("#capability-list").load(location.href +" #capability-list>*","");
-                alertSuccess(json["result"]);
-            } else if (json["resource"] == "null") {
-                alertSuccess(json["result"]);
-            } else{
-                alertFailure(json["result"]);
-            }
-        },
-
-        // handle a non-successful response
-        error : function(xhr,errmsg,err) {
-            $('#results').html("<div class='alert-box alert radius' data-alert>Oops! We have encountered an error: "+errmsg+
-                " <a href='#' class='close'>&times;</a></div>"); // add the error to the dom
-            console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
-        }
-    });
-    return false;
-};

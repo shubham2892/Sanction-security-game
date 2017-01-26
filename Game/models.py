@@ -1,13 +1,14 @@
+import json
+import random
+
+from channels import Group
 from django.contrib.auth.models import User
+from django.contrib.humanize.templatetags.humanize import apnumber
 from django.db import IntegrityError
 from django.db import models
 from django.db.models.signals import post_save
-from django.contrib.humanize.templatetags.humanize import apnumber
 
 from custom_models import IntegerRangeField
-from datetime import timedelta
-from random import choice
-import random
 
 #### GLOBAL VARIABLES ####
 
@@ -259,18 +260,19 @@ class Player(models.Model):
 
 # Set's a player's default values, called as a post_save signal
 def set_player_defaults(sender, instance, **kwargs):
-    if instance.number == 0:
-        instance.number = instance.game.player_set.count()
-        instance.save()
+    if sender == Player:
+        if instance.number == 0:
+            instance.number = instance.game.player_set.count()
+            instance.save()
 
-    if not hasattr(instance, 'vulnerabilities'):
-        Vulnerabilities.create(instance)
-    if not hasattr(instance, 'capabilities'):
-        Capabilities.create(instance)
+        if not hasattr(instance, 'vulnerabilities'):
+            Vulnerabilities.create(instance)
+        if not hasattr(instance, 'capabilities'):
+            Capabilities.create(instance)
 
-    if not instance.researchobjective_set.all():
-        for objective in ResearchObjective.get_initial_set(instance):
-            instance.researchobjective_set.add(objective)
+        if not instance.researchobjective_set.all():
+            for objective in ResearchObjective.get_initial_set(instance):
+                instance.researchobjective_set.add(objective)
 
 
 post_save.connect(set_player_defaults, sender=Player)
@@ -527,8 +529,9 @@ class AttackResource(models.Model):
                         if lo <= rand < hi:
                             attack_resource = cls(classification=classification)
                             attack_resource.save()
-                            content = "{} Attack occurred at tick:{}".format(RESOURCE_CLASSIFICATIONS[classification][1],
-                                                                             game.ticks)
+                            content = "{} Attack occurred at tick:{}".format(
+                                RESOURCE_CLASSIFICATIONS[classification][1],
+                                game.ticks)
                             message = Message(content=content, game=game, tick=game.current_tick, created_by=None)
                             message.save()
                             break
@@ -588,22 +591,9 @@ class Tick(models.Model):
             tick.attack = AttackResource.create(game)
             tick.next_attack_probability = AttackProbability.create()
             tick.save()
-            # Take away  player's turn because of other players' sanction
-            # sanctions = Sanction.objects.filter(tick_number=tick.number, game=tick.game)
-            # if sanctions:
-            #     for sanction in sanctions:
-            #         # default action is REST = 0
-            #         PlayerTick(tick=tick, player=sanction.sanctionee).save()
-
-            # Take away player's turn because of manager sanction
-            # sanctions = ManagerSanction.objects.filter(tick_number=tick.number, game=tick.game)
-            # if sanctions:
-            #     for sanction in sanctions:
-            #         temp = PlayerTick.objects.filter(tick=tick, player=sanction.sanctionee)
-            #         if not temp:
-            #             PlayerTick(tick=tick, player=sanction.sanctionee).save()
-            #             print "Created a playertick: %s, manager sanction, tick %s" % (
-            #                 sanction.sanctionee.user.username, tick.number)
+            # Notifying all the players of tick complete
+            tick_object = {"type": "tick_complete", "new_tick_count": game.ticks}
+            Group("players").send({"text": json.dumps(tick_object)})
             return tick
 
 
@@ -677,6 +667,15 @@ class Message(models.Model):
                                                    content)
         else:
             return u'%s' % content
+
+
+def send_message_to_frontend(sender, instance, **kwargs):
+    if sender == Message:
+        message = {"message": instance.content, "type": "update_message_board"}
+        Group("players").send({"text": json.dump(message)})
+
+
+post_save.connect(send_message_to_frontend, sender=Message)
 
 
 class Sanction(models.Model):

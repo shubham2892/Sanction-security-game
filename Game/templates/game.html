@@ -12,23 +12,25 @@
             <div class="col-md-3">
                 <div class="row">
 
-                    <h4 id="game-number">Score:  {{ me.score }}   </h4>
+                    <h4>
+                        <div id="my-score">Score: {{ me.score }}</div>
+                    </h4>
                 </div>
                 <div class="row">
 
                     <h4 id="game-number">Status:
                         {% if me.manager_sanctioned and not player.passed %}
-                                Manager Sanctioned
-                            {% elif me.can_move %}
-                                Your Move
-                            {% elif me.sanctioned %}
-                                Peer Sanctioned
-                            {% else %}
-                                Moved
-                            {% endif %}
+                            Manager Sanctioned
+                        {% elif me.can_move %}
+                            Your Move
+                        {% elif me.sanctioned %}
+                            Peer Sanctioned
+                        {% else %}
+                            Moved
+                        {% endif %}
 
 
-                        </h4>
+                    </h4>
                 </div>
 
 
@@ -38,14 +40,11 @@
                 <p class="response center-block"></p>
             </div> <!-- end .col-md-6 -->
             <div class="col-md-3">
-                <h4 id="time-remaining" value="{{ game.current_tick.pk }}"> {% if game.ticks >= 0 %} Remaining Rounds:
-                    {{ game.ticks }}  {% else %} Game Over! {% endif %}</h4>
+                <div id="time-remaining">  </div>
             </div> <!-- end .col-md-3  -->
         </div> <!-- end .row -->
     </div> <!-- end .game-header -->
 
-    <div id="test">
-    </div>
 
     {#    <table style="width:40%" border="1" align="center" class="player-stat-info">#}
     {#        <tr>#}
@@ -110,7 +109,7 @@
             </div>
             </div>
             <div class="panel-body info-text">
-                <table>
+                <table id = {{ player.id }}>
                     <tr>
 
                         <td>
@@ -145,19 +144,15 @@
                         <td class="title">Status:</td>
                         <td colspan="3">
 
-                            {% if player.manager_sanctioned and not player.passed %}
-                                <h5><strong>Manager Sanctioned</strong></h5>
-                            {% elif player.can_move %}
-                                <h5><strong>Thinking..</strong></h5>
-                            {% elif player.sanctioned %}
-                                <h5><strong>Peer Sanctioned</strong></h5>
-                            {% else %}
-                                <h5><strong>Moved</strong></h5>
-                            {% endif %}
+
                         </td>
                     </tr>
 
-                    </tr>
+                    {% if player == me %}
+                        <tr id="my-vulnerabilities">
+                            {% else %}
+                        <tr id="their-vulnerabilities">
+                    {% endif %}
 
                     <td class="title">
                         Immunities:
@@ -198,13 +193,11 @@
                     </div>
                 </div>
 
-                <div class="panel-body gameboard">
+                <div class="panel-body">
 
                     <!-- START Resource Objectives -->
-                    <div class="objectives">
-                        <div class="section-header">
-                            <h3> Research Objectives: </h3>
-                        </div>
+                    <div>
+                        <h4><u>Research Objectives</u>:</h4>
 
                         <table class="category-list">
                             <tbody id="research-objectives">
@@ -285,10 +278,8 @@
 
                     <!-- START Security Features -->
 
-                    <div class="objectives">
-                        <div class="section-header">
-                            <h3>Security Objectives:</h3>
-                        </div>
+                    <div>
+                        <h4><u>Security Objectives:</u></h4>
                         <table class="category-list">
                             <tbody>
                             <tr id="vulnerability-list">
@@ -310,14 +301,13 @@
                                     </td>
                                 {% endfor %}
 
-                                <vr>
-                                    <td>
-                                        {% if me.manager_sanctioned or me.sanctioned %}
-                                            <button type="button" id="passbtn" class="btn btn-success">
-                                                Pass
-                                            </button>
-                                        {% endif %}
-                                    </td>
+                                <td>
+                                    {% if me.manager_sanctioned or me.sanctioned %}
+                                        <button type="button" id="passbtn" class="btn btn-success">
+                                            Pass
+                                        </button>
+                                    {% endif %}
+                                </td>
                             </tr>
 
                             </tbody>
@@ -326,10 +316,8 @@
 
                     <hr>
 
-                    <div class="objectives">
-                        <div class="section-header">
-                            <h3>Capabilities:</h3>
-                        </div>
+                    <div>
+                        <h4><u>Capabilities:</u></h4>
                         <table class="category-list">
                             <tbody>
                             <tr id="capability-list">
@@ -444,7 +432,8 @@
                         </ol>
                 </div>
                 <div class="modal-footer">
-                    <a href="{% url 'home' %}" class="btn btn-info">My Games</a>
+                    <a href="{% url 'home' %}" class="btn btn-info">My
+                        Games</a>
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
