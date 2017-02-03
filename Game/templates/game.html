@@ -15,7 +15,9 @@
                     <h4>
                         <div id="my-score">Score: {{ me.score }}</div>
                     </h4>
+
                 </div>
+
                 <div class="row">
 
                     <h4 id="game-number">Status:
@@ -40,7 +42,7 @@
                 <p class="response center-block"></p>
             </div> <!-- end .col-md-6 -->
             <div class="col-md-3">
-                <div id="time-remaining">  </div>
+                <h3 id="time-remaining">Remaining Rounds: {{ game.ticks }}</h3>
             </div> <!-- end .col-md-3  -->
         </div> <!-- end .row -->
     </div> <!-- end .game-header -->
@@ -109,7 +111,7 @@
             </div>
             </div>
             <div class="panel-body info-text">
-                <table id = {{ player.id }}>
+                <table id= {{ player.id }}>
                     <tr>
 
                         <td>

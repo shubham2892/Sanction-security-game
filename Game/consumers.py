@@ -319,6 +319,7 @@ def ws_message(message):
         player_pk = message_text.get("player_pk")
         resource_pk = message_text.get("resource_pk")
         response_message = resource_complete(player_pk, resource_pk)
+        response_message['clicked_resource'] = resource_pk
         response_complete = {"type": "{}_response".format(type_of_request), "response_message": response_message}
         message.reply_channel.send({"text": json.dumps(response_complete)})
 

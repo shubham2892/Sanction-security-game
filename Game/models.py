@@ -592,6 +592,7 @@ class Tick(models.Model):
             tick.next_attack_probability = AttackProbability.create()
             tick.save()
             # Notifying all the players of tick complete
+            print "Sending tick notification"
             tick_object = {"type": "tick_complete", "new_tick_count": game.ticks}
             Group("players").send({"text": json.dumps(tick_object)})
             return tick

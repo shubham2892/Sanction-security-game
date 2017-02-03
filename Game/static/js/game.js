@@ -1,9 +1,9 @@
-$(function () {
-    update_attack_probabilities();
-    scrollChat();
-    //manager_sanction();
-    return false;
-});
+// $(function () {
+//     update_attack_probabilities();
+//     scrollChat();
+//     //manager_sanction();
+//     return false;
+// });
 
 
 // var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
@@ -12,10 +12,12 @@ $(function () {
 // Note that the path doesn't matter for routing; any WebSocket
 // connection gets bumped over to WebSocket consumers
 socket = new WebSocket("ws://" + window.location.host + "/chat/");
+var clicked_research_resource;
 socket.onmessage = function (message) {
     var data = JSON.parse(message.data);
     console.log(data);
-    if (data['type'] === 'research_complete_response') {
+
+    if (data['type'] === 'resource_complete_response') {
         // Research resource complete action reply
         complete_research_resource_reply(data['response_message']);
     } else if (data['type'] === 'security_resource_activate_response') {
@@ -28,6 +30,7 @@ socket.onmessage = function (message) {
         // Pass button reply
         pass_round_reply(data['response_message']);
     } else if (data['type'] === 'player_update') {
+        console.log("In player_update");
         update_player(data)
     } else if (data['type'] === 'update_message_board') {
 
@@ -61,27 +64,28 @@ if (socket.readyState == WebSocket.OPEN) socket.onopen();
 //     + '</tr>');
 // };
 
-function update_player(player_object){
+function update_player(player_object) {
     var tableObject = document.getElementById(player_object["id"]);
-    if (tableObject != null){
-        tableObject.rows[0].cells[0].textContent = "Score:" + player_object["score"];
+    if (tableObject != null) {
+        console.log("Updating scores..");
+        tableObject.rows[0].cells[0].textContent = "Score: " + player_object["score"];
         tableObject.rows[1].cells[1].textContent = player_object["status"];
         if (player_object["vulnerabilities"][0].active) {
-            tableObject.rows[2].cells[1].className = "resource-container active"
-        }else{
-            tableObject.rows[2].cells[1].className = "resource-container inactive"
+            tableObject.rows[2].cells[1].children[0].className = "resource-container active"
+        } else {
+            tableObject.rows[2].cells[1].children[0].className = "resource-container inactive"
         }
 
         if (player_object["vulnerabilities"][1].active) {
-            tableObject.rows[2].cells[2].className = "resource-container active"
-        }else{
-            tableObject.rows[2].cells[2].className = "resource-container inactive"
+            tableObject.rows[2].cells[2].children[0].className = "resource-container active"
+        } else {
+            tableObject.rows[2].cells[2].children[0].className = "resource-container inactive"
         }
 
         if (player_object["vulnerabilities"][2].active) {
-            tableObject.rows[2].cells[3].className = "resource-container active"
-        }else{
-            tableObject.rows[2].cells[3].className = "resource-container inactive"
+            tableObject.rows[2].cells[3].children[0].className = "resource-container active"
+        } else {
+            tableObject.rows[2].cells[3].children[0].className = "resource-container inactive"
         }
     }
 }
@@ -250,6 +254,7 @@ function activate_security_resource_reply(response_message) {
 // complete research resource
 $(document).on('click', '.clickable.incomplete', function (event) {
     var clicked_resource = $(this);
+    clicked_research_resource = $(this);
     event.preventDefault();
     var message = {
         resource_pk: $(clicked_resource).attr('value'),
@@ -287,14 +292,15 @@ function sanction_player_reply(response_message) {
 
 
 function complete_research_resource_reply(response_message) {
-    if (response_message["resource_complete"] === true) {
-        $(response_message[clicked_resource]).removeClass("incomplete").addClass("complete");
-        // $("#my-score").load(location.href +" #my-score>*","");
-        alertSuccess(json["result"]);
+    if ("resource_complete" in response_message && response_message["resource_complete"] === true) {
+        console.log("resource complete.");
+        clicked_research_resource.removeClass("incomplete").addClass("complete");
+        $("#my-score").load(location.href +" #my-score>*","");
+        alertSuccess(response_message["result"]);
     } else {
-        alertFailure(json["result"]);
+        alertFailure(response_message["result"]);
     }
-    if (response_message["objective_complete"] === true) {
+    if ("objective_complete" in response_message && response_message["objective_complete"] === true) {
         $("#research-objectives").load(location.href + " #research-objectives>*", "");
     }
 }
