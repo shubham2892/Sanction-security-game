@@ -1,10 +1,10 @@
 import json
-from random import random
 
 import requests
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.humanize.templatetags.humanize import apnumber
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max
@@ -13,8 +13,8 @@ from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, FormView
 
-from forms import CreateMessageForm
-from models import *
+from Game.models import Player, Game, Message, PlayerTick, SecurityResource, Tick, Sanction, SANCTION, SECURITY, \
+    Capabilities, Statistics, ResearchResource, RESEARCH_TASK, PASS, RESEARCH_OBJ
 
 ''' The user's homepage which displays user game information '''
 
@@ -119,9 +119,6 @@ class GameView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(GameView, self).get_context_data(**kwargs)
-
-        # Add message form to context
-        context["message"] = CreateMessageForm()
 
         # Get game object that matches URL, else 404
         try:
@@ -456,7 +453,7 @@ def check_tick_complete(request):
         response_data["tick_complete"] = tick.complete
 
         if tick.complete:
-            manager_sanction(tick, request, response_data)
+            manager_sanction(tick)
 
         return HttpResponse(json.dumps(response_data), content_type="application/json")
     else:
@@ -466,208 +463,7 @@ def check_tick_complete(request):
         )
 
 
-@csrf_exempt
-def manager_sanction(tick, request, response_data):
-    # A threshold (the number of ticks), for how long a vulnerability hasn't fixed would be taken into account when considering the probability of manager sanction
-    if tick.game.peer_sanc:
-        THRESHOLD = 6
-    else:
-        THRESHOLD = 4
 
-    num_of_resource = 3
-    print "Trying to manager sanction for tick:{}".format(tick)
-    # individual sanction
-    if tick.game.manager_sanc == 1:
-        players = Player.objects.filter(game=tick.game)
-
-        for player in players:
-
-            print "player %s in manager_sanction function" % (player.user.username)
-            # if status == False, corresponding security task satisfy the condition of being counted in the prob. of manager sanction
-            # blue
-            resource = player.vulnerabilities.security_resources.get(classification=1)
-            if resource.active == True:
-                player.last_tick_blue = tick.number
-
-            # red
-            resource = player.vulnerabilities.security_resources.get(classification=2)
-            if resource.active == True:
-                player.last_tick_red = tick.number
-
-                # yellow
-            resource = player.vulnerabilities.security_resources.get(classification=3)
-            if resource.active == True:
-                player.last_tick_yellow = tick.number
-
-            player.save()
-
-            if not player.manager_sanctioned and not player.sanctioned:
-                t_blue_status = True
-                t_red_status = True
-                t_yellow_status = True
-
-                count = 0
-                # blue
-                resource = player.vulnerabilities.security_resources.get(classification=1)
-                if resource.active == False:
-                    # to record the status of blue security task
-                    t_blue_status = False
-                    if tick.number - player.last_tick_blue >= THRESHOLD:
-                        count = count + 1
-
-                # print resource
-                # print "for blue: last tick is %s, count is %s" %(player.last_tick_blue, count)
-
-                # red
-                resource = player.vulnerabilities.security_resources.get(classification=2)
-                if resource.active == False:
-                    t_red_status = False
-                    if tick.number - player.last_tick_red >= THRESHOLD:
-                        count = count + 1
-
-                # print resource
-                # print "for red: last tick is %s, count is %s" %(player.last_tick_red, count)
-
-                # yellow
-                resource = player.vulnerabilities.security_resources.get(classification=3)
-                if resource.active == False:
-                    t_yellow_status = False
-                    if tick.number - player.last_tick_yellow >= THRESHOLD:
-                        count = count + 1
-
-                # print resource
-                # print "for yellow: last tick is %s, count is %s" %(player.last_tick_yellow, count)
-
-
-                sanction_prob = 1.0 * count / num_of_resource
-                # manager_obs_random = random.random()
-                # print "individual sanction probability is %s" %(sanction_prob)
-                x = random.random()
-                # print "random number is %s" %(x)
-
-                if x < sanction_prob:
-                    print "The manager decided to sanction..."
-                    # sanction the player for "2 * count" number of ticks
-                    num_of_vul = player.number_of_vulnerabilities()
-                    diff = tick.game._ticks - tick.number
-
-                    ManagerSanction.create(player, tick, num_of_vul * 2)
-                    player.blue_status = t_blue_status
-                    player.red_status = t_red_status
-                    player.yellow_status = t_yellow_status
-                    player.counter_sum = 2 * num_of_vul
-                    player.save()
-
-                    message_text = "%s is sanctioned by the lab manager for %s tick(s) at tick" % (
-                        player.user.username, num_of_vul * 2)
-
-                    for i in range(1, num_of_vul * 2 + 1):
-                        if diff - i >= 0:
-                            message_text += " %s" % (diff - i)
-
-                    message = Message(content=message_text, created_by=None, game=tick.game, tick=tick)
-                    message.save()
-
-    # group sanction, fill in later
-    elif tick.game.manager_sanc == 2:
-        players = Player.objects.filter(game=tick.game)
-        is_a_player_sanctioned = False
-        for player in players:
-            print " "
-            print "At tick %s" % (tick.number)
-            print "player %s in manager_sanction function" % (player.user.username)
-            # if status == False, corresponding security task satisfy the condition of being counted in the prob. of manager sanction
-            # blue
-            resource = player.vulnerabilities.security_resources.get(classification=1)
-            if resource.active == True:
-                player.last_tick_blue = tick.number
-
-            # red
-            resource = player.vulnerabilities.security_resources.get(classification=2)
-            if resource.active == True:
-                player.last_tick_red = tick.number
-
-                # yellow
-            resource = player.vulnerabilities.security_resources.get(classification=3)
-            if resource.active == True:
-                player.last_tick_yellow = tick.number
-
-            player.save()
-
-            if not player.manager_sanctioned and not player.sanctioned:
-                t_blue_status = True
-                t_red_status = True
-                t_yellow_status = True
-
-                count = 0
-                # blue
-                resource = player.vulnerabilities.security_resources.get(classification=1)
-                if resource.active == False:
-                    # to record the status of blue security task
-                    t_blue_status = False
-                    if tick.number - player.last_tick_blue >= THRESHOLD:
-                        count = count + 1
-
-                # print resource
-                # print "for blue: last tick is %s, count is %s" %(player.last_tick_blue, count)
-
-                # red
-                resource = player.vulnerabilities.security_resources.get(classification=2)
-                if resource.active == False:
-                    t_red_status = False
-                    if tick.number - player.last_tick_red >= THRESHOLD:
-                        count = count + 1
-
-                # print resource
-                # print "for red: last tick is %s, count is %s" %(player.last_tick_red, count)
-
-                # yellow
-                resource = player.vulnerabilities.security_resources.get(classification=3)
-                if resource.active == False:
-                    t_yellow_status = False
-                    if tick.number - player.last_tick_yellow >= THRESHOLD:
-                        count = count + 1
-
-                # print resource
-                # print "for yellow: last tick is %s, count is %s" %(player.last_tick_yellow, count)
-
-
-                sanction_prob = 1.0 * count / num_of_resource
-                # print "individual sanction probability is %s" %(sanction_prob)
-                x = random.random()
-                # print "random number is %s" %(x)
-
-                if x < sanction_prob:
-                    is_a_player_sanctioned = True
-                    num_of_vul = player.number_of_vulnerabilities()
-                    break
-
-        if is_a_player_sanctioned:
-            for player in players:
-                # sanction the player for "2 * count" number of ticks
-
-                diff = tick.game._ticks - tick.number
-
-                ManagerSanction.create(player, tick, num_of_vul * 2)
-                player.blue_status = t_blue_status
-                player.red_status = t_red_status
-                player.yellow_status = t_yellow_status
-                player.counter_sum = 2 * num_of_vul
-                player.save()
-
-                message_text = "Created Manager Sanction: Player %s is sanctioned by the lab manager for %s tick(s) at tick" % (
-                    apnumber(player.number).capitalize(), num_of_vul * 2)
-
-                for i in range(1, num_of_vul * 2 + 1):
-                    if diff - i >= 0:
-                        message_text += " %s" % (diff - i)
-
-                message = Message(content=message_text, created_by=None, game=tick.game, tick=tick)
-                message.save()
-
-    # no sanction, do nothing
-    elif tick.game.manager_sanc == 0:
-        pass
 
 
 @csrf_exempt

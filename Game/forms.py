@@ -1,8 +1,7 @@
+from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from django import forms
-from models import Player, Message
 
 class RegisterUserForm(UserCreationForm):
     username = forms.EmailField(required=True, help_text='Your email address')
@@ -27,17 +26,5 @@ class RegisterUserForm(UserCreationForm):
 
         return user
 
-
-class CreateMessageForm(forms.ModelForm):
-    content = forms.CharField(max_length=500, label='')
-
-    class Meta:
-        model = Message
-        fields = ['content']
-        widgets = {
-            'content': forms.TextInput(
-                attrs={ 'id': 'message-content', 'required': True, 'placeholder': 'Send a message...' },
-            ),
-        }
 
 

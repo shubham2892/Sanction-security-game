@@ -33,6 +33,7 @@ def resource_complete(player_pk, resource_pk):
             else:
                 response_message[
                     "result"] = "You are not capable of completing this task. Make sure you patch your vulnerabilities."
+                return response_message
 
             objective_completed = True
             objective = research_resource.researchobjective_set.all().first()
@@ -221,6 +222,7 @@ def pass_round(player_pk):
                     # stats.type_of_task = 5
                     vulnerabilities_fixed += "blue"
                     response_message['result'] = "You've fixed {} vulnerability".format(vulnerabilities_fixed)
+                    response_message['resource'] = vulnerabilities_fixed
                 if not player.red_status:
                     response_message["resource"] = "red"
                     player.red_status = True
@@ -240,6 +242,7 @@ def pass_round(player_pk):
                     # stats.type_of_task = 3
                     vulnerabilities_fixed += " red"
                     response_message['result'] = "You've fixed {} vulnerability".format(vulnerabilities_fixed)
+                    response_message['resource'] = vulnerabilities_fixed
                 if not player.yellow_status:
                     response_message["resource"] = "yellow"
                     player.yellow_status = True
@@ -259,6 +262,7 @@ def pass_round(player_pk):
                     # stats.type_of_task = 4
                     vulnerabilities_fixed += " yellow"
                     response_message['result'] = "You've fixed {} vulnerability".format(vulnerabilities_fixed)
+                    response_message['resource'] = vulnerabilities_fixed
                     # stats.save()
                     # print stats
             else:
@@ -315,6 +319,11 @@ def update_player(player):
 def ws_message(message):
     message_text = json.loads(message.content['text'])
     type_of_request = message_text['type']
+    if type_of_request == 'add_player':
+        player_pk = message_text.get("player_pk")
+        print "Player added:{}".format(player_pk)
+        Group(str(player_pk)).add(message.reply_channel)
+
     if type_of_request == 'resource_complete':
         player_pk = message_text.get("player_pk")
         resource_pk = message_text.get("resource_pk")
@@ -347,4 +356,8 @@ def ws_message(message):
 
 # Connected to websocket.disconnect
 def ws_disconnect(message):
+    # message_text = json.loads(message.content['text'])
+    # player_pk = message_text.get("player_pk")
     Group("players").discard(message.reply_channel)
+    # Group(player_pk).add(message.reply_channel)
+

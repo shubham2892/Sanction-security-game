@@ -11,8 +11,11 @@
 
 // Note that the path doesn't matter for routing; any WebSocket
 // connection gets bumped over to WebSocket consumers
-socket = new WebSocket("ws://" + window.location.host + "/chat/");
+socket = new WebSocket("ws://" + window.location.host + "/chat/" + me_player.pk);
 var clicked_research_resource;
+var clicked_security_resource;
+
+
 socket.onmessage = function (message) {
     var data = JSON.parse(message.data);
     console.log(data);
@@ -37,11 +40,24 @@ socket.onmessage = function (message) {
     } else if (data['type'] === 'game_complete') {
 
     } else if (data['type'] === 'tick_complete') {
-        update_ticks(data["new_tick_count"]);
+        update_ticks(data);
+    } else if (data['type'] === 'sanction_status') {
+        player_sanction(data);
+    } else if (data['type'] == 'attack_type_update') {
+        attack_inactivate_resource(data["attack_item"])
+    } else if (data['type'] == 'move_made') {
+        $("#game-number").text("Status:Waiting on others...");
     }
-};
-socket.onopen = function () {
 
+};
+
+
+socket.onopen = function () {
+    var message = {
+        player_pk: me_player.toString(),
+        type: "add_player"
+    };
+    socket.send(JSON.stringify(message));
 };
 // Call onopen directly if socket is already open
 if (socket.readyState == WebSocket.OPEN) socket.onopen();
@@ -63,6 +79,51 @@ if (socket.readyState == WebSocket.OPEN) socket.onopen();
 //         + '<td>' + data.message + ' </td>'
 //     + '</tr>');
 // };
+
+function player_sanction(data) {
+    if (data['sanctioned'] == 'True') {
+        $("#passbtn").show();
+    } else {
+        $("#passbtn").hide();
+    }
+
+    // for (var index =0; index < data['sanction_threshold'].length;index++){
+    //     if (data['sanction_threshold'][index] > 0){
+    //            $("#vulnerability-list").find("#blue p:first").text(data['sanction_threshold'][index]);
+    //     }else{
+    //            $("#vulnerability-list").find("#blue p:first").text("");
+    //     }
+    // }
+}
+
+function attack_inactivate_resource(data) {
+    console.log("inactivating resource");
+    for (var resource = 0; resource < data["immunity"].length; resource++) {
+        if (data['immunity'][resource] == 'blue') {
+            $("#vulnerability-list").find("#blue").removeClass("active").addClass("inactive").addClass("clickable");
+        }
+        if (data['immunity'][resource] == 'yellow') {
+            $("#vulnerability-list").find("#yellow").removeClass("active").addClass("inactive").addClass("clickable");
+        }
+        if (data['immunity'][resource] == 'red') {
+            $("#vulnerability-list").find("#red").removeClass("active").addClass("inactive").addClass("clickable");
+        }
+    }
+
+    for (resource = 0; resource < data["capability"].length; resource++) {
+        if (data['capability'][resource] == 'blue') {
+            $("#capability-list").find("#blue").removeClass("active").addClass("inactive")
+        }
+        if (data['capability'][resource] == 'yellow') {
+            $("#capability-list").find("#yellow").removeClass("active").addClass("inactive")
+        }
+        if (data['capability'][resource] == 'red') {
+            $("#capability-list").find("#red").removeClass("active").addClass("inactive")
+        }
+    }
+
+}
+
 
 function update_player(player_object) {
     var tableObject = document.getElementById(player_object["id"]);
@@ -90,13 +151,36 @@ function update_player(player_object) {
     }
 }
 
-function update_ticks(new_tick_count) {
+function update_ticks(tick_data) {
     // Update html of new rounds
-    if (new_tick_count > 0) {
-        $(".time-remaining").textContent = new_tick_count;
+    $("#game-number").text("Status: Your Move");
+
+    if (tick_data["new_tick_count"] > 0) {
+        $("#time-remaining").text("Remaining Rounds: " + tick_data["new_tick_count"]);
     } else {
-        $(".time-remaining").textContent = "Game over!";
+        $("#time-remaining").text("Game over!");
     }
+
+    if (tick_data["attack"] == 'red') {
+        $("#attack_resource").addClass("red_attack");
+    }
+
+    if (tick_data["attack"] == 'blue') {
+        $("#attack_resource").addClass("blue_attack");
+    }
+
+    if (tick_data["attack"] == 'yellow') {
+        $("#attack_resource").addClass("yellow_attack");
+    }
+
+    if (tick_data["attack"] == 'lab') {
+        $("#attack_resource").addClass("lab_attack");
+    }
+    if (tick_data["attack"] == ''){
+        $("#attack_resource").removeClass("lab_attack").removeClass("yellow_attack").removeClass("red_attack").
+        removeClass("blue_attack");
+    }
+
 }
 
 function update_player_scores(player_score) {
@@ -127,8 +211,7 @@ function alertSuccess(message) {
         message +
         '</div>');
     return false;
-};
-
+}
 function alertFailure(message) {
     $(".response").empty();
     $(".response").append(
@@ -141,8 +224,7 @@ function alertFailure(message) {
         message +
         '</div>');
     return false;
-};
-
+}
 // Function for Attack Threat vertical bar
 function update_attack_probabilities() {
 
@@ -189,9 +271,9 @@ function game_complete() {
 
 }
 
-function tick_complete() {
-    window.location.reload();
-}
+// function tick_complete() {
+//     window.location.reload();
+// }
 
 // Refreshes talk for new messages
 function updateChat() {
@@ -209,7 +291,8 @@ function updatePage() {
     $.ajax({
         url: location.href,
         success: function (json) {
-
+            console.log("html request response");
+            console.log(json);
             // Update left panel
             var gameInfo = $(json).find("#game-info").html();
             $('#game-info').html(gameInfo);
@@ -229,6 +312,7 @@ function updatePage() {
 // activate security resource
 $(document).on('click', '.clickable.inactive', function (event) {
     event.preventDefault();
+    clicked_security_resource = $(this);
     var message = {
         type: 'security_resource_activate',
         player_pk: $("#player").text(),
@@ -241,9 +325,9 @@ $(document).on('click', '.clickable.inactive', function (event) {
 
 function activate_security_resource_reply(response_message) {
     if (response_message["active"] == true) {
-        $(clicked_resource).removeClass("inactive").addClass("active");
+        clicked_security_resource.removeClass("inactive").addClass("active");
         // $("#my-score").load(location.href +" #my-score>*","");
-        $("#my-vulnerabilities").load(location.href + " #my-vulnerabilities>*", "");
+        // $("#my-vulnerabilities").load(location.href + " #my-vulnerabilities>*", "");
         $("#capability-list").load(location.href + " #capability-list>*", "");
         alertSuccess(response_message["result"]);
     } else {
@@ -290,12 +374,11 @@ function sanction_player_reply(response_message) {
     }
 }
 
-
 function complete_research_resource_reply(response_message) {
     if ("resource_complete" in response_message && response_message["resource_complete"] === true) {
         console.log("resource complete.");
         clicked_research_resource.removeClass("incomplete").addClass("complete");
-        $("#my-score").load(location.href +" #my-score>*","");
+        $("#my-score").load(location.href + " #my-score>*", "");
         alertSuccess(response_message["result"]);
     } else {
         alertFailure(response_message["result"]);
@@ -320,23 +403,30 @@ $(document).on('click', '#passbtn', function (event) {
 });
 
 function pass_round_reply(response_message) {
-    if (response_message["resource"] == "blue") {
-        $('#blue').removeClass("inactive").addClass("active");
-        $("#my-vulnerabilities").load(location.href + " #my-vulnerabilities>*", "");
-        $("#capability-list").load(location.href + " #capability-list>*", "");
-        alertSuccess(response_message["result"]);
-    } else if (response_message["resource"] == "red") {
-        $('#red').removeClass("inactive").addClass("active");
-        $("#my-vulnerabilities").load(location.href + " #my-vulnerabilities>*", "");
-        $("#capability-list").load(location.href + " #capability-list>*", "");
-        alertSuccess(response_message["result"]);
-    } else if (response_message["resource"] == "yellow") {
-        $('#yellow').removeClass("inactive").addClass("active");
-        $("#my-vulnerabilities").load(location.href + " #my-vulnerabilities>*", "");
-        $("#capability-list").load(location.href + " #capability-list>*", "");
-        alertSuccess(response_message["result"]);
-    } else if (response_message["resource"] == "null") {
-        alertSuccess(response_message["result"]);
+    if ("resource" in response_message) {
+        if (response_message["resource"].includes("blue")) {
+
+            $("#vulnerability-list").find("#blue").removeClass("inactive").addClass("active").removeClass("clickable");
+            $("#capability-list").find("#blue").removeClass("inactive").addClass("active");
+            $("#passbtn").hide();
+            alertSuccess(response_message["result"]);
+        }
+        if (response_message["resource"].includes("red")) {
+            $("#vulnerability-list").find("#red").removeClass("inactive").addClass("active").removeClass("clickable");
+            $("#capability-list").find("#red").removeClass("inactive").addClass("active");
+            $("#passbtn").hide();
+
+            alertSuccess(response_message["result"]);
+        }
+        if (response_message["resource"].includes("yellow")) {
+            $("#vulnerability-list").find("#yellow").removeClass("inactive").addClass("active").removeClass("clickable");
+            $("#capability-list").find("#yellow").removeClass("inactive").addClass("active");
+            $("#passbtn").hide();
+            alertSuccess(response_message["result"]);
+        }
+        if (response_message["resource"] == "null") {
+            alertSuccess(response_message["result"]);
+        }
     } else {
         alertFailure(response_message["result"]);
     }

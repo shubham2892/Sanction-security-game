@@ -85,22 +85,22 @@ DATABASES = {
     }
 }
 
-# CHANNEL_LAYERS = {
-#     "default": {
-#         "BACKEND": "asgi_redis.RedisChannelLayer",
-#         "CONFIG": {
-#             "hosts": [os.environ.get('REDIS_URL', 'localhost:6379')],
-#         },
-#         "ROUTING": "Game.routing.channel_routing",
-#     },
-# }
-
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "asgiref.inmemory.ChannelLayer",
+        "BACKEND": "asgi_redis.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.environ.get('REDIS_URL', 'localhost:6379')],
+        },
         "ROUTING": "Game.routing.channel_routing",
     },
 }
+
+# CHANNEL_LAYERS = {
+#     "default": {
+#         "BACKEND": "asgiref.inmemory.ChannelLayer",
+#         "ROUTING": "Game.routing.channel_routing",
+#     },
+# }
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/

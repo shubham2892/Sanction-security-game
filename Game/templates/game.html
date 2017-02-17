@@ -3,7 +3,7 @@
 {% load humanize %}
 
 {% block head_css %}
-    <link href="{% static 'css/game.css' %}" rel="stylesheet">
+    <link href="{% static 'css/game.css' %}" rel="stylesheet" xmlns:display="http://www.w3.org/1999/xhtml">
 {% endblock %}
 
 {% block navbar %}
@@ -21,14 +21,11 @@
                 <div class="row">
 
                     <h4 id="game-number">Status:
-                        {% if me.manager_sanctioned and not player.passed %}
-                            Manager Sanctioned
-                        {% elif me.can_move %}
+
+                        {% if me.can_move %}
                             Your Move
-                        {% elif me.sanctioned %}
-                            Peer Sanctioned
                         {% else %}
-                            Moved
+                            Waiting on others...
                         {% endif %}
 
 
@@ -85,6 +82,7 @@
 
     <!-- START Game Information -->
     <div id="game-info" class="col-md-3">
+        <h4><u>Other Players:</u></h4>
         {% for player in players %}
             {% if player.id != me.id %}
 
@@ -207,7 +205,7 @@
                             <!-- START Workshop Objective -->
                             <tr class="resource-list">
                                 <td>
-                                    <h4 class="objective-category">Workshop:</h4>
+                                    <h4 class="objective-category">Workshop(+10):</h4>
                                 </td>
                                 {% for resource in me.workshop.research_resources.all %}
                                     <td>
@@ -229,7 +227,7 @@
                             <!-- START Conference Objective -->
                             <tr class="resource-list">
                                 <td>
-                                    <h4 class="objective-category">Conference:</h4>
+                                    <h4 class="objective-category">Conference(+25):</h4>
                                 </td>
                                 {% for resource in me.conference.research_resources.all %}
                                     <td>
@@ -251,7 +249,7 @@
                             <!-- START Journal Objective -->
                             <tr class="resource-list">
                                 <td>
-                                    <h4 class="objective-category">Journal:</h4>
+                                    <h4 class="objective-category">Journal(+45):</h4>
                                 </td>
                                 {% for resource in me.journal.research_resources.all %}
                                     <td>
@@ -292,20 +290,26 @@
                                     <td>
                                         {% if vulnerability.active %}
                                             <div id="{{ vulnerability.get_classification_display }}"
-                                                 class="resource-container active">
+                                                 class="resource-container active"
+                                            value="{{ vulnerability.pk }}" >
                                         {% else %}
                                             <div id="{{ vulnerability.get_classification_display }}"
                                                  class="clickable resource-container inactive"
                                                  value="{{ vulnerability.pk }}">
                                         {% endif %}
-                                        <span class="centerer"></span><span class='centered'></span>
+{#                                        <p id="{{ vulnerability.get_classification_display }}"></p>#}
+                                        <span class="centerer"></span> <span class='centered'></span>
                                         </div>
                                     </td>
                                 {% endfor %}
 
                                 <td>
-                                    {% if me.manager_sanctioned or me.sanctioned %}
+                                    {% if me.manager_sanctioned %}
                                         <button type="button" id="passbtn" class="btn btn-success">
+                                            Pass
+                                        </button>
+                                    {% else %}
+                                        <button type="button" id="passbtn" class="btn btn-success" style="display:none">
                                             Pass
                                         </button>
                                     {% endif %}
@@ -362,7 +366,7 @@
                     </div>
                 </div>
                 <div class="panel-body attack-active">
-                    <div id="{{ game.attack.get_classification_display }}" class="resource-container complete centered">
+                    <div id="attack_resource" class="resource-container complete centered">
                         <span class="centerer"></span><span class='centered'></span>
                     </div>
                 </div>
@@ -442,7 +446,7 @@
     </div><!-- /.modal -->
 
     <!-- END Game Over Modal -->
-
+    <script>me_player = {{ me.pk }};</script>
     <script src="{% static 'js/game.js' %}"></script>
 
 {% endblock %}

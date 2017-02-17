@@ -281,6 +281,22 @@
     border: 3px dotted red;
 }
 
+.red_attack {
+    background: rgb(255,0,0);
+}
+
+.blue_attack {
+    background: rgb(0,0,255);
+}
+
+.yellow_attack {
+    background: rgb(255,255,0);
+}
+
+.lab_attack {
+    background: black;
+}
+
 .incomplete .centered, .inactive .centered{
     color: black;
 }
