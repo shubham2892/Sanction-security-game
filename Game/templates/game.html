@@ -103,6 +103,10 @@
                                 class="btn btn-sm btn-danger pull-right sanction">
                             Sanction
                         </button>
+                        <button type="button"
+                                class="btn btn-sm btn-danger pull-right sanction">
+                            Kick Out
+                        </button>
                     {% endif %}
 
                 {% endif %}
@@ -291,13 +295,13 @@
                                         {% if vulnerability.active %}
                                             <div id="{{ vulnerability.get_classification_display }}"
                                                  class="resource-container active"
-                                            value="{{ vulnerability.pk }}" >
+                                                 value="{{ vulnerability.pk }}">
                                         {% else %}
                                             <div id="{{ vulnerability.get_classification_display }}"
                                                  class="clickable resource-container inactive"
                                                  value="{{ vulnerability.pk }}">
                                         {% endif %}
-{#                                        <p id="{{ vulnerability.get_classification_display }}"></p>#}
+                                        {#                                        <p id="{{ vulnerability.get_classification_display }}"></p>#}
                                         <span class="centerer"></span> <span class='centered'></span>
                                         </div>
                                     </td>
@@ -309,7 +313,8 @@
                                             Pass
                                         </button>
                                     {% else %}
-                                        <button type="button" id="passbtn" class="btn btn-success" style="display:none">
+                                        <button type="button" id="passbtn" class="btn btn-success"
+                                                style="display:none">
                                             Pass
                                         </button>
                                     {% endif %}
@@ -391,20 +396,7 @@
                     <ul id="talk" class="chat">
                         {% for message in game.message_set.all %}
                             <li class="clearfix">
-                                <div class="chat-body clearfix">
-                                    <div class="header">
-                                        {% if message.created_by == me %}
-                                            <strong class="primary-font">Player {{ message.created_by.number | apnumber | capfirst }}
-                                                (Me)</strong>
-                                        {% elif message.created_by == None %}
-                                        {% else %}
-                                            <strong class="primary-font">Player {{ message.created_by.number | apnumber | capfirst }}</strong>
-                                        {% endif %}
-                                    </div>
-                                    <p>
-                                        {{ message.content }}
-                                    </p>
-                                </div>
+                                    {{ message.content }}
                             </li>
                         {% endfor %}
                     </ul>

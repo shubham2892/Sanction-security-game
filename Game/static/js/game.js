@@ -36,7 +36,7 @@ socket.onmessage = function (message) {
         console.log("In player_update");
         update_player(data)
     } else if (data['type'] === 'update_message_board') {
-
+        update_message_board(data);
     } else if (data['type'] === 'game_complete') {
 
     } else if (data['type'] === 'tick_complete') {
@@ -195,8 +195,10 @@ function update_player_progress() {
 
 }
 
-function update_message_board() {
-
+function update_message_board(data) {
+    var message = data['message'];
+    $("#chat ul").append('<li class="clearfix">' +message+'</li>');
+    scrollChat();
 }
 
 function alertSuccess(message) {
