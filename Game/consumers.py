@@ -4,7 +4,7 @@ from channels import Group
 from django.contrib.humanize.templatetags.humanize import apnumber
 
 from Game.models import Player, PlayerTick, ResearchResource, RESEARCH_TASK, RESEARCH_OBJ, Statistics, SecurityResource, \
-    SECURITY, Capabilities, Tick, Sanction, SANCTION, PASS
+    SECURITY, Capabilities, Tick, Sanction, SANCTION, PASS, Message
 
 
 def resource_complete(player_pk, resource_pk):
@@ -161,7 +161,7 @@ def security_resource_activate(player_pk, security_resource_pk):
         return response_message
 
 
-def player_sanction(sanctioner_pk, sanctionee_pk, tick_pk):
+def player_sanction(sanctioner_pk, sanctionee_pk):
     sanctioner = Player.objects.get(pk=sanctioner_pk)
     response_message = {}
     if sanctioner.can_move:
@@ -180,11 +180,20 @@ def player_sanction(sanctioner_pk, sanctionee_pk, tick_pk):
             player_tick = PlayerTick(player=sanctioner, tick=sanctioner.game.current_tick)
             player_tick.action = SANCTION
             player_tick.save()
-            tick = Tick.objects.get(pk=tick_pk)
+            tick = sanctioner.game.current_tick
             sanctionee = Player.objects.get(pk=sanctionee_pk)
-            sanction = Sanction.create(sanctioner, sanctionee, tick)
-            response_message["sanctioned"] = True
-            response_message['result'] = "You have sanctioned Player " + apnumber(sanctionee.number).capitalize()
+            if not sanctionee.manager_sanctioned:
+                sanction = Sanction.create(sanctioner, sanctionee, tick)
+                response_message["sanctioned"] = True
+                response_message['result'] = "You have sanctioned Player " + apnumber(sanctionee.number).capitalize()
+                content = "{} has sanctioned {} for tick:{}".format(sanctioner.name, sanctionee.name, sanction.tick_number)
+                message = Message(content=content, game=sanctioner.game, tick=sanctioner.game.current_tick, created_by=None)
+                message.save()
+            else:
+                response_message["sanctioned"] = False
+                response_message['result'] = "{} is already manager sanctioned".format(sanctionee.name)
+
+
             return response_message
     else:
         response_message["result"] = "You have already moved this round."
@@ -342,7 +351,7 @@ def ws_message(message):
         sanctioner_pk = message_text.get("sanctioner_pk")
         sanctionee_pk = message_text.get("sanctionee_pk")
         tick_pk = message_text.get("tick_pk")
-        response_message = player_sanction(sanctioner_pk, sanctionee_pk, tick_pk)
+        response_message = player_sanction(sanctioner_pk, sanctionee_pk)
         response_complete = {"type": "player_sanction_response", "response_message": response_message}
         message.reply_channel.send({"text": json.dumps(response_complete)})
 

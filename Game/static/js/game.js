@@ -360,7 +360,6 @@ $(document).on('click', '.sanction', function (event) {
     var message = {
         sanctionee_pk: $(this).attr("sanctionee"),
         sanctioner_pk: $(this).attr("sanctioner"),
-        tick_pk: $("#time-remaining").attr("value"),
         type: "player_sanction"
     };
     socket.send(JSON.stringify(message));

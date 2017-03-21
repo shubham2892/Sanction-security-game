@@ -835,7 +835,7 @@ class Tick(models.Model):
                     sanction_threshold[2] = THRESHOLD - (tick.number - player.last_tick_yellow)
 
                 print "sending sanction notification"
-                player_tick_dictionary = {"type": "sanction_status", "sanctioned": str(player.manager_sanctioned),
+                player_tick_dictionary = {"type": "sanction_status", "sanctioned": str(player.manager_sanctioned or player.sanctioned),
                                           "sanction_threshold": sanction_threshold}
                 print player_tick_dictionary
                 Group(str(player.pk)).send({"text": json.dumps(player_tick_dictionary)})
