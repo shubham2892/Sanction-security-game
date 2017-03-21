@@ -84,6 +84,7 @@ def resource_complete(player_pk, resource_pk):
             response_message['pk'] = research_resource.pk
             response_message['resource_complete'] = research_resource.complete
             response_message['objective_complete'] = objective_completed
+            response_message['score'] = player.score
 
             # TODO Notify other players about updated score and status
             return response_message
@@ -297,9 +298,7 @@ def ws_add(message):
 
 
 def update_player(player):
-    player_update_dict = {}
-    player_update_dict["id"] = player.id
-    player_update_dict["score"] = player.score
+    player_update_dict = {"id": player.id, "score": player.score}
     if player.sanctioned:
         player_update_dict["status"] = "Sanctioned"
     else:
@@ -311,7 +310,7 @@ def update_player(player):
             {"active": vulnerability.active, "classification_display": vulnerability.get_classification_display()})
 
     player_update_dict["type"] = "player_update"
-    print "Sending group chat to all players......."
+
     Group("players").send({"text": json.dumps(player_update_dict)})
 
 

@@ -381,7 +381,7 @@ function complete_research_resource_reply(response_message) {
     if ("resource_complete" in response_message && response_message["resource_complete"] === true) {
         console.log("resource complete.");
         clicked_research_resource.removeClass("incomplete").addClass("complete");
-        $("#my-score").load(location.href + " #my-score>*", "");
+        $("#my-score").text("Score: " + response_message['score']);
         alertSuccess(response_message["result"]);
     } else {
         alertFailure(response_message["result"]);
