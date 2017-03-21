@@ -530,8 +530,7 @@ class AttackResource(models.Model):
                             attack_resource = cls(classification=classification)
                             attack_resource.save()
                             content = "{} Attack occurred at tick:{}".format(
-                                RESOURCE_CLASSIFICATIONS[classification][1],
-                                game.ticks)
+                                RESOURCE_CLASSIFICATIONS[classification - 1][1], game.ticks)
                             message = Message(content=content, game=game, tick=game.current_tick, created_by=None)
                             message.save()
                             break
@@ -799,6 +798,7 @@ class Tick(models.Model):
 
             if tick.attack:
                 attack_classification = tick.attack.get_classification_display()
+                print "attack classification display:{}".format(attack_classification)
                 for player in players:
                     attack_items = {"immunity": [], "capability": []}
                     for immnunity in player.vulnerabilities.security_resources.all():
