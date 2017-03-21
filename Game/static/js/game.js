@@ -339,6 +339,7 @@ function activate_security_resource_reply(response_message) {
 
 // complete research resource
 $(document).on('click', '.clickable.incomplete', function (event) {
+    alertSuccess("Response Recorded");
     var clicked_resource = $(this);
     clicked_research_resource = $(this);
     event.preventDefault();
@@ -346,7 +347,6 @@ $(document).on('click', '.clickable.incomplete', function (event) {
         resource_pk: $(clicked_resource).attr('value'),
         player_pk: $("#player").text(),
         type: 'resource_complete'
-
     };
     socket.send(JSON.stringify(message));
     return false;
@@ -355,6 +355,7 @@ $(document).on('click', '.clickable.incomplete', function (event) {
 
 // sanction other player
 $(document).on('click', '.sanction', function (event) {
+    alertSuccess("Response Recorded");
     event.preventDefault();
     var message = {
         sanctionee_pk: $(this).attr("sanctionee"),
@@ -393,6 +394,7 @@ function complete_research_resource_reply(response_message) {
 
 // when clicking on pass round button
 $(document).on('click', '#passbtn', function (event) {
+    alertSuccess("Response Recorded");
     var clicked_resource = $(this);
     event.preventDefault();
     var message = {
