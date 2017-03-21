@@ -197,7 +197,7 @@ function update_player_progress() {
 
 function update_message_board(data) {
     var message = data['message'];
-    $("#chat ul").append('<li class="clearfix">' +message+'</li>');
+    $("#talk").append('<li class="clearfix">' +message+'</li>');
     scrollChat();
 }
 
