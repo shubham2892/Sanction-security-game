@@ -48,6 +48,12 @@
         </table>
         <!-- END Game Table -->
         <script>
+            $(document).ready(function () {
+                setInterval(function () {
+                    window.location.reload(true);
+                }, 4500);
+            });
+
             $(document).on('click', '#kickout', function (event) {
                 event.preventDefault();
 
