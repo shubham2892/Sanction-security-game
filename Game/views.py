@@ -8,7 +8,7 @@ from django.contrib.humanize.templatetags.humanize import apnumber
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
 from django.db.models import Max
-from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.http import Http404, HttpResponseRedirect, HttpResponse, HttpResponseServerError
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, FormView
@@ -303,6 +303,29 @@ def security_resource_activate(request):
     else:
         return HttpResponse(
             json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
+            content_type="application/json"
+        )
+
+@csrf_exempt
+def remove_player(request):
+    if request.method == 'POST':
+        try:
+            if request.user.is_superuser:
+                # TODO Change this hard coding to the dummy game
+                game = Game.objects.get(id='30')
+                Player.objects.filter(id=request.POST.get("player_id")).update(game=game)
+            else:
+                return HttpResponse(
+                    json.dumps({
+                        "result": False}),
+                    content_type="application/json"
+                )
+        except:
+            return HttpResponseServerError
+
+        return HttpResponse(
+            json.dumps({
+                "result": True}),
             content_type="application/json"
         )
 
