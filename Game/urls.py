@@ -16,5 +16,7 @@ urlpatterns = [
     url(r'^tick/complete/$', login_required(views.check_tick_complete), name='check_tick_complete'),
     url(r'^passround/$', login_required(views.pass_round), name='passround'),
     # url(r'^event-stream/$', MySseEvents.as_view(), name="event-stream"),
+    url(r'^monitor/(?P<game_key>[\w]+)/$', login_required(views.MonitorView.as_view()), name='monitor'),
+
 ]
 

@@ -247,9 +247,14 @@
     width: 50px;
     height: 50px;
     -webkit-border-radius: 10px;
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-size: 2em;
+    font-weight: bold;
+    text-align: center;
+    color: #fff;
     -moz-border-radius: 10px;
     border-radius: 10px;
-    broder: thin dashed black;
+
 }
 
 .resource-container .centered {
@@ -386,6 +391,17 @@ ul.chat {
 }
 
 
+#orangeBox {
+    background: #f90;
+    color: #fff;
+    font-family: 'Helvetica', 'Arial', sans-serif;
+    font-size: 3em;
+    font-weight: bold;
+    text-align: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 5px;
+}
 /*=== END Group Chat Style ===*/
 
 /*========================================*/

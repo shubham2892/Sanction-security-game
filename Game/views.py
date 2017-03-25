@@ -114,6 +114,21 @@ def logout_view(request):
     return redirect('login')
 
 
+class MonitorView(TemplateView):
+    template_name = "monitor.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(MonitorView, self).get_context_data(**kwargs)
+
+        try:
+
+            players = Player.objects.filter(game__game_key=self.kwargs['game_key'])
+        except:
+            raise Http404
+        context['players'] = players
+        return context
+
+
 class GameView(TemplateView):
     template_name = "game.html"
 
@@ -452,8 +467,8 @@ def check_tick_complete(request):
         response_data["game_complete"] = tick.game.complete
         response_data["tick_complete"] = tick.complete
 
-        if tick.complete:
-            manager_sanction(tick)
+        # if tick.complete:
+        #     manager_sanction(tick)
 
         return HttpResponse(json.dumps(response_data), content_type="application/json")
     else:
@@ -461,9 +476,6 @@ def check_tick_complete(request):
             json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
             content_type="application/json"
         )
-
-
-
 
 
 @csrf_exempt
@@ -580,7 +592,6 @@ def pass_round(request):
             content_type="application/json"
         )
 
-
 # @csrf_exempt
 # def event_stream(request):
 #     def eventStream():
@@ -589,5 +600,3 @@ def pass_round(request):
 #     response = HttpResponse(eventStream(), content_type="text/event-stream")
 #     response['Cache-Control'] = 'no-cache'
 #     return response
-
-

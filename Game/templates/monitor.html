@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load staticfiles %}
+
+{% block head_css %}
+<link href="{% static 'css/home.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+  <!-- START Home Header -->
+  <div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-md-8">
+      <h2 id="title">My Games</h2>
+    </div>
+  <hr>
+
+  <!-- START Game Table -->
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Player</th>
+        <th>Tick</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for player in players %}
+        <tr>
+
+
+            <td>
+              <h5>{{ player.name}}</h5>
+            </td>
+
+            <td>
+              <h5>{{ player.remaining_moves }} </h5>
+            </td>
+
+            <td>
+                <h5>Kick Out</h5>
+            </td>
+
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <!-- END Game Table -->
+
+</div>
+
+{% endblock %}
+
+
