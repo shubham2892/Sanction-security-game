@@ -43,9 +43,9 @@ socket.onmessage = function (message) {
         update_ticks(data);
     } else if (data['type'] === 'sanction_status') {
         player_sanction(data);
-    } else if (data['type'] == 'attack_type_update') {
+    } else if (data['type'] === 'attack_type_update') {
         attack_inactivate_resource(data["attack_item"])
-    } else if (data['type'] == 'move_made') {
+    } else if (data['type'] === 'move_made') {
         $("#game-number").text("Status:Waiting on others...");
     }
 
@@ -60,7 +60,7 @@ socket.onopen = function () {
     socket.send(JSON.stringify(message));
 };
 // Call onopen directly if socket is already open
-if (socket.readyState == WebSocket.OPEN) socket.onopen();
+if (socket.readyState === WebSocket.OPEN) socket.onopen();
 
 // $('#chatform').on('submit', function(event) {
 //     var message = {
@@ -81,7 +81,7 @@ if (socket.readyState == WebSocket.OPEN) socket.onopen();
 // };
 
 function player_sanction(data) {
-    if (data['sanctioned'] == 'True') {
+    if (data['sanctioned'] === 'True') {
         $("#passbtn").show();
     } else {
         $("#passbtn").hide();
@@ -97,7 +97,6 @@ function player_sanction(data) {
 }
 
 function attack_inactivate_resource(data) {
-    console.log("inactivating resource");
     for (var resource = 0; resource < data["immunity"].length; resource++) {
         if (data['immunity'][resource] == 'blue') {
             $("#vulnerability-list").find("#blue").removeClass("active").addClass("inactive").addClass("clickable");
@@ -155,30 +154,31 @@ function update_ticks(tick_data) {
     // Update html of new rounds
     $("#game-number").text("Status: Your Move");
 
-    if (tick_data["new_tick_count"] > 0) {
+    if (tick_data["new_tick_count"] >= 0) {
         $("#time-remaining").text("Remaining Rounds: " + tick_data["new_tick_count"]);
     } else {
         $("#time-remaining").text("Game over!");
+        console.log("Drawing the overlay");
+        $('#game-over-modal').modal({backdrop: "static", keyboard: false});
     }
 
-    if (tick_data["attack"] == 'red') {
+    if (tick_data["attack"] === 'red') {
         $("#attack_resource").addClass("red_attack");
     }
 
-    if (tick_data["attack"] == 'blue') {
+    if (tick_data["attack"] === 'blue') {
         $("#attack_resource").addClass("blue_attack");
     }
 
-    if (tick_data["attack"] == 'yellow') {
+    if (tick_data["attack"] === 'yellow') {
         $("#attack_resource").addClass("yellow_attack");
     }
 
-    if (tick_data["attack"] == 'lab') {
+    if (tick_data["attack"] === 'lab') {
         $("#attack_resource").addClass("lab_attack");
     }
-    if (tick_data["attack"] == ''){
-        $("#attack_resource").removeClass("lab_attack").removeClass("yellow_attack").removeClass("red_attack").
-        removeClass("blue_attack");
+    if (tick_data["attack"] === '') {
+        $("#attack_resource").removeClass("lab_attack").removeClass("yellow_attack").removeClass("red_attack").removeClass("blue_attack");
     }
 
 }
@@ -197,7 +197,7 @@ function update_player_progress() {
 
 function update_message_board(data) {
     var message = data['message'];
-    $("#talk").append('<li class="clearfix">' +message+'</li>');
+    $("#talk").append('<li class="clearfix">' + message + '</li>');
     scrollChat();
 }
 
@@ -326,7 +326,7 @@ $(document).on('click', '.clickable.inactive', function (event) {
 
 
 function activate_security_resource_reply(response_message) {
-    if (response_message["active"] == true) {
+    if (response_message["active"] === true) {
         clicked_security_resource.removeClass("inactive").addClass("active");
         // $("#my-score").load(location.href +" #my-score>*","");
         // $("#my-vulnerabilities").load(location.href + " #my-vulnerabilities>*", "");
@@ -427,7 +427,7 @@ function pass_round_reply(response_message) {
             $("#passbtn").hide();
             alertSuccess(response_message["result"]);
         }
-        if (response_message["resource"] == "null") {
+        if (response_message["resource"] === "null") {
             alertSuccess(response_message["result"]);
         }
     } else {

@@ -417,17 +417,9 @@
                     </h3>
                 </div>
                 <div class="modal-body">
-                    <h4>Thank you for your participation!</h5>
+                    <h4>Thank you for your participation!</h4>
                         <hr>
-                        <h4> Scores: </h4>
-                        <ol>
-                            {% for player in players|dictsort:"score" reversed %}
-                                <h4>
-                                    <li> Player {{ player.number|apnumber|capfirst }} {% if player == me %}
-                                        (me) {% endif %}: {{ player.score }}
-                                </h4></li>
-                            {% endfor %}
-                        </ol>
+
                 </div>
                 <div class="modal-footer">
                     <a href="{% url 'home' %}" class="btn btn-info">My

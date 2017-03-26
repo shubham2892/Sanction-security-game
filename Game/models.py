@@ -120,7 +120,7 @@ class Game(models.Model):
 
         # Create the first game tick
         if not self.tick_set.all():
-            Tick.create(game=self)
+            Tick.create_game(game=self)
 
 
 ''' A Player object to hold player state '''
@@ -589,7 +589,6 @@ class Tick(models.Model):
             THRESHOLD = 4
 
         num_of_resource = 3
-        print "Trying to manager sanction for tick:{}".format(self)
         # individual sanction
         if self.game.manager_sanc == 1:
             players = Player.objects.filter(game=self.game)
@@ -784,63 +783,72 @@ class Tick(models.Model):
             pass
 
     @classmethod
-    def create(cls, game):
-        if not game.complete:
-            tick = cls(game=game)
-            if game.tick_set.all():
-                tick.number = game.tick_set.latest('number').number + 1
-            tick.attack = AttackResource.create(game)
-            tick.next_attack_probability = AttackProbability.create()
-            tick.save()
-            # Notifying all the players of tick complete
-            attack_classification = ""
-            players = Player.objects.filter(game=tick.game)
+    def create_game(cls, game):
+        tick = cls(game=game)
+        if game.tick_set.all():
+            tick.number = game.tick_set.latest('number').number + 1
+        tick.attack = AttackResource.create(game)
+        tick.next_attack_probability = AttackProbability.create()
+        tick.save()
 
-            if tick.attack:
-                attack_classification = tick.attack.get_classification_display()
-                print "attack classification display:{}".format(attack_classification)
-                for player in players:
-                    attack_items = {"immunity": [], "capability": []}
-                    for immnunity in player.vulnerabilities.security_resources.all():
-                        if not immnunity.active:
-                            attack_items["immunity"].append(immnunity.get_classification_display())
-                    for capability in player.capabilities.security_resources.all():
-                        if not capability.active:
-                            attack_items["capability"].append(capability.get_classification_display())
-                    attack_dictionary = {"type": "attack_type_update", "attack_item": attack_items}
-                    Group(str(player.pk)).send({"text": json.dumps(attack_dictionary)})
+        # Notifying all the players of tick complete
+        attack_classification = ""
+        players = Player.objects.filter(game=tick.game)
 
-            tick.manager_sanction()
-            tick_object = {"type": "tick_complete", "new_tick_count": game.ticks, "attack": attack_classification}
-            Group("players").send({"text": json.dumps(tick_object)})
-
-            if tick.game.peer_sanc:
-                THRESHOLD = 6
-            else:
-                THRESHOLD = 4
-
-            # For every tick player specific updates
+        if tick.attack:
+            attack_classification = tick.attack.get_classification_display()
             for player in players:
-                sanction_threshold = [0, 0, 0]
-                resource = player.vulnerabilities.security_resources.get(classification=1)
-                if not resource.active:
-                    sanction_threshold[0] = THRESHOLD - (tick.number - player.last_tick_blue)
+                attack_items = {"immunity": [], "capability": []}
+                for immnunity in player.vulnerabilities.security_resources.all():
+                    if not immnunity.active:
+                        attack_items["immunity"].append(immnunity.get_classification_display())
+                for capability in player.capabilities.security_resources.all():
+                    if not capability.active:
+                        attack_items["capability"].append(capability.get_classification_display())
+                attack_dictionary = {"type": "attack_type_update", "attack_item": attack_items}
+                Group(str(player.pk)).send({"text": json.dumps(attack_dictionary)})
 
-                resource = player.vulnerabilities.security_resources.get(classification=2)
-                if not resource.active:
-                    sanction_threshold[1] = THRESHOLD - (tick.number - player.last_tick_red)
+        tick.manager_sanction()
+        tick_object = {"type": "tick_complete", "new_tick_count": game.ticks, "attack": attack_classification}
+        Group("players").send({"text": json.dumps(tick_object)})
 
-                resource = player.vulnerabilities.security_resources.get(classification=3)
-                if not resource.active:
-                    sanction_threshold[2] = THRESHOLD - (tick.number - player.last_tick_yellow)
+        if tick.game.peer_sanc:
+            THRESHOLD = 6
+        else:
+            THRESHOLD = 4
 
-                print "sending sanction notification"
-                player_tick_dictionary = {"type": "sanction_status", "sanctioned": str(player.manager_sanctioned or player.sanctioned),
-                                          "sanction_threshold": sanction_threshold}
-                print player_tick_dictionary
-                Group(str(player.pk)).send({"text": json.dumps(player_tick_dictionary)})
+        # For every tick player specific updates
+        for player in players:
+            sanction_threshold = [0, 0, 0]
+            resource = player.vulnerabilities.security_resources.get(classification=1)
+            if not resource.active:
+                sanction_threshold[0] = THRESHOLD - (tick.number - player.last_tick_blue)
 
-            return tick
+            resource = player.vulnerabilities.security_resources.get(classification=2)
+            if not resource.active:
+                sanction_threshold[1] = THRESHOLD - (tick.number - player.last_tick_red)
+
+            resource = player.vulnerabilities.security_resources.get(classification=3)
+            if not resource.active:
+                sanction_threshold[2] = THRESHOLD - (tick.number - player.last_tick_yellow)
+
+            player_tick_dictionary = {"type": "sanction_status",
+                                      "sanctioned": str(player.manager_sanctioned or player.sanctioned),
+                                      "sanction_threshold": sanction_threshold}
+            Group(str(player.pk)).send({"text": json.dumps(player_tick_dictionary)})
+
+        return tick
+
+    @classmethod
+    def create(cls, game):
+        if game.ticks > 0:
+            return cls.create_game(game)
+        else:
+            # Game Over
+            game.complete = True
+            game.save()
+            tick_object = {"type": "tick_complete", "new_tick_count": -1, "attack": ""}
+            Group("players").send({"text": json.dumps(tick_object)})
 
 
 ''' PLAYER ACTIONS '''
