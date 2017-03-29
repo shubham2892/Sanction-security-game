@@ -511,9 +511,10 @@ class AttackResource(models.Model):
 
                     # If attack occurs, perform the attack.
                     for player in game.player_set.all():
-                        for resource in player.vulnerabilities.security_resources.all():
-                            if not cls.deactivate_security(player, resource.classification):
-                                cls.incomplete_research(player, resource.classification)
+                        if not player.sanctioned or player.manager_sanctioned:
+                            for resource in player.vulnerabilities.security_resources.all():
+                                if not cls.deactivate_security(player, resource.classification):
+                                    cls.incomplete_research(player, resource.classification)
 
                 # Else, a regular attack occurs, and now we determine which color
                 # Each color has a probabillity of occurring that was established the previous round
@@ -537,8 +538,9 @@ class AttackResource(models.Model):
 
                     # Once the color of the attack is determined, perform the attack on the player
                     for player in game.player_set.all():
-                        if not cls.deactivate_security(player, attack_resource.classification):
-                            cls.incomplete_research(player, attack_resource.classification)
+                        if not player.sanctioned or player.manager_sanctioned:
+                            if not cls.deactivate_security(player, attack_resource.classification):
+                                cls.incomplete_research(player, attack_resource.classification)
 
                 return attack_resource
 
@@ -599,17 +601,17 @@ class Tick(models.Model):
                 # if status == False, corresponding security task satisfy the condition of being counted in the prob. of manager sanction
                 # blue
                 resource = player.vulnerabilities.security_resources.get(classification=1)
-                if resource.active == True:
+                if resource.active:
                     player.last_tick_blue = self.number
 
                 # red
                 resource = player.vulnerabilities.security_resources.get(classification=2)
-                if resource.active == True:
+                if resource.active:
                     player.last_tick_red = self.number
 
                     # yellow
                 resource = player.vulnerabilities.security_resources.get(classification=3)
-                if resource.active == True:
+                if resource.active:
                     player.last_tick_yellow = self.number
 
                 player.save()
@@ -622,7 +624,7 @@ class Tick(models.Model):
                     count = 0
                     # blue
                     resource = player.vulnerabilities.security_resources.get(classification=1)
-                    if resource.active == False:
+                    if not resource.active:
                         # to record the status of blue security task
                         t_blue_status = False
                         if self.number - player.last_tick_blue >= THRESHOLD:
@@ -633,7 +635,7 @@ class Tick(models.Model):
 
                     # red
                     resource = player.vulnerabilities.security_resources.get(classification=2)
-                    if resource.active == False:
+                    if not resource.active:
                         t_red_status = False
                         if self.number - player.last_tick_red >= THRESHOLD:
                             count = count + 1
