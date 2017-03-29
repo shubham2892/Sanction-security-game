@@ -154,8 +154,8 @@ class GameView(TemplateView):
         context["players"] = players
 
         # Get current total score for bar normalization
-        highscore = Player.objects.all().aggregate(Max('score')).get("score__max")
-        context['highscore'] = highscore
+        # highscore = Player.objects.all().aggregate(Max('score')).get("score__max")
+        # context['highscore'] = highscore
 
         return context
 

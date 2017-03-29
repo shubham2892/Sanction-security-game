@@ -103,10 +103,7 @@
                                 class="btn btn-sm btn-danger pull-right sanction">
                             Sanction
                         </button>
-                        <button type="button"
-                                class="btn btn-sm btn-danger pull-right sanction">
-                            Kick Out
-                        </button>
+
                     {% endif %}
 
                 {% endif %}
@@ -119,29 +116,30 @@
                         <td>
                             Score: {{ player.score }}
                         </td>
-                        <td colspan="3">
-                            <div class="progress">
-                                <p style="display:none">{% widthratio player.score highscore 100 as norm_score %}</p>
-                                {% if norm_score|add:"0" <= 20 %}
-                                    <div class="progress-bar progress-bar-danger" role="progressbar"
-                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"
-                                         style="width: {{ norm_score }}%;">
-                                        <span class="sr-only">{{ norm_score }}% Complete</span>
-                                    </div>
-                                {% elif norm_score|add:"0" <= 80 %}
-                                    <div class="progress-bar progress-bar-warning" role="progressbar"
-                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"
-                                         style="width: {{ norm_score }}%;">
-                                        <span class="sr-only">{{ norm_score }}% Complete</span>
-                                    </div>
-                                {% else %}
-                                    <div class="progress-bar progress-bar-success" role="progressbar"
-                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"
-                                         style="width: {{ norm_score }}%;">
-                                    <span class="sr-only">{{ norm_score }}% Complete</span>
-                                {% endif %}
-                                </div>
-                        </td>
+{#                        <td colspan="3">#}
+{#                            <div class="progress">#}
+{#                                <p style="display:none">{% widthratio player.score highscore 100 as norm_score %}</p>#}
+{#                                {% if norm_score|add:"0" <= 20 %}#}
+{#                                    <div class="progress-bar progress-bar-danger" role="progressbar"#}
+{#                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"#}
+{#                                         style="width: {{ norm_score }}%;">#}
+{#                                        <span class="sr-only">{{ norm_score }}% Complete</span>#}
+{#                                    </div>#}
+{#                                {% elif norm_score|add:"0" <= 80 %}#}
+{#                                    <div class="progress-bar progress-bar-warning" role="progressbar"#}
+{#                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"#}
+{#                                         style="width: {{ norm_score }}%;">#}
+{#                                        <span class="sr-only">{{ norm_score }}% Complete</span>#}
+{#                                    </div>#}
+{#                                {% else %}#}
+{#                                    <div class="progress-bar progress-bar-success" role="progressbar"#}
+{#                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"#}
+{#                                         style="width: {{ norm_score }}%;">#}
+{#                                    <span class="sr-only">{{ norm_score }}% Complete</span>#}
+{#                                    </div>#}
+{#                                {% endif %}#}
+{#                            </div>#}
+{#                        </td>#}
                     </tr>
 
                     <tr>
@@ -396,7 +394,7 @@
                     <ul id="talk" class="chat">
                         {% for message in game.message_set.all %}
                             <li class="clearfix">
-                                    {{ message.content }}
+                                {{ message.content }}
                             </li>
                         {% endfor %}
                     </ul>
@@ -418,7 +416,7 @@
                 </div>
                 <div class="modal-body">
                     <h4>Thank you for your participation!</h4>
-                        <hr>
+                    <hr>
 
                 </div>
                 <div class="modal-footer">
