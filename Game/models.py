@@ -511,7 +511,7 @@ class AttackResource(models.Model):
 
                     # If attack occurs, perform the attack.
                     for player in game.player_set.all():
-                        if not player.sanctioned or not player.manager_sanctioned:
+                        if not player.sanctioned and not player.manager_sanctioned:
                             for resource in player.vulnerabilities.security_resources.all():
                                 if not cls.deactivate_security(player, resource.classification):
                                     cls.incomplete_research(player, resource.classification)
@@ -538,7 +538,7 @@ class AttackResource(models.Model):
 
                     # Once the color of the attack is determined, perform the attack on the player
                     for player in game.player_set.all():
-                        if not player.sanctioned or not player.manager_sanctioned:
+                        if not player.sanctioned and not player.manager_sanctioned:
                             if not cls.deactivate_security(player, attack_resource.classification):
                                 cls.incomplete_research(player, attack_resource.classification)
 
