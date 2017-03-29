@@ -313,6 +313,7 @@ function updatePage() {
 
 // activate security resource
 $(document).on('click', '.clickable.inactive', function (event) {
+    alertSuccess("Response Recorded");
     event.preventDefault();
     clicked_security_resource = $(this);
     var message = {
