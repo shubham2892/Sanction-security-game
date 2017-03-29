@@ -505,7 +505,7 @@ class AttackResource(models.Model):
                 if random.randint(0, 100) < prob_LAB_attack:
                     attack_resource = cls(classification=LAB)
                     attack_resource.save()
-                    content = "Lab Attack occurred at tick:{}".format(game.ticks)
+                    content = "Lab attack occurred at tick:{}".format(game.ticks)
                     message = Message(content=content, game=game, tick=game.current_tick, created_by=None)
                     message.save()
 
@@ -530,7 +530,7 @@ class AttackResource(models.Model):
                         if lo <= rand < hi:
                             attack_resource = cls(classification=classification)
                             attack_resource.save()
-                            content = "{} Attack occurred at tick:{}".format(
+                            content = "{} attack occurred at tick:{}".format(
                                 RESOURCE_CLASSIFICATIONS[classification - 1][1], game.ticks)
                             message = Message(content=content, game=game, tick=game.current_tick, created_by=None)
                             message.save()
@@ -584,7 +584,8 @@ class Tick(models.Model):
         return u'Tick %s of %s' % (self.number, self.game)
 
     def manager_sanction(self):
-        # A threshold (the number of ticks), for how long a vulnerability hasn't fixed would be taken into account when considering the probability of manager sanction
+        # A threshold (the number of ticks), for how long a vulnerability hasn't fixed would be taken into account
+        # when considering the probability of manager sanction
         if self.game.peer_sanc:
             THRESHOLD = 6
         else:

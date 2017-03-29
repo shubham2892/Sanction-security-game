@@ -8,7 +8,7 @@ from Game.models import Player, PlayerTick, ResearchResource, RESEARCH_TASK, RES
 
 
 def resource_complete(player_pk, resource_pk):
-    player = Player.objects.get(id=player_pk)
+    player = Player.objects.select_related('game').get(id=player_pk)
     player_tick = PlayerTick(player=player, tick=player.game.current_tick)
     response_message = {}
     if player.can_move:
@@ -38,7 +38,7 @@ def resource_complete(player_pk, resource_pk):
             objective_completed = True
             objective = research_resource.researchobjective_set.all().first()
             for resource in objective.research_resources.all():
-                if resource.complete == False:
+                if not resource.complete:
                     objective_completed = False
 
             response_message['result'] = str(research_resource) + ' Completed!'
