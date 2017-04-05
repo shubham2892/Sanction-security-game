@@ -127,7 +127,7 @@ function attack_inactivate_resource(data) {
 function update_player(player_object) {
     var tableObject = document.getElementById(player_object["id"]);
     if (tableObject !== null) {
-        tableObject.rows[0].cells[1].textContent = "Money Earned: $" + player_object["score"];
+        tableObject.rows[0].cells[1].textContent = "$" + player_object["score"];
         tableObject.rows[1].cells[1].textContent = player_object["status"];
         if (player_object["vulnerabilities"][0].active) {
             tableObject.rows[2].cells[1].children[0].className = "resource-container active"
