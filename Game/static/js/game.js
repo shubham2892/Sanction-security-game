@@ -128,7 +128,7 @@ function update_player(player_object) {
     var tableObject = document.getElementById(player_object["id"]);
     if (tableObject != null) {
         console.log("Updating scores..");
-        tableObject.rows[0].cells[0].textContent = "Score: " + player_object["score"];
+        tableObject.rows[0].cells[0].textContent = "Money Earned: $" + player_object["score"];
         tableObject.rows[1].cells[1].textContent = player_object["status"];
         if (player_object["vulnerabilities"][0].active) {
             tableObject.rows[2].cells[1].children[0].className = "resource-container active"
@@ -329,8 +329,6 @@ $(document).on('click', '.clickable.inactive', function (event) {
 function activate_security_resource_reply(response_message) {
     if (response_message["active"] === true) {
         clicked_security_resource.removeClass("inactive").addClass("active");
-        // $("#my-score").load(location.href +" #my-score>*","");
-        // $("#my-vulnerabilities").load(location.href + " #my-vulnerabilities>*", "");
         $("#capability-list").load(location.href + " #capability-list>*", "");
         alertSuccess(response_message["result"]);
     } else {
@@ -370,7 +368,6 @@ $(document).on('click', '.sanction', function (event) {
 
 function sanction_player_reply(response_message) {
     if ("sanctioned" in response_message && response_message["sanctioned"]) {
-        // $("#my-score").load(location.href +" #my-score>*","");
         alertSuccess(response_message["result"]);
     } else {
         alertFailure(response_message["result"]);
@@ -381,7 +378,7 @@ function complete_research_resource_reply(response_message) {
     if ("resource_complete" in response_message && response_message["resource_complete"] === true) {
         console.log("resource complete.");
         clicked_research_resource.removeClass("incomplete").addClass("complete");
-        $("#my-score").text("Score: " + response_message['score']);
+        $("#my-score").text("Money Earned: $" + response_message['score']);
         alertSuccess(response_message["result"]);
     } else {
         alertFailure(response_message["result"]);

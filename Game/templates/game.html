@@ -13,7 +13,7 @@
                 <div class="row">
 
                     <h4>
-                        <div id="my-score">Score: {{ me.score }}</div>
+                        <div id="my-score">Money Earned: ${{ me.score }}</div>
                     </h4>
 
                 </div>
@@ -82,7 +82,7 @@
 
     <!-- START Game Information -->
     <div id="game-info" class="col-md-3">
-        <h4><u>Other Players:</u></h4>
+        <h4><u>Colleagues:</u></h4>
         {% for player in players %}
             {% if player.id != me.id %}
 
@@ -95,9 +95,9 @@
             <div>
                 {% if player == me %}
                     <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst }}
-                    <strong>(Me)</strong>
+                    <strong>(My Workstation)</strong>
                 {% else %}
-                    <span class="glyphicon glyphicon-user"></span>&nbsp;Player {{ player.number|apnumber|capfirst }}
+                    <span class="glyphicon glyphicon-user"></span>&nbsp;{{ player.user.name }}
                     {% if game.peer_sanc == True %}
                         <button type="button" sanctionee="{{ player.pk }}" sanctioner="{{ me.pk }}"
                                 class="btn btn-sm btn-danger pull-right sanction">
@@ -199,7 +199,7 @@
 
                     <!-- START Resource Objectives -->
                     <div>
-                        <h4><u>Research Objectives</u>:</h4>
+                        <h4><u>Projects</u>:</h4>
 
                         <table class="category-list">
                             <tbody id="research-objectives">
@@ -365,7 +365,7 @@
             <div id="attack" value="{{ game.attack.pk }}" class="panel panel-primary">
                 <div class="panel-heading attack-heading">
                     <div>
-                        <span class="glyphicon glyphicon-screenshot"></span>&nbsp; Attack
+                        <span class="glyphicon glyphicon-screenshot"></span>&nbsp; Virus Attack
                     </div>
                 </div>
                 <div class="panel-body attack-active">
