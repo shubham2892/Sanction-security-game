@@ -127,8 +127,7 @@ function attack_inactivate_resource(data) {
 function update_player(player_object) {
     var tableObject = document.getElementById(player_object["id"]);
     if (tableObject !== null) {
-        console.log("Updating scores..");
-        tableObject.rows[0].cells[0].textContent = "$" + player_object["score"];
+        tableObject.rows[0].cells[0].textContent = "Money Earned: $" + player_object["score"];
         tableObject.rows[1].cells[1].textContent = player_object["status"];
         if (player_object["vulnerabilities"][0].active) {
             tableObject.rows[2].cells[1].children[0].className = "resource-container active"
@@ -378,7 +377,7 @@ function complete_research_resource_reply(response_message) {
     if ("resource_complete" in response_message && response_message["resource_complete"] === true) {
         console.log("resource complete.");
         clicked_research_resource.removeClass("incomplete").addClass("complete");
-        $("#my-score").text("Money Earned: <b>$" + response_message['score'] + "</b>");
+        $("#my-score").text("$" + response_message['score']);
         alertSuccess(response_message["result"]);
     } else {
         alertFailure(response_message["result"]);
