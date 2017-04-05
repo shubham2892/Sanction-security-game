@@ -13,7 +13,8 @@
                 <div class="row">
 
                     <h4>
-                        <div id="my-score">Money Earned: <b>${{ me.score }}</b></div>
+                        Money Earned:
+                        <span id="my-score"> <b>${{ me.score }}</b></span>
                     </h4>
 
                 </div>
@@ -113,8 +114,8 @@
                 <table id= {{ player.id }}>
                     <tr>
 
-                        <td>
-                            Money Earned: {{ player.score }}
+                        <td class="title">
+                            Money Earned: ${{ player.score }}
                         </td>
 {#                        <td colspan="3">#}
 {#                            <div class="progress">#}
@@ -207,7 +208,7 @@
                             <!-- START Workshop Objective -->
                             <tr class="resource-list">
                                 <td>
-                                    <h4 class="objective-category">Workshop (+10):</h4>
+                                    <h4 class="objective-category">Workshop ($10):</h4>
                                 </td>
                                 {% for resource in me.workshop.research_resources.all %}
                                     <td>
@@ -229,7 +230,7 @@
                             <!-- START Conference Objective -->
                             <tr class="resource-list">
                                 <td>
-                                    <h4 class="objective-category">Conference (+25):</h4>
+                                    <h4 class="objective-category">Conference ($25):</h4>
                                 </td>
                                 {% for resource in me.conference.research_resources.all %}
                                     <td>
@@ -251,7 +252,7 @@
                             <!-- START Journal Objective -->
                             <tr class="resource-list">
                                 <td>
-                                    <h4 class="objective-category">Journal (+45):</h4>
+                                    <h4 class="objective-category">Journal ($45):</h4>
                                 </td>
                                 {% for resource in me.journal.research_resources.all %}
                                     <td>
