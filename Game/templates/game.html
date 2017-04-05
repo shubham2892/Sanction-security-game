@@ -14,7 +14,9 @@
 
                     <h4>
                         Money Earned:
-                        <span id="my-score"> <b>${{ me.score }}</b></span>
+                        <b>
+                            <span id="my-score"> ${{ me.score }}</span>
+                        </b>
                     </h4>
 
                 </div>
@@ -115,32 +117,33 @@
                     <tr>
 
                         <td class="title">
-                            Money Earned: ${{ player.score }}
+                            Money Earned:
                         </td>
-{#                        <td colspan="3">#}
-{#                            <div class="progress">#}
-{#                                <p style="display:none">{% widthratio player.score highscore 100 as norm_score %}</p>#}
-{#                                {% if norm_score|add:"0" <= 20 %}#}
-{#                                    <div class="progress-bar progress-bar-danger" role="progressbar"#}
-{#                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"#}
-{#                                         style="width: {{ norm_score }}%;">#}
-{#                                        <span class="sr-only">{{ norm_score }}% Complete</span>#}
-{#                                    </div>#}
-{#                                {% elif norm_score|add:"0" <= 80 %}#}
-{#                                    <div class="progress-bar progress-bar-warning" role="progressbar"#}
-{#                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"#}
-{#                                         style="width: {{ norm_score }}%;">#}
-{#                                        <span class="sr-only">{{ norm_score }}% Complete</span>#}
-{#                                    </div>#}
-{#                                {% else %}#}
-{#                                    <div class="progress-bar progress-bar-success" role="progressbar"#}
-{#                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"#}
-{#                                         style="width: {{ norm_score }}%;">#}
-{#                                    <span class="sr-only">{{ norm_score }}% Complete</span>#}
-{#                                    </div>#}
-{#                                {% endif %}#}
-{#                            </div>#}
-{#                        </td>#}
+                        <td> ${{ player.score }}</td>
+                        {#                        <td colspan="3">#}
+                        {#                            <div class="progress">#}
+                        {#                                <p style="display:none">{% widthratio player.score highscore 100 as norm_score %}</p>#}
+                        {#                                {% if norm_score|add:"0" <= 20 %}#}
+                        {#                                    <div class="progress-bar progress-bar-danger" role="progressbar"#}
+                        {#                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"#}
+                        {#                                         style="width: {{ norm_score }}%;">#}
+                        {#                                        <span class="sr-only">{{ norm_score }}% Complete</span>#}
+                        {#                                    </div>#}
+                        {#                                {% elif norm_score|add:"0" <= 80 %}#}
+                        {#                                    <div class="progress-bar progress-bar-warning" role="progressbar"#}
+                        {#                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"#}
+                        {#                                         style="width: {{ norm_score }}%;">#}
+                        {#                                        <span class="sr-only">{{ norm_score }}% Complete</span>#}
+                        {#                                    </div>#}
+                        {#                                {% else %}#}
+                        {#                                    <div class="progress-bar progress-bar-success" role="progressbar"#}
+                        {#                                         aria-valuenow="{{ norm_score }}" aria-valuemin="0" aria-valuemax="100"#}
+                        {#                                         style="width: {{ norm_score }}%;">#}
+                        {#                                    <span class="sr-only">{{ norm_score }}% Complete</span>#}
+                        {#                                    </div>#}
+                        {#                                {% endif %}#}
+                        {#                            </div>#}
+                        {#                        </td>#}
                     </tr>
 
                     <tr>
