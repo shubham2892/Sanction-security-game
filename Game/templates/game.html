@@ -171,6 +171,15 @@
                             {% else %}
                                 <div id="{{ vulnerability.get_classification_display }}"
                                      class="resource-container inactive">
+                                {% if vulnerability.classification == 1 %}
+                                    {{ player.deadline_sanction_blue }}
+                                {% elif vulnerability.classification == 2 %}
+                                    {{ player.deadline_sanction_red }}
+                                {% elif vulnerability.classification == 3 %}
+                                    {{ player.deadline_sanction_yellow }}
+                                {% endif %}
+
+
                             {% endif %}
                             <span class="centerer"></span><span class='centered'></span>
                             </div>

@@ -87,13 +87,18 @@ function player_sanction(data) {
         $("#passbtn").hide();
     }
 
-    // for (var index =0; index < data['sanction_threshold'].length;index++){
-    //     if (data['sanction_threshold'][index] > 0){
-    //            $("#vulnerability-list").find("#blue p:first").text(data['sanction_threshold'][index]);
-    //     }else{
-    //            $("#vulnerability-list").find("#blue p:first").text("");
-    //     }
-    // }
+    for (var index = 0; index < data['sanction_threshold'].length; index++) {
+        if (data['immunity_ids'][index] !== -1) {
+            var querySelectorquery = 'value["' + data['immunity_ids'][index] + '"]';
+            if (data['sanction_threshold'][index] < 0) {
+                document.querySelectorAll(querySelectorquery)[0].textContent = data['sanction_threshold'][index];
+            } else {
+                document.querySelectorAll(querySelectorquery)[0].textContent = 'X';
+
+            }
+
+        }
+    }
 }
 
 function attack_inactivate_resource(data) {

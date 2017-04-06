@@ -207,6 +207,27 @@ class Player(models.Model):
 
         return objective
 
+    @property
+    def deadline_sanction_blue(self):
+        if self.game.peer_sanc:
+            return 4 - (self.game.current_tick - self.last_tick_blue)
+        else:
+            return 6 - (self.game.current_tick - self.last_tick_blue)
+
+    @property
+    def deadline_sanction_red(self):
+        if self.game.peer_sanc:
+            return 4 - (self.game.current_tick - self.last_tick_red)
+        else:
+            return 6 - (self.game.current_tick - self.last_tick_red)
+
+    @property
+    def deadline_sanction_yellow(self):
+        if self.game.peer_sanc:
+            return 4 - (self.game.current_tick - self.last_tick_yellow)
+        else:
+            return 6 - (self.game.current_tick - self.last_tick_yellow)
+
     # Returns true if a player can make a move at a given instance;
     @property
     def can_move(self):
@@ -646,7 +667,7 @@ class Tick(models.Model):
 
                     # yellow
                     resource = player.vulnerabilities.security_resources.get(classification=3)
-                    if resource.active == False:
+                    if not resource.active:
                         t_yellow_status = False
                         if self.number - player.last_tick_yellow >= THRESHOLD:
                             count = count + 1
@@ -815,29 +836,31 @@ class Tick(models.Model):
         tick_object = {"type": "tick_complete", "new_tick_count": game.ticks, "attack": attack_classification}
         Group("players").send({"text": json.dumps(tick_object)})
 
-        if tick.game.peer_sanc:
-            THRESHOLD = 6
-        else:
-            THRESHOLD = 4
 
         # For every tick player specific updates
         for player in players:
             sanction_threshold = [0, 0, 0]
-            resource = player.vulnerabilities.security_resources.get(classification=1)
+            immunity_ids  = [-1, -1, -1]
+            resource = player.vulnerabilities.security_resources.get(classification=BLUE)
             if not resource.active:
-                sanction_threshold[0] = THRESHOLD - (tick.number - player.last_tick_blue)
+                sanction_threshold[0] = player.deadline_sanction_blue
+                immunity_ids[0] = resource.pk
 
-            resource = player.vulnerabilities.security_resources.get(classification=2)
+            resource = player.vulnerabilities.security_resources.get(classification=RED)
             if not resource.active:
-                sanction_threshold[1] = THRESHOLD - (tick.number - player.last_tick_red)
+                sanction_threshold[1] = player.deadline_sanction_red
+                immunity_ids[1] = resource.pk
 
-            resource = player.vulnerabilities.security_resources.get(classification=3)
+            resource = player.vulnerabilities.security_resources.get(classification=YELLOW)
             if not resource.active:
-                sanction_threshold[2] = THRESHOLD - (tick.number - player.last_tick_yellow)
+                sanction_threshold[2] = player.deadline_sanction_yellow
+                immunity_ids[2] = resource.pk
 
             player_tick_dictionary = {"type": "sanction_status",
                                       "sanctioned": str(player.manager_sanctioned or player.sanctioned),
-                                      "sanction_threshold": sanction_threshold}
+                                      "sanction_threshold": sanction_threshold,
+                                      "immunity_ids": immunity_ids}
+
             Group(str(player.pk)).send({"text": json.dumps(player_tick_dictionary)})
 
         return tick
