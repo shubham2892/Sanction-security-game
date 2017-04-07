@@ -120,7 +120,7 @@ class Game(models.Model):
 
         # Create the first game tick
         if not self.tick_set.all():
-            Tick.create_game(game=self)
+            Tick.create_game_tick(game=self)
 
 
 ''' A Player object to hold player state '''
@@ -807,7 +807,7 @@ class Tick(models.Model):
             pass
 
     @classmethod
-    def create_game(cls, game):
+    def create_game_tick(cls, game):
         tick = cls(game=game)
         if game.tick_set.all():
             tick.number = game.tick_set.latest('number').number + 1
@@ -838,6 +838,7 @@ class Tick(models.Model):
 
 
         # For every tick player specific updates
+        player_tick_dictionary_list = []
         for player in players:
             sanction_threshold = [0, 0, 0]
             immunity_ids  = [-1, -1, -1]
@@ -856,19 +857,20 @@ class Tick(models.Model):
                 sanction_threshold[2] = player.deadline_sanction_yellow
                 immunity_ids[2] = resource.pk
 
-            player_tick_dictionary = {"type": "sanction_status",
-                                      "sanctioned": str(player.manager_sanctioned or player.sanctioned),
+            player_tick_dictionary = {"sanctioned": str(player.manager_sanctioned or player.sanctioned),
                                       "sanction_threshold": sanction_threshold,
-                                      "immunity_ids": immunity_ids}
+                                      "immunity_ids": immunity_ids, "player_id":player.pk}
+            player_tick_dictionary_list.append(player_tick_dictionary)
 
-            Group(str(player.pk)).send({"text": json.dumps(player_tick_dictionary)})
+        player_tick_dictionarys = {"type": "sanction_status","sanction_dict":player_tick_dictionary_list}
+        Group("players").send({"text": json.dumps(player_tick_dictionarys)})
 
         return tick
 
     @classmethod
     def create(cls, game):
         if game.ticks > 0:
-            return cls.create_game(game)
+            return cls.create_game_tick(game)
         else:
             # Game Over
             game.complete = True

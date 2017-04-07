@@ -81,22 +81,28 @@ if (socket.readyState === WebSocket.OPEN) socket.onopen();
 // };
 
 function player_sanction(data) {
-    if (data['sanctioned'] === 'True') {
-        $("#passbtn").show();
-    } else {
-        $("#passbtn").hide();
-    }
+    console.log("Player Sanction");
 
-    for (var index = 0; index < data['sanction_threshold'].length; index++) {
-        if (data['immunity_ids'][index] !== -1) {
-            var querySelectorquery = 'value["' + data['immunity_ids'][index] + '"]';
-            if (data['sanction_threshold'][index] < 0) {
-                document.querySelectorAll(querySelectorquery)[0].textContent = data['sanction_threshold'][index];
+    for (var indexOut = 0; indexOut < data['sanction_dict'].length; indexOut++) {
+        if (data['player_id'] === me_player.pk) {
+            if (data['sanctioned'] === 'True') {
+                $("#passbtn").show();
             } else {
-                document.querySelectorAll(querySelectorquery)[0].textContent = 'X';
-
+                $("#passbtn").hide();
             }
 
+            for (var index = 0; index < data['sanction_threshold'].length; index++) {
+                if (data['immunity_ids'][index] !== -1) {
+                    var querySelectorquery = 'value["' + data['immunity_ids'][index] + '"]';
+                    if (data['sanction_threshold'][index] < 0) {
+                        document.querySelectorAll(querySelectorquery)[0].textContent = data['sanction_threshold'][index];
+                    } else {
+                        document.querySelectorAll(querySelectorquery)[0].textContent = 'X';
+
+                    }
+
+                }
+            }
         }
     }
 }
