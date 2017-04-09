@@ -81,23 +81,24 @@ if (socket.readyState === WebSocket.OPEN) socket.onopen();
 // };
 
 function player_sanction(data) {
-    console.log("Player Sanction");
 
     for (var indexOut = 0; indexOut < data['sanction_dict'].length; indexOut++) {
-        if (data['player_id'] === me_player.pk) {
+        if (data['sanction_dict'][indexOut]['player_id'] === me_player) {
+            console.log("Player Id:--" + data['sanction_dict'][indexOut]['player_id']);
+            console.log("adas" + me_player);
             if (data['sanctioned'] === 'True') {
                 $("#passbtn").show();
             } else {
                 $("#passbtn").hide();
             }
 
-            for (var index = 0; index < data['sanction_threshold'].length; index++) {
-                if (data['immunity_ids'][index] !== -1) {
-                    var querySelectorquery = 'value["' + data['immunity_ids'][index] + '"]';
-                    if (data['sanction_threshold'][index] < 0) {
-                        document.querySelectorAll(querySelectorquery)[0].textContent = data['sanction_threshold'][index];
+            for (var index = 0; index < data['sanction_dict'][indexOut]['sanction_threshold'].length; index++) {
+                if (data['sanction_dict'][indexOut]['immunity_ids'][index] !== -1) {
+                    var querySelectorquery = 'div[value="' + data['sanction_dict'][indexOut]['immunity_ids'][index] + '"]';
+                    if (data['sanction_dict'][indexOut]['sanction_threshold'][index] >= 0) {
+                        document.querySelector(querySelectorquery).textContent = data['sanction_dict'][indexOut]['sanction_threshold'][index];
                     } else {
-                        document.querySelectorAll(querySelectorquery)[0].textContent = 'X';
+                        document.querySelector(querySelectorquery).textContent = 'X';
 
                     }
 

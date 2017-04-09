@@ -210,23 +210,23 @@ class Player(models.Model):
     @property
     def deadline_sanction_blue(self):
         if self.game.peer_sanc:
-            return 4 - (self.game.current_tick - self.last_tick_blue)
+            return 4 - (self.game.current_tick.number - self.last_tick_blue)
         else:
-            return 6 - (self.game.current_tick - self.last_tick_blue)
+            return 6 - (self.game.current_tick.number - self.last_tick_blue)
 
     @property
     def deadline_sanction_red(self):
         if self.game.peer_sanc:
-            return 4 - (self.game.current_tick - self.last_tick_red)
+            return 4 - (self.game.current_tick.number - self.last_tick_red)
         else:
-            return 6 - (self.game.current_tick - self.last_tick_red)
+            return 6 - (self.game.current_tick.number - self.last_tick_red)
 
     @property
     def deadline_sanction_yellow(self):
         if self.game.peer_sanc:
-            return 4 - (self.game.current_tick - self.last_tick_yellow)
+            return 4 - (self.game.current_tick.number - self.last_tick_yellow)
         else:
-            return 6 - (self.game.current_tick - self.last_tick_yellow)
+            return 6 - (self.game.current_tick.number - self.last_tick_yellow)
 
     # Returns true if a player can make a move at a given instance;
     @property
