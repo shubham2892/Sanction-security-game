@@ -307,11 +307,23 @@
                                                  class="clickable resource-container inactive"
                                                  value="{{ vulnerability.pk }}">
                                             {% if vulnerability.classification == 1 %}
-                                                {{ me.deadline_sanction_blue }}
+                                                {% if me.deadline_sanction_blue > 0 %}
+                                                    {{ me.deadline_sanction_blue }}
+                                                {% else %}
+                                                    X
+                                                {% endif %}
                                             {% elif vulnerability.classification == 2 %}
-                                                {{ me.deadline_sanction_red }}
+                                                {% if me.deadline_sanction_red > 0 %}
+                                                    {{ me.deadline_sanction_red }}
+                                                {% else %}
+                                                    X
+                                                {% endif %}
                                             {% elif vulnerability.classification == 3 %}
-                                                {{ me.deadline_sanction_yellow }}
+                                                {% if me.deadline_sanction_yellow %}
+                                                    {{ me.deadline_sanction_yellow }}
+                                                {% else %}
+                                                    X
+                                                {% endif %}
                                             {% endif %}
                                         {% endif %}
                                         {#                                        <p id="{{ vulnerability.get_classification_display }}"></p>#}

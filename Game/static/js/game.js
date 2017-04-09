@@ -84,8 +84,6 @@ function player_sanction(data) {
 
     for (var indexOut = 0; indexOut < data['sanction_dict'].length; indexOut++) {
         if (data['sanction_dict'][indexOut]['player_id'] === me_player) {
-            console.log("Player Id:--" + data['sanction_dict'][indexOut]['player_id']);
-            console.log("adas" + me_player);
             if (data['sanctioned'] === 'True') {
                 $("#passbtn").show();
             } else {
@@ -95,7 +93,7 @@ function player_sanction(data) {
             for (var index = 0; index < data['sanction_dict'][indexOut]['sanction_threshold'].length; index++) {
                 if (data['sanction_dict'][indexOut]['immunity_ids'][index] !== -1) {
                     var querySelectorquery = 'div[value="' + data['sanction_dict'][indexOut]['immunity_ids'][index] + '"]';
-                    if (data['sanction_dict'][indexOut]['sanction_threshold'][index] >= 0) {
+                    if (data['sanction_dict'][indexOut]['sanction_threshold'][index] > 0) {
                         document.querySelector(querySelectorquery).textContent = data['sanction_dict'][indexOut]['sanction_threshold'][index];
                     } else {
                         document.querySelector(querySelectorquery).textContent = 'X';
