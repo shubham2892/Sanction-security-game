@@ -319,7 +319,7 @@
                                                     X
                                                 {% endif %}
                                             {% elif vulnerability.classification == 3 %}
-                                                {% if me.deadline_sanction_yellow %}
+                                                {% if me.deadline_sanction_yellow > 0 %}
                                                     {{ me.deadline_sanction_yellow }}
                                                 {% else %}
                                                     X

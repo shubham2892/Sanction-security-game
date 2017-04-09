@@ -842,23 +842,28 @@ class Tick(models.Model):
         for player in players:
             sanction_threshold = [0, 0, 0]
             immunity_ids  = [-1, -1, -1]
+            immunity_status = [-1, -1, -1]
             resource = player.vulnerabilities.security_resources.get(classification=BLUE)
             if not resource.active:
                 sanction_threshold[0] = player.deadline_sanction_blue
-                immunity_ids[0] = resource.pk
+                immunity_status[0] = 1
+            immunity_ids[0] = resource.pk
 
             resource = player.vulnerabilities.security_resources.get(classification=RED)
             if not resource.active:
                 sanction_threshold[1] = player.deadline_sanction_red
-                immunity_ids[1] = resource.pk
+                immunity_status[1] = 1
+            immunity_ids[1] = resource.pk
 
             resource = player.vulnerabilities.security_resources.get(classification=YELLOW)
             if not resource.active:
                 sanction_threshold[2] = player.deadline_sanction_yellow
-                immunity_ids[2] = resource.pk
+                immunity_status[2] = 1
+            immunity_ids[2] = resource.pk
 
             player_tick_dictionary = {"sanctioned": str(player.manager_sanctioned or player.sanctioned),
                                       "sanction_threshold": sanction_threshold,
+                                      "immunity_status" : immunity_status,
                                       "immunity_ids": immunity_ids, "player_id":player.pk}
             player_tick_dictionary_list.append(player_tick_dictionary)
 

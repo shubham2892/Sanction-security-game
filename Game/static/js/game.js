@@ -84,22 +84,23 @@ function player_sanction(data) {
 
     for (var indexOut = 0; indexOut < data['sanction_dict'].length; indexOut++) {
         if (data['sanction_dict'][indexOut]['player_id'] === me_player) {
-            if (data['sanctioned'] === 'True') {
+            if (data['sanction_dict'][indexOut]['sanctioned'] === 'True') {
                 $("#passbtn").show();
             } else {
                 $("#passbtn").hide();
             }
 
             for (var index = 0; index < data['sanction_dict'][indexOut]['sanction_threshold'].length; index++) {
-                if (data['sanction_dict'][indexOut]['immunity_ids'][index] !== -1) {
-                    var querySelectorquery = 'div[value="' + data['sanction_dict'][indexOut]['immunity_ids'][index] + '"]';
+                var querySelectorquery = 'div[value="' + data['sanction_dict'][indexOut]['immunity_ids'][index] + '"]';
+                if (data['sanction_dict'][indexOut]['immunity_status'][index] !== -1) {
                     if (data['sanction_dict'][indexOut]['sanction_threshold'][index] > 0) {
                         document.querySelector(querySelectorquery).textContent = data['sanction_dict'][indexOut]['sanction_threshold'][index];
                     } else {
                         document.querySelector(querySelectorquery).textContent = 'X';
-
                     }
 
+                } else {
+                    document.querySelector(querySelectorquery).textContent = "";
                 }
             }
         }
@@ -338,6 +339,8 @@ $(document).on('click', '.clickable.inactive', function (event) {
 function activate_security_resource_reply(response_message) {
     if (response_message["active"] === true) {
         clicked_security_resource.removeClass("inactive").addClass("active");
+        var querySelectorquery = 'div[value="' + response_message['pk'] + '"]';
+        document.querySelector(querySelectorquery).textContent = "";
         $("#capability-list").load(location.href + " #capability-list>*", "");
         alertSuccess(response_message["result"]);
     } else {
@@ -417,12 +420,14 @@ function pass_round_reply(response_message) {
         if (response_message["resource"].includes("blue")) {
 
             $("#vulnerability-list").find("#blue").removeClass("inactive").addClass("active").removeClass("clickable");
+            $("#vulnerability-list").find("#blue").text("");
             $("#capability-list").find("#blue").removeClass("inactive").addClass("active");
             $("#passbtn").hide();
             alertSuccess(response_message["result"]);
         }
         if (response_message["resource"].includes("red")) {
             $("#vulnerability-list").find("#red").removeClass("inactive").addClass("active").removeClass("clickable");
+            $("#vulnerability-list").find("#red").text("");
             $("#capability-list").find("#red").removeClass("inactive").addClass("active");
             $("#passbtn").hide();
 
@@ -430,6 +435,7 @@ function pass_round_reply(response_message) {
         }
         if (response_message["resource"].includes("yellow")) {
             $("#vulnerability-list").find("#yellow").removeClass("inactive").addClass("active").removeClass("clickable");
+            $("#vulnerability-list").find("#yellow").text("");
             $("#capability-list").find("#yellow").removeClass("inactive").addClass("active");
             $("#passbtn").hide();
             alertSuccess(response_message["result"]);

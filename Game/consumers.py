@@ -114,10 +114,13 @@ def security_resource_activate(player_pk, security_resource_pk):
             # update the number of finished security tasks; note the number corresponding to the one in the model
             if security_resource.classification == 1:
                 player.nf_blue += 1
+                player.last_tick_blue = player.game.current_tick.number + 1
             elif security_resource.classification == 2:
                 player.nf_red += 1
+                player.last_tick_red = player.game.current_tick.number + 1
             else:  # for yellow, classification = 3; there is no need to consider "lab" resource_classifications
                 player.nf_yellow += 1
+                player.last_tick_yellow = player.game.current_tick.number + 1
 
             player.save()
             update_player(player)
@@ -222,6 +225,7 @@ def pass_round(player_pk):
                         vulnerability.active = True
                         vulnerability.save()
                     player.nf_blue += 1
+                    player.last_tick_blue = player.game.current_tick.number + 1
                     player.save()
                     update_player(player)
                     for capability in player.capabilities.security_resources.filter(classification=1):
@@ -241,6 +245,7 @@ def pass_round(player_pk):
                         vulnerability.save()
 
                     player.nf_red += 1
+                    player.last_tick_red = player.game.current_tick.number + 1
                     player.save()
                     update_player(player)
 
@@ -259,7 +264,7 @@ def pass_round(player_pk):
                     for vulnerability in player.vulnerabilities.security_resources.filter(classification=3):
                         vulnerability.active = True
                         vulnerability.save()
-
+                    player.last_tick_yellow = player.game.current_tick.number + 1
                     player.nf_yellow += 1
                     player.save()
                     update_player(player)
