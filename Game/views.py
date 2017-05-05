@@ -128,6 +128,13 @@ class MonitorView(TemplateView):
         context['players'] = players
         return context
 
+class OnboardingView(TemplateView):
+    template_name = "onboarding_landing.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(OnboardingView, self).get_context_data(**kwargs)
+
+        return context
 
 class GameView(TemplateView):
     template_name = "game.html"

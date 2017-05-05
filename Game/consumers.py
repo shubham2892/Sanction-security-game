@@ -24,6 +24,7 @@ def resource_complete(player_pk, resource_pk):
             research_resource = ResearchResource.objects.get(pk=resource_pk)
             capable = player.capabilities.security_resources.get(classification=research_resource.classification)
             if capable.active:
+                print "completing research resource:{}".format(resource_pk)
                 research_resource.complete = True
                 research_resource.save()
 
@@ -340,6 +341,7 @@ def ws_message(message):
     if type_of_request == 'resource_complete':
         player_pk = message_text.get("player_pk")
         resource_pk = message_text.get("resource_pk")
+        print "id of resource completed:{}".format(resource_pk)
         response_message = resource_complete(player_pk, resource_pk)
         response_message['clicked_resource'] = resource_pk
         response_complete = {"type": "{}_response".format(type_of_request), "response_message": response_message}

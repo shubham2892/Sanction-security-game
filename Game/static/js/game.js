@@ -83,6 +83,7 @@ if (socket.readyState === WebSocket.OPEN) socket.onopen();
 function player_sanction(data) {
 
     for (var indexOut = 0; indexOut < data['sanction_dict'].length; indexOut++) {
+
         if (data['sanction_dict'][indexOut]['player_id'] === me_player) {
             if (data['sanction_dict'][indexOut]['sanctioned'] === 'True') {
                 $("#passbtn").show();
@@ -168,7 +169,6 @@ function update_ticks(tick_data) {
         $("#time-remaining").text("Remaining Rounds: " + tick_data["new_tick_count"]);
     } else {
         $("#time-remaining").text("Game over!");
-        console.log("Drawing the overlay");
         $('#game-over-modal').modal({backdrop: "static", keyboard: false});
     }
 

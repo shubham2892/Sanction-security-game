@@ -526,7 +526,7 @@ class AttackResource(models.Model):
                 if random.randint(0, 100) < prob_LAB_attack:
                     attack_resource = cls(classification=LAB)
                     attack_resource.save()
-                    content = "Lab attack occurred at tick:{}".format(game.ticks)
+                    content = "lab attack occurred at tick:{}".format(game.ticks)
                     message = Message(content=content, game=game, tick=game.current_tick, created_by=None)
                     message.save()
 
