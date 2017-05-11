@@ -5,10 +5,37 @@
     <title>Sanction Game Steps:</title>
 </head>
 <body>
+<h1>Welcome to Sanction Security Game</h1>
 <ol>
-  <li><a href="https://goo.gl/forms/i5UviPBqVTcf2Wlt1" target="_blank">Pre Participation Survey</a> </li>
-  <li><a href="https://youtu.be/9beILDbkGFU" target="_blank">Demo Video</a> </li>
-  <li><a href="http://vclv99-193.hpc.ncsu.edu" target="_blank"> Start Game</a> </li>
+    <li id="1"><a href="https://goo.gl/forms/i5UviPBqVTcf2Wlt1" target="_blank">Pre Participation Survey</a><br></li>
+    <li id="2">Validation Code: <input type="text" id="validation_code" name="validation_code"/><br></li>
+    <li id="3">Demo Video:<br>
+        <iframe width="560" height="315" src="https://www.youtube.com/embed/9beILDbkGFU" frameborder="0"
+                allowfullscreen></iframe>
+    </li>
+    <li id="4" style="color: blue; text-decoration: underline">Start Game </li>
+
+    <script>
+
+        var li = document.getElementsByTagName("li");
+
+        for (var i = 0; i < li.length; i++) {
+            li[i].addEventListener("click", myScript);
+        }
+
+        function myScript(e) {
+            if (e.target.attributes.id.value === "4") {
+                if (document.getElementsByName("validation_code")[0].value === "sanction_pre") {
+                    var win = window.open("http://vclv99-193.hpc.ncsu.edu", '_blank');
+                    win.focus();
+                } else {
+                    alert("Validation Code Not Valid!!");
+                }
+            }
+        }
+
+    </script>
+
 </ol>
 
 
