@@ -6,22 +6,41 @@
 </head>
 <body>
 <h1>Welcome to Sanction Demo Game</h1>
+
+
 <form action="/onboarding_1" method="post">
-    <div>
-        <label for="name">MTurk Id:</label>
-        <input type="text" id="mturk_id" name="mturk_id">
-    </div>
+    <ol>
+        <li>
+            Please fill the pre-game survey.<br>
+            <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdIlvX1xnzjZOESVsETGvyIsYqTsc-8layvgD9ZK3Vt3lvirw/viewform?embedded=true"
+                    width="760" height="500" frameborder="0" marginheight="0" marginwidth="0">Loading...
+            </iframe>
+            <br>
+            <br>
+        </li>
 
-    <div>
-        Please fill the pre-game <a href="https://goo.gl/forms/i5UviPBqVTcf2Wlt1" target="_blank">survey</a> and come
-        back to this page. You will be presented with a code at the
-        end of survey. Enter the code below.<br>
-        <input type="text" id="survey_code" name="survey_code">
+        <li>
+            Watch the demo video:<br>
+            <iframe width="560" height="315" src="https://www.youtube.com/embed/9beILDbkGFU?rel=0" frameborder="0"
+                    allowfullscreen></iframe>
+        </li>
 
-    </div>
-    <div class="button">
-        <button type="next">Next</button>
-    </div>
+        <li>
+            Play the demo game:
+            <a href="{{ demo_game_url }}" target="_blank">Start</a>
+        </li>
+        <li>
+            <br>
+            <ol type="i">
+                <li><a href="{{ game_url_1 }}" target="_blank">Game 1</a></li>
+                <li><a href="{{ game_url_2 }}" target="_blank">Game 2</a></li>
+                <li><a href="{{ game_url_3 }}" target="_blank">Game 3</a></li>
+            </ol>
+        </li>
+    </ol>
+
+
 </form>
+
 </body>
 </html>

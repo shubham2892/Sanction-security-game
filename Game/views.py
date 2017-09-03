@@ -4,17 +4,17 @@ import requests
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import logout
 from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.views import LoginView
 from django.contrib.humanize.templatetags.humanize import apnumber
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.urlresolvers import reverse
-from django.db.models import Max
 from django.http import Http404, HttpResponseRedirect, HttpResponse, HttpResponseServerError
 from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView, FormView
 
 from Game.models import Player, Game, Message, PlayerTick, SecurityResource, Tick, Sanction, SANCTION, SECURITY, \
-    Capabilities, Statistics, ResearchResource, RESEARCH_TASK, PASS, RESEARCH_OBJ
+    Capabilities, Statistics, ResearchResource, RESEARCH_TASK, PASS, RESEARCH_OBJ, GameSets
 
 ''' The user's homepage which displays user game information '''
 
@@ -30,83 +30,7 @@ class HomeView(TemplateView):
         return context
 
 
-''' A form mixin for supporting multiple forms in a single generic view '''
-
-
-class MultipleFormView(FormView):
-    form_class = None
-    form_name = None
-
-    def get(self, request, *args, **kwargs):
-        return self.render_to_response(self.get_context_data(forms=self.get_forms()))
-
-    def form_invalid(self, form):
-        return self.render_to_response(self.get_context_data(forms=self.get_forms()))
-
-    def form_valid(self, form):
-        return getattr(self, "%s_form_valid" % self.form_name)(form)
-
-    def get_forms(self):
-        forms = {}
-        for form_name, form_class in self.get_form_classes().items():
-            forms[form_name] = self.get_form(form_class)
-        return forms
-
-    def get_form_classes(self):
-        return self.form_classes
-
-    def get_form_class(self):
-        if self.request.method in ('POST', 'PUT'):
-            if not self.form_class:
-                for form_name, form_class in self.get_form_classes().items():
-                    if form_name in self.request.POST:
-                        self.form_class = form_class
-                        self.form_name = form_name
-                        break
-                if not self.form_class:
-                    raise Exception("Button name does not match any items in form_classes.")
-            return self.form_class
-
-    def get_form(self, form_class):
-        if form_class == self.get_form_class():
-            return form_class(**self.get_form_kwargs())
-        else:
-            return form_class()
-
-
 ''' The login form view '''
-
-
-class LoginView(MultipleFormView):
-    template_name = 'accounts/login.html'
-    form_classes = {
-        'login': AuthenticationForm,
-    }
-
-    def login_form_valid(self, form):
-        login(self.request, self.authenticate_user(form))
-        return HttpResponseRedirect(self.get_success_url())
-
-    def registration_form_valid(self, form):
-        form.save()
-        # Login the new User
-        login(self.request, self.authenticate_user(form))
-        return HttpResponseRedirect(self.get_success_url())
-
-    def get_success_url(self):
-        return self.request.GET.get("next", reverse('home'))
-
-    def authenticate_user(self, form):
-        username = form.cleaned_data['username']
-        try:
-            password = form.cleaned_data['password']
-        except KeyError:
-            password = form.cleaned_data['password1']
-
-        return authenticate(username=username, password=password)
-
-
-''' A lazy logout view, redirects to login '''
 
 
 def logout_view(request):
@@ -128,13 +52,39 @@ class MonitorView(TemplateView):
         context['players'] = players
         return context
 
+
 class OnboardingView(TemplateView):
-    template_name = "onboarding_landing.html"
+    template_name = "onboarding_1.html"
 
     def get_context_data(self, **kwargs):
         context = super(OnboardingView, self).get_context_data(**kwargs)
 
         return context
+
+
+class GameFlowView(TemplateView):
+    template_name = "onboarding_1.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(GameFlowView, self).get_context_data(**kwargs)
+
+        try:
+            game_set = GameSets.objects.get(user=self.request.user)
+            demo_game_url = "/game/" + game_set.demo_id
+            game_url_1 = "/game/" + game_set.game_id1
+            game_url_2 = "/game/" + game_set.game_id2
+            ganme_url_3 = "/game/" + game_set.game_id3
+
+        except ObjectDoesNotExist:
+            raise Http404
+
+        context['demo_game_url'] = demo_game_url
+        context['game_url_1'] = game_url_1
+        context['game_url_2'] = game_url_2
+        context['game_url_3'] = ganme_url_3
+
+        return context
+
 
 class GameView(TemplateView):
     template_name = "game.html"
@@ -273,7 +223,6 @@ def security_resource_activate(request):
                 c.save()
 
                 # End players move
-                print "Saving ticket 3"
                 player_tick.save()
 
                 # update Statistics table data; note the number corresponding to the one in the model
@@ -312,6 +261,7 @@ def security_resource_activate(request):
             json.dumps({"What?! This can't be happening?!": "Stop trying to hack the game."}),
             content_type="application/json"
         )
+
 
 @csrf_exempt
 def remove_player(request):

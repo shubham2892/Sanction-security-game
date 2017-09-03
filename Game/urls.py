@@ -1,12 +1,13 @@
 from django.conf.urls import url
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import LoginView
 
 from . import views
 
 urlpatterns = [
     url(r'^$', login_required(views.HomeView.as_view()), name='home'),
     url(r'^game/(?P<game_key>[\w]+)/$', login_required(views.GameView.as_view()), name='game'),
-    url(r'^accounts/login/$', views.LoginView.as_view(), name='login'),
+    url(r'^accounts/login/$', LoginView.as_view(), name='login'),
     url(r'^accounts/logout/$', login_required(views.logout_view), name='logout'),
     url(r'^message/create/$', login_required(views.create_message), name='create_message'),
     url(r'^resource/activate/$', login_required(views.security_resource_activate), name='security_resource_activate'),

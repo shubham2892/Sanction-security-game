@@ -15,7 +15,6 @@ socket = new WebSocket("ws://" + window.location.host + "/chat/" + me_player.pk)
 var clicked_research_resource;
 var clicked_security_resource;
 
-
 socket.onmessage = function (message) {
     var data = JSON.parse(message.data);
     console.log(data);

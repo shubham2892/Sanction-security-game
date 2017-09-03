@@ -30,6 +30,8 @@ MANAGER_SANC = (
 ''' The Game object for maintaining game state and players '''
 
 
+
+
 class Game(models.Model):
     GAME_KEY_LENGTH = 5
 
@@ -279,6 +281,7 @@ class Player(models.Model):
         return vulnerabilities.filter(active=False).count()
 
 
+
 # Set's a player's default values, called as a post_save signal
 def set_player_defaults(sender, instance, **kwargs):
     if sender == Player:
@@ -294,6 +297,19 @@ def set_player_defaults(sender, instance, **kwargs):
         if not instance.researchobjective_set.all():
             for objective in ResearchObjective.get_initial_set(instance):
                 instance.researchobjective_set.add(objective)
+
+class GameSets(models.Model):
+    user = models.ForeignKey(User)
+    game_id1 = models.ForeignKey(Game, related_name="game_id1")
+    game_id2 = models.ForeignKey(Game,related_name="game_id2")
+    game_id3 = models.ForeignKey(Game,related_name="game_id3")
+    demo_id = models.ForeignKey(Game,related_name="game_demo")
+    consent_check = models.BooleanField(default=False)
+    video_check = models.BooleanField(default=False)
+    demo_check = models.BooleanField(default=False)
+    g1_check = models.BooleanField(default=False)
+    g2_check = models.BooleanField(default=False)
+    g3_check = models.BooleanField(default=False)
 
 
 post_save.connect(set_player_defaults, sender=Player)
