@@ -1,6 +1,7 @@
 import json
 
 from channels import Group
+from channels.sessions import enforce_ordering
 from django.contrib.humanize.templatetags.humanize import apnumber
 
 from Game.models import Player, PlayerTick, ResearchResource, RESEARCH_TASK, RESEARCH_OBJ, Statistics, SecurityResource, \
@@ -24,7 +25,6 @@ def resource_complete(player_pk, resource_pk):
             research_resource = ResearchResource.objects.get(pk=resource_pk)
             capable = player.capabilities.security_resources.get(classification=research_resource.classification)
             if capable.active:
-                print "completing research resource:{}".format(resource_pk)
                 research_resource.complete = True
                 research_resource.save()
 
@@ -125,9 +125,6 @@ def security_resource_activate(player_pk, security_resource_pk):
 
             player.save()
             update_player(player)
-            # print "the resource is "
-            # print security_resource.classification
-            # Record players action as "Security"
             player_tick.action = SECURITY
 
             # After security resource is activated, reactivate capability if necessary
@@ -137,7 +134,6 @@ def security_resource_activate(player_pk, security_resource_pk):
             c.save()
 
             # End players move
-            print "Saving ticket 3"
             player_tick.save()
 
             # update Statistics table data; note the number corresponding to the one in the model
@@ -330,34 +326,37 @@ def update_player(player):
 
 
 # Connected to websocket.receive
+@enforce_ordering
 def ws_message(message):
     message_text = json.loads(message.content['text'])
     type_of_request = message_text['type']
     if type_of_request == 'add_player':
         player_pk = message_text.get("player_pk")
-        print "Player added:{}".format(player_pk)
         Group(str(player_pk)).add(message.reply_channel)
 
     if type_of_request == 'resource_complete':
         player_pk = message_text.get("player_pk")
         resource_pk = message_text.get("resource_pk")
-        print "id of resource completed:{}".format(resource_pk)
         response_message = resource_complete(player_pk, resource_pk)
         response_message['clicked_resource'] = resource_pk
-        response_complete = {"type": "{}_response".format(type_of_request), "response_message": response_message}
-        message.reply_channel.send({"text": json.dumps(response_complete)})
+        response_complete_json = {"type": "{}_response".format(type_of_request), "response_message": response_message}
+        print response_complete_json
+        print "============================================"
+
+        message.reply_channel.send({"text": json.dumps(response_complete_json)})
 
     elif type_of_request == 'security_resource_activate':
         player_pk = message_text.get("player_pk")
         security_resource_pk = message_text.get("security_resource_pk")
         response_message = security_resource_activate(player_pk, security_resource_pk)
-        response_complete = {"type": "{}_response".format(type_of_request), "response_message": response_message}
-        message.reply_channel.send({"text": json.dumps(response_complete)})
+        response_complete_json = {"type": "{}_response".format(type_of_request), "response_message": response_message}
+        print response_complete_json
+        print "============================================"
+        message.reply_channel.send({"text": json.dumps(response_complete_json)})
 
     elif type_of_request == 'player_sanction':
         sanctioner_pk = message_text.get("sanctioner_pk")
         sanctionee_pk = message_text.get("sanctionee_pk")
-        tick_pk = message_text.get("tick_pk")
         response_message = player_sanction(sanctioner_pk, sanctionee_pk)
         response_complete = {"type": "player_sanction_response", "response_message": response_message}
         message.reply_channel.send({"text": json.dumps(response_complete)})

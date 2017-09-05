@@ -536,7 +536,6 @@ class AttackResource(models.Model):
                 # The probability of a LAB attack is the total number of inactive vulnerabilities
                 # of all players over the total number of vulnerabilities of all players
                 prob_LAB_attack = float(num_inactive) / float(total) * 100
-                print "LAB attack probability: %s" % prob_LAB_attack
 
                 # If random number between 1 and 100 is less than probability of LAB attack, then LAB attack occurs
                 if random.randint(0, 100) < prob_LAB_attack:
@@ -635,7 +634,6 @@ class Tick(models.Model):
 
             for player in players:
 
-                print "player %s in manager_sanction function" % (player.user.username)
                 # if status == False, corresponding security task satisfy the condition of being counted in the prob. of manager sanction
                 # blue
                 resource = player.vulnerabilities.security_resources.get(classification=1)
@@ -668,8 +666,6 @@ class Tick(models.Model):
                         if self.number - player.last_tick_blue >= THRESHOLD:
                             count = count + 1
 
-                    # print resource
-                    # print "for blue: last tick is %s, count is %s" %(player.last_tick_blue, count)
 
                     # red
                     resource = player.vulnerabilities.security_resources.get(classification=2)
@@ -678,8 +674,6 @@ class Tick(models.Model):
                         if self.number - player.last_tick_red >= THRESHOLD:
                             count = count + 1
 
-                    # print resource
-                    # print "for red: last tick is %s, count is %s" %(player.last_tick_red, count)
 
                     # yellow
                     resource = player.vulnerabilities.security_resources.get(classification=3)
@@ -688,18 +682,13 @@ class Tick(models.Model):
                         if self.number - player.last_tick_yellow >= THRESHOLD:
                             count = count + 1
 
-                    # print resource
-                    # print "for yellow: last tick is %s, count is %s" %(player.last_tick_yellow, count)
 
 
                     sanction_prob = 1.0 * count / num_of_resource
                     # manager_obs_random = random.random()
-                    # print "individual sanction probability is %s" %(sanction_prob)
                     x = random.random()
-                    # print "random number is %s" %(x)
 
                     if x < sanction_prob:
-                        print "The manager decided to sanction..."
                         # sanction the player for "2 * count" number of ticks
                         num_of_vul = player.number_of_vulnerabilities()
                         diff = self.game._ticks - self.number
@@ -721,28 +710,23 @@ class Tick(models.Model):
                         message = Message(content=message_text, created_by=None, game=self.game, tick=self)
                         message.save()
 
-        # group sanction, fill in later
         elif self.game.manager_sanc == 2:
             players = Player.objects.filter(game=self.game)
             is_a_player_sanctioned = False
             for player in players:
-                print " "
-                print "At tick %s" % (self.number)
-                print "player %s in manager_sanction function" % (player.user.username)
-                # if status == False, corresponding security task satisfy the condition of being counted in the prob. of manager sanction
                 # blue
                 resource = player.vulnerabilities.security_resources.get(classification=1)
-                if resource.active == True:
+                if resource.active:
                     player.last_tick_blue = self.number
 
                 # red
                 resource = player.vulnerabilities.security_resources.get(classification=2)
-                if resource.active == True:
+                if resource.active:
                     player.last_tick_red = self.number
 
                     # yellow
                 resource = player.vulnerabilities.security_resources.get(classification=3)
-                if resource.active == True:
+                if resource.active:
                     player.last_tick_yellow = self.number
 
                 player.save()
@@ -755,40 +739,30 @@ class Tick(models.Model):
                     count = 0
                     # blue
                     resource = player.vulnerabilities.security_resources.get(classification=1)
-                    if resource.active == False:
+                    if not resource.active:
                         # to record the status of blue security task
                         t_blue_status = False
                         if self.number - player.last_tick_blue >= THRESHOLD:
                             count = count + 1
 
-                    # print resource
-                    # print "for blue: last tick is %s, count is %s" %(player.last_tick_blue, count)
 
                     # red
                     resource = player.vulnerabilities.security_resources.get(classification=2)
-                    if resource.active == False:
+                    if not resource.active:
                         t_red_status = False
                         if self.number - player.last_tick_red >= THRESHOLD:
                             count = count + 1
 
-                    # print resource
-                    # print "for red: last tick is %s, count is %s" %(player.last_tick_red, count)
 
                     # yellow
                     resource = player.vulnerabilities.security_resources.get(classification=3)
-                    if resource.active == False:
+                    if not resource.active:
                         t_yellow_status = False
                         if self.number - player.last_tick_yellow >= THRESHOLD:
                             count = count + 1
 
-                    # print resource
-                    # print "for yellow: last tick is %s, count is %s" %(player.last_tick_yellow, count)
-
-
                     sanction_prob = 1.0 * count / num_of_resource
-                    # print "individual sanction probability is %s" %(sanction_prob)
                     x = random.random()
-                    # print "random number is %s" %(x)
 
                     if x < sanction_prob:
                         is_a_player_sanctioned = True
@@ -846,6 +820,7 @@ class Tick(models.Model):
                     if not capability.active:
                         attack_items["capability"].append(capability.get_classification_display())
                 attack_dictionary = {"type": "attack_type_update", "attack_item": attack_items}
+                # print attack_dictionary
                 Group(str(player.pk)).send({"text": json.dumps(attack_dictionary)})
 
         tick.manager_sanction()
@@ -881,6 +856,7 @@ class Tick(models.Model):
                                       "sanction_threshold": sanction_threshold,
                                       "immunity_status" : immunity_status,
                                       "immunity_ids": immunity_ids, "player_id":player.pk}
+            # print player_tick_dictionary
             player_tick_dictionary_list.append(player_tick_dictionary)
 
         player_tick_dictionarys = {"type": "sanction_status","sanction_dict":player_tick_dictionary_list}
@@ -929,17 +905,14 @@ class PlayerTick(models.Model):
 
 
 def update_tick(sender, instance, **kwargs):
-    print "update tick called"
     game = instance.player.game
     players = Player.objects.filter(game=game)
     if not instance.player.can_move:
-        print "sending move made notification"
         tick_object = {"type": "move_made", "move": "true"}
         Group(str(instance.player.pk)).send({"text": json.dumps(tick_object)})
 
     for player in players:
         if player.can_move:
-            print "returning because other players can move"
             return
 
     t = game.tick_set.last()
@@ -1018,7 +991,6 @@ class ManagerSanction(models.Model):
     # create num_of_ticks_sanc ManagerSanction records
     @classmethod
     def create(cls, sanctionee, tick, num_of_ticks_sanc):
-        # print "%s number of sanction(s):" %(num_of_ticks_sanc)
         # a player gets sanctioned by the manager twice the time of what his unfinished vulnerabilities are
         for i in range(1, num_of_ticks_sanc + 1):
             sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + i), game=tick.game)

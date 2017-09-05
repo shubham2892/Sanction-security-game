@@ -12,12 +12,9 @@
 // Note that the path doesn't matter for routing; any WebSocket
 // connection gets bumped over to WebSocket consumers
 socket = new WebSocket("ws://" + window.location.host + "/chat/" + me_player.pk);
-var clicked_research_resource;
-var clicked_security_resource;
 
 socket.onmessage = function (message) {
     var data = JSON.parse(message.data);
-    console.log(data);
 
     if (data['type'] === 'resource_complete_response') {
         // Research resource complete action reply
@@ -32,7 +29,6 @@ socket.onmessage = function (message) {
         // Pass button reply
         pass_round_reply(data['response_message']);
     } else if (data['type'] === 'player_update') {
-        console.log("In player_update");
         update_player(data)
     } else if (data['type'] === 'update_message_board') {
         update_message_board(data);
@@ -110,6 +106,7 @@ function player_sanction(data) {
 function attack_inactivate_resource(data) {
     for (var resource = 0; resource < data["immunity"].length; resource++) {
         if (data['immunity'][resource] === 'blue') {
+
             $("#vulnerability-list").find("#blue").removeClass("active").addClass("inactive").addClass("clickable");
         }
         if (data['immunity'][resource] === 'yellow') {
@@ -192,18 +189,6 @@ function update_ticks(tick_data) {
 
 }
 
-function update_player_scores(player_score) {
-
-}
-
-function update_player_immunities() {
-
-}
-
-function update_player_progress() {
-
-}
-
 function update_message_board(data) {
     var message = data['message'];
     $("#talk").append('<li class="clearfix">' + message + '</li>');
@@ -223,6 +208,7 @@ function alertSuccess(message) {
         '</div>');
     return false;
 }
+
 function alertFailure(message) {
     $(".response").empty();
     $(".response").append(
@@ -236,43 +222,8 @@ function alertFailure(message) {
         '</div>');
     return false;
 }
+
 // Function for Attack Threat vertical bar
-function update_attack_probabilities() {
-
-    var animation_speed = 1000;
-
-    // Get blue threat
-    var blueBar = $('.attack-threat').find('.inner.blue');
-    var blueThreat = blueBar.attr("blue-threat");
-
-    // Animate bar
-    $(blueBar).animate({
-        height: blueThreat
-    }, animation_speed);
-
-    // Get blue threat
-    var redBar = $('.attack-threat').find('.inner.red');
-    var redThreat = parseInt(redBar.attr("red-threat")) + parseInt(blueThreat);
-    var redCent = redThreat + "%";
-
-    // Animate bar
-    $(redBar).animate({
-        height: redCent
-    }, animation_speed);
-
-    // Get blue threat
-    var yellowBar = $('.attack-threat').find('.inner.yellow');
-    var yellowThreat = parseInt(yellowBar.attr("yellow-threat")) + redThreat;
-    var yellowCent = yellowThreat + "%";
-
-    // Animate bar
-    $(yellowBar).animate({
-        height: yellowCent
-    }, animation_speed);
-
-    return false;
-}
-
 function game_complete() {
     $('#game-over-modal').modal({
         backdrop: "static",
@@ -282,28 +233,17 @@ function game_complete() {
 
 }
 
-// function tick_complete() {
-//     window.location.reload();
-// }
-
-// Refreshes talk for new messages
-function updateChat() {
-    $("#talk").load(location.href + ' #talk');
-    return false;
-}
-// Scrolls chat to bottom of screen when a message is send
 function scrollChat() {
     var chatWindow = $(".panel-body.chat");
     $(chatWindow).animate({scrollTop: $(chatWindow)[0].scrollHeight}, 1000);
     return false;
 }
+
 // Updates Chat and the Left Panel
 function updatePage() {
     $.ajax({
         url: location.href,
         success: function (json) {
-            console.log("html request response");
-            console.log(json);
             // Update left panel
             var gameInfo = $(json).find("#game-info").html();
             $('#game-info').html(gameInfo);
@@ -321,10 +261,10 @@ function updatePage() {
 }
 
 // activate security resource
-$(document).on('click', '.clickable.inactive', function (event) {
+$('#security_objectives').on('click', '.clickable.inactive', function (event) {
+    console.log("Security Resource clicked: " + $(this).attr('value'));
     alertSuccess("Response Recorded");
     event.preventDefault();
-    clicked_security_resource = $(this);
     var message = {
         type: 'security_resource_activate',
         player_pk: $("#player").text(),
@@ -334,24 +274,10 @@ $(document).on('click', '.clickable.inactive', function (event) {
     return false;
 });
 
-
-function activate_security_resource_reply(response_message) {
-    if (response_message["active"] === true) {
-        clicked_security_resource.removeClass("inactive").addClass("active");
-        var querySelectorquery = 'div[value="' + response_message['pk'] + '"]';
-        document.querySelector(querySelectorquery).textContent = "";
-        $("#capability-list").load(location.href + " #capability-list>*", "");
-        alertSuccess(response_message["result"]);
-    } else {
-        alertFailure(response_message["result"]);
-    }
-}
-
 // complete research resource
-$(document).on('click', '.clickable.incomplete', function (event) {
+$('#projects').on('click', '.clickable.incomplete', function (event) {
     alertSuccess("Response Recorded");
     var clicked_resource = $(this);
-    clicked_research_resource = $(this);
     event.preventDefault();
     var message = {
         resource_pk: $(clicked_resource).attr('value'),
@@ -361,6 +287,20 @@ $(document).on('click', '.clickable.incomplete', function (event) {
     socket.send(JSON.stringify(message));
     return false;
 });
+
+
+function activate_security_resource_reply(response_message) {
+    if (response_message["active"] === true) {
+        var querySelectorquery = 'div[value="' + response_message['pk'] + '"]';
+        document.querySelector(querySelectorquery).textContent = "";
+        document.querySelector(querySelectorquery).classList.remove("inactive");
+        document.querySelector(querySelectorquery).classList.add("active");
+        $("#capability-list").load(location.href + " #capability-list>*", "");
+        alertSuccess(response_message["result"]);
+    } else {
+        alertFailure(response_message["result"]);
+    }
+}
 
 
 // sanction other player
@@ -387,8 +327,10 @@ function sanction_player_reply(response_message) {
 
 function complete_research_resource_reply(response_message) {
     if ("resource_complete" in response_message && response_message["resource_complete"] === true) {
-        console.log("resource complete.");
-        clicked_research_resource.removeClass("incomplete").addClass("complete");
+        var querySelectorquery = 'div[value="' + response_message['clicked_resource'] + '"]';
+        document.querySelector(querySelectorquery).classList.remove("incomplete");
+        document.querySelector(querySelectorquery).classList.add("complete");
+
         $("#my-score").text("$" + response_message['score']);
         alertSuccess(response_message["result"]);
     } else {
