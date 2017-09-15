@@ -63,7 +63,7 @@ class OnboardingView(TemplateView):
 
 
 class GameFlowView(TemplateView):
-    template_name = "onboarding_1.html"
+    template_name = "onboaring_tabular.html"
 
     def get_context_data(self, **kwargs):
         context = super(GameFlowView, self).get_context_data(**kwargs)
@@ -82,6 +82,7 @@ class GameFlowView(TemplateView):
         context['game_url_1'] = game_url_1
         context['game_url_2'] = game_url_2
         context['game_url_3'] = ganme_url_3
+        context['game_chat_link'] = game_set.chat_link
 
         return context
 

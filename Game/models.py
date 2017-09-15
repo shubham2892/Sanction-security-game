@@ -30,8 +30,6 @@ MANAGER_SANC = (
 ''' The Game object for maintaining game state and players '''
 
 
-
-
 class Game(models.Model):
     GAME_KEY_LENGTH = 5
 
@@ -281,7 +279,6 @@ class Player(models.Model):
         return vulnerabilities.filter(active=False).count()
 
 
-
 # Set's a player's default values, called as a post_save signal
 def set_player_defaults(sender, instance, **kwargs):
     if sender == Player:
@@ -298,18 +295,20 @@ def set_player_defaults(sender, instance, **kwargs):
             for objective in ResearchObjective.get_initial_set(instance):
                 instance.researchobjective_set.add(objective)
 
+
 class GameSets(models.Model):
     user = models.ForeignKey(User)
     game_id1 = models.ForeignKey(Game, related_name="game_id1")
-    game_id2 = models.ForeignKey(Game,related_name="game_id2")
-    game_id3 = models.ForeignKey(Game,related_name="game_id3")
-    demo_id = models.ForeignKey(Game,related_name="game_demo")
+    game_id2 = models.ForeignKey(Game, related_name="game_id2")
+    game_id3 = models.ForeignKey(Game, related_name="game_id3")
+    demo_id = models.ForeignKey(Game, related_name="game_demo")
     consent_check = models.BooleanField(default=False)
     video_check = models.BooleanField(default=False)
     demo_check = models.BooleanField(default=False)
     g1_check = models.BooleanField(default=False)
     g2_check = models.BooleanField(default=False)
     g3_check = models.BooleanField(default=False)
+    chat_link = models.CharField(max_length=100, blank=True)
 
 
 post_save.connect(set_player_defaults, sender=Player)
@@ -666,7 +665,6 @@ class Tick(models.Model):
                         if self.number - player.last_tick_blue >= THRESHOLD:
                             count = count + 1
 
-
                     # red
                     resource = player.vulnerabilities.security_resources.get(classification=2)
                     if not resource.active:
@@ -674,15 +672,12 @@ class Tick(models.Model):
                         if self.number - player.last_tick_red >= THRESHOLD:
                             count = count + 1
 
-
                     # yellow
                     resource = player.vulnerabilities.security_resources.get(classification=3)
                     if not resource.active:
                         t_yellow_status = False
                         if self.number - player.last_tick_yellow >= THRESHOLD:
                             count = count + 1
-
-
 
                     sanction_prob = 1.0 * count / num_of_resource
                     # manager_obs_random = random.random()
@@ -745,14 +740,12 @@ class Tick(models.Model):
                         if self.number - player.last_tick_blue >= THRESHOLD:
                             count = count + 1
 
-
                     # red
                     resource = player.vulnerabilities.security_resources.get(classification=2)
                     if not resource.active:
                         t_red_status = False
                         if self.number - player.last_tick_red >= THRESHOLD:
                             count = count + 1
-
 
                     # yellow
                     resource = player.vulnerabilities.security_resources.get(classification=3)
@@ -827,12 +820,11 @@ class Tick(models.Model):
         tick_object = {"type": "tick_complete", "new_tick_count": game.ticks, "attack": attack_classification}
         Group("players").send({"text": json.dumps(tick_object)})
 
-
         # For every tick player specific updates
         player_tick_dictionary_list = []
         for player in players:
             sanction_threshold = [0, 0, 0]
-            immunity_ids  = [-1, -1, -1]
+            immunity_ids = [-1, -1, -1]
             immunity_status = [-1, -1, -1]
             resource = player.vulnerabilities.security_resources.get(classification=BLUE)
             if not resource.active:
@@ -854,12 +846,12 @@ class Tick(models.Model):
 
             player_tick_dictionary = {"sanctioned": str(player.manager_sanctioned or player.sanctioned),
                                       "sanction_threshold": sanction_threshold,
-                                      "immunity_status" : immunity_status,
-                                      "immunity_ids": immunity_ids, "player_id":player.pk}
+                                      "immunity_status": immunity_status,
+                                      "immunity_ids": immunity_ids, "player_id": player.pk}
             # print player_tick_dictionary
             player_tick_dictionary_list.append(player_tick_dictionary)
 
-        player_tick_dictionarys = {"type": "sanction_status","sanction_dict":player_tick_dictionary_list}
+        player_tick_dictionarys = {"type": "sanction_status", "sanction_dict": player_tick_dictionary_list}
         Group("players").send({"text": json.dumps(player_tick_dictionarys)})
 
         return tick
