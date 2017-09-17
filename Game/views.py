@@ -70,10 +70,10 @@ class GameFlowView(TemplateView):
 
         try:
             game_set = GameSets.objects.get(user=self.request.user)
-            demo_game_url = "/game/" + str(game_set.demo_id.id)
-            game_url_1 = "/game/" + str(game_set.game_id1.id)
-            game_url_2 = "/game/" + str(game_set.game_id2.id)
-            ganme_url_3 = "/game/" + str(game_set.game_id3.id)
+            demo_game_url = "/game/" + str(game_set.demo_id.game_key)
+            game_url_1 = "/game/" + str(game_set.game_id1.game_key)
+            game_url_2 = "/game/" + str(game_set.game_id2.game_key)
+            ganme_url_3 = "/game/" + str(game_set.game_id3.game_key)
 
         except ObjectDoesNotExist:
             raise Http404
