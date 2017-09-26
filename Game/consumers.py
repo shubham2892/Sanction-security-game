@@ -326,7 +326,7 @@ def update_player(player):
 
 
 # Connected to websocket.receive
-@enforce_ordering
+# @enforce_ordering
 def ws_message(message):
     message_text = json.loads(message.content['text'])
     type_of_request = message_text['type']
