@@ -27,7 +27,7 @@ SECRET_KEY = 'bfuuexl@4_+_e)+_ups^57h)9awxk9*dr#^4vkq=k%@7$$!zkj'
 DEBUG = True
 
 ALLOWED_HOSTS = ["152.46.16.242","localhost","127.0.0.1"]
-
+INTERNAL_IPS = ["localhost","127.0.0.1"]
 # Application definition
 
 INSTALLED_APPS = (
@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'django_extensions',
     'channels',
     'Game',
+    'debug_toolbar',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -54,6 +55,7 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     # 'querycount.middleware.QueryCountMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
 ROOT_URLCONF = 'P1.urls'
