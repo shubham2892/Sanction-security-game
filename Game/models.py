@@ -126,11 +126,18 @@ class Game(models.Model):
 ''' A Player object to hold player state '''
 
 
+# class PlayerManager(models.Manager):
+#     def create(self, **obj_data):
+#         Workshop.objects.create(player=self.pk)
+#         Conference.objects.create(player=self.pk)
+#         Journal.objects.create(player=self.pk)
+#         return super(PlayerManager, self).create(**obj_data)
+
+
 class Player(models.Model):
     user = models.ForeignKey(User)
     game = models.ForeignKey(Game)
     score = models.IntegerField(default=0, editable=False)
-    props = models.IntegerField(default=0, editable=False)
     number = models.IntegerField(default=0, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now=True, editable=False)
@@ -138,11 +145,6 @@ class Player(models.Model):
     last_tick_blue = models.IntegerField(default=0, editable=False)
     last_tick_yellow = models.IntegerField(default=0, editable=False)
     last_tick_red = models.IntegerField(default=0, editable=False)
-
-    # counts the number of ticks of sanctions in the current manager sanction
-    counter = models.IntegerField(default=0, editable=False)
-    # counts the supposed number of ticks of sanctions in the current manager sanction
-    counter_sum = models.IntegerField(default=0, editable=False)
 
     # number of finished tasks
     nf_blue = models.IntegerField(default=0, editable=False)
@@ -154,79 +156,69 @@ class Player(models.Model):
 
     # security tasks that are not finished when the manager decided to sanction they player (value == False);
     # unfinished tasks are modified to be finished after manager sanction
-    blue_status = models.BooleanField(default=True, editable=False)
-    yellow_status = models.BooleanField(default=True, editable=False)
-    red_status = models.BooleanField(default=True, editable=False)
+    blue_status_security = models.BooleanField(default=True, editable=False)
+    yellow_status_security = models.BooleanField(default=True, editable=False)
+    red_status_security = models.BooleanField(default=True, editable=False)
+
+    blue_status_capability = models.BooleanField(default=True, editable=False)
+    yellow_status_capability = models.BooleanField(default=True, editable=False)
+    red_status_capability = models.BooleanField(default=True, editable=False)
+
+    # objects = PlayerManager()
 
     def __unicode__(self):
         return u'%s in %s' % (self.user.username, self.game)
+
+    # def save(self, force_insert=False, force_update=False, using=None,
+    #          update_fields=None):
+    #     if self.pk:
+    #         Workshop.objects.create(player=self.pk)
+    #         Conference.objects.create(player=self.pk)
+    #         Journal.objects.create(player=self.pk)
+    #     super(Player, self).save(force_insert, force_update, using, update_fields)
 
     @property
     def name(self):
         return "{}".format(self.user.username)
 
-    # A player's active workshop objective; creates a new one if need be
-    @property
-    def workshop(self):
-        objective = self.researchobjective_set.filter(name=ResearchObjective.WORKSHOP,
-                                                      complete=False,
-                                                      research_resources__isnull=False).first()
-        if not objective:
-            objective = ResearchObjective.create(ResearchObjective.WORKSHOP, self)
-            objective.save()
-            self.researchobjective_set.add(objective)
-            self.save()
-
-        return objective
-
-    # A player's active conference objective; creates a new one if need be
-    @property
-    def conference(self):
-        objective = self.researchobjective_set.filter(name=ResearchObjective.CONFERENCE,
-                                                      complete=False,
-                                                      research_resources__isnull=False).first()
-        if not objective:
-            objective = ResearchObjective.create(ResearchObjective.CONFERENCE, self)
-            objective.save()
-            self.researchobjective_set.add(objective)
-            self.save()
-
-        return objective
-
-    # A player's active journal objective; creates a new one if need be
-    @property
-    def journal(self):
-        objective = self.researchobjective_set.filter(name=ResearchObjective.JOURNAL,
-                                                      complete=False,
-                                                      research_resources__isnull=False).first()
-        if not objective:
-            objective = ResearchObjective.create(ResearchObjective.JOURNAL, self)
-            objective.save()
-            self.researchobjective_set.add(objective)
-            self.save()
-
-        return objective
-
     @property
     def deadline_sanction_blue(self):
         if self.game.peer_sanc:
-            return 4 - (self.game.current_tick.number - self.last_tick_blue)
+            return 3 - (self.last_tick_blue - self.game.ticks)
         else:
             return 6 - (self.game.current_tick.number - self.last_tick_blue)
 
     @property
+    def deadline_sanction_blue_rep(self):
+        if self.deadline_sanction_blue <= 0:
+            return 'X'
+        return self.deadline_sanction_blue
+
+    @property
     def deadline_sanction_red(self):
         if self.game.peer_sanc:
-            return 4 - (self.game.current_tick.number - self.last_tick_red)
+            return 3 - (self.last_tick_red - self.game.ticks)
         else:
             return 6 - (self.game.current_tick.number - self.last_tick_red)
 
     @property
+    def deadline_sanction_red_rep(self):
+        if self.deadline_sanction_red <= 0:
+            return 'X'
+        return self.deadline_sanction_red
+
+    @property
     def deadline_sanction_yellow(self):
         if self.game.peer_sanc:
-            return 4 - (self.game.current_tick.number - self.last_tick_yellow)
+            return 3 - (self.last_tick_yellow - self.game.ticks)
         else:
             return 6 - (self.game.current_tick.number - self.last_tick_yellow)
+
+    @property
+    def deadline_sanction_yellow_rep(self):
+        if self.deadline_sanction_yellow <= 0:
+            return 'X'
+        return self.deadline_sanction_yellow
 
     # Returns true if a player can make a move at a given instance;
     @property
@@ -275,28 +267,52 @@ class Player(models.Model):
         return rank
 
     def number_of_vulnerabilities(self):
-        vulnerabilities = self.vulnerabilities.security_resources.all()
-        return vulnerabilities.filter(active=False).count()
+        count = 0
+        if self.red_status_security:
+            count += 1
+        if self.yellow_status_security:
+            count += 1
+        if self.blue_status_security:
+            count += 1
+        return count
+
+    def update_player_payload(self, player_payload):
+
+        # Append Blue Security
+        player_payload["blue_security"] = {"active": self.blue_status_security,
+                                           "deadline_sanction": self.deadline_sanction_blue_rep}
+
+        # Append Red Security
+        player_payload["red_security"] = {"active": self.red_status_security,
+                                          "deadline_sanction": self.deadline_sanction_red_rep}
+
+        # Append Yellow Security
+        player_payload["yellow_security"] = {"active": self.yellow_status_security,
+                                             "deadline_sanction": self.deadline_sanction_yellow_rep}
+
+        player_payload["blue_capability"] = self.blue_status_capability
+        player_payload["red_capability"] = self.red_status_capability
+        player_payload["yellow_capability"] = self.yellow_status_capability
+
+        print player_payload
 
 
 # Set's a player's default values, called as a post_save signal
 def set_player_defaults(sender, instance, **kwargs):
     if sender == Player:
-        if instance.number == 0:
-            instance.number = instance.game.player_set.count()
-            instance.save()
-
-        if not hasattr(instance, 'vulnerabilities'):
-            Vulnerabilities.create(instance)
-        if not hasattr(instance, 'capabilities'):
-            Capabilities.create(instance)
-
-        if not instance.researchobjective_set.all():
-            for objective in ResearchObjective.get_initial_set(instance):
-                instance.researchobjective_set.add(objective)
+        if Workshop.objects.filter(player=instance).count() == 0:
+            Workshop.objects.create(player=instance)
+        if Conference.objects.filter(player=instance).count() == 0:
+            Conference.objects.create(player=instance)
+        if Journal.objects.filter(player=instance).count() == 0:
+            Journal.objects.create(player=instance)
 
 
-class GameSets(models.Model):
+# if instance.number == 0:
+#             instance.number = instance.game.player_set.count()
+#             instance.save()
+
+class GameSet(models.Model):
     user = models.ForeignKey(User)
     game_id1 = models.ForeignKey(Game, related_name="game_id1")
     game_id2 = models.ForeignKey(Game, related_name="game_id2")
@@ -329,155 +345,61 @@ RESOURCE_CLASSIFICATIONS = (
 ''' A Research Resource for completing a Research Task '''
 
 
-class ResearchResource(models.Model):
-    classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS, null=True, blank=True)
+class Workshop(models.Model):
+    player = models.ForeignKey(Player, related_name="workshop")
+    classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS, default=BLUE)
+    count = models.IntegerField(default=0)
     complete = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    score = models.IntegerField(default=10)
 
     def __unicode__(self):
         return u'%s Resource' % (self.get_classification_display().capitalize())
 
-    # If no resource classification is specified before saving, a random classification is selected
-    @classmethod
-    def create(cls):
-        research_resource = cls(classification=random.randint(1, 3))
-        research_resource.save()
-        return research_resource
+    @property
+    def classification_display(self):
+        return RESOURCE_CLASSIFICATIONS[self.classification - 1][1]
 
 
-''' A Research Task comprised of some number of Research Resources '''
+class Journal(models.Model):
+    player = models.ForeignKey(Player, related_name="journal")
+    count = models.IntegerField(default=0)
+    classification_one = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS, default=RED)
+    classification_two = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS, default=BLUE)
+    classification_three = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS, default=YELLOW)
+    complete_one = models.BooleanField(default=False)
+    complete_two = models.BooleanField(default=False)
+    complete_three = models.BooleanField(default=False)
+    score = models.IntegerField(default=25)
+
+    @property
+    def classification_display_one(self):
+        return RESOURCE_CLASSIFICATIONS[self.classification_one - 1][1]
+
+    @property
+    def classification_display_two(self):
+        return RESOURCE_CLASSIFICATIONS[self.classification_two - 1][1]
+
+    @property
+    def classification_display_three(self):
+        return RESOURCE_CLASSIFICATIONS[self.classification_three - 1][1]
 
 
-class ResearchObjective(models.Model):
-    # Research Objective types
-    WORKSHOP = 1
-    CONFERENCE = 2
-    JOURNAL = 3
+class Conference(models.Model):
+    player = models.ForeignKey(Player, related_name="conference")
+    count = models.IntegerField(default=0)
+    classification_one = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS, default=RED)
+    classification_two = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS, default=BLUE)
+    complete_one = models.BooleanField(default=False)
+    complete_two = models.BooleanField(default=False)
+    score = models.IntegerField(default=45)
 
-    RESEARCH_OBJECTIVES = (
-        (WORKSHOP, "workshop"),
-        (CONFERENCE, "conference"),
-        (JOURNAL, "journal"),
-    )
+    @property
+    def classification_display_one(self):
+        return RESOURCE_CLASSIFICATIONS[self.classification_one - 1][1]
 
-    name = models.IntegerField(choices=RESEARCH_OBJECTIVES, default=None)
-    player = models.ForeignKey(Player)
-    research_resources = models.ManyToManyField(ResearchResource)
-    value = models.IntegerField(null=True, blank=True)
-    deadline = models.IntegerField(null=True, blank=True)  # deadline not in use yet
-    complete = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __unicode__(self):
-        return u'%s Objective' % (self.get_name_display().capitalize())
-
-    # Creates and saves a ResearchObjective object of the provided name parameter
-    @classmethod
-    def create(cls, name, player):
-
-        # Assign appropriate values to Research Objectives
-        value = 0
-        if name == cls.WORKSHOP:
-            value = WORKSHOP_VALUE
-        elif name == cls.CONFERENCE:
-            value = CONFERENCE_VALUE
-        elif name == cls.JOURNAL:
-            value = JOURNAL_VALUE
-
-        research_objective = cls(name=name, value=value, player=player)
-        research_objective.save()
-        for i in range(name):
-            research_resource = ResearchResource.create()
-            research_objective.research_resources.add(research_resource)
-
-        research_objective.save()
-        return research_objective
-
-    # Returns a set of objects containing one of each Reserarch Objective types
-    @classmethod
-    def get_initial_set(cls, player):
-        research_objective_set = []
-        for (x, y) in cls.RESEARCH_OBJECTIVES:
-            new_objective = cls.create(x, player)
-            research_objective_set.append(new_objective)
-
-        return research_objective_set
-
-
-''' A Security Resource for protecting against an Attack '''
-
-
-class SecurityResource(models.Model):
-    classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS)
-    active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __unicode__(self):
-        if self.active:
-            return u'Active %s Security Resource' % (self.get_classification_display().capitalize())
-        else:
-            return u'Inactive %s Security Resource' % (self.get_classification_display().capitalize())
-
-    @classmethod
-    def create(cls, classification):
-        security_resource = cls(classification=classification)
-        security_resource.save()
-        return security_resource
-
-
-''' A player's set of capabilities '''
-
-
-class Capabilities(models.Model):
-    security_resources = models.ManyToManyField(SecurityResource)
-    player = models.OneToOneField(Player, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __unicode__(self):
-        if hasattr(Capabilities, 'player'):
-            return u'%s\'s Capabilities' % (self.player.name)
-
-    @classmethod
-    def create(cls, player):
-        capabilities = cls(player=player)
-        capabilities.save()
-        for (x, y) in RESOURCE_CLASSIFICATIONS:
-            if not x == LAB:
-                security_resource = SecurityResource.create(x)
-                capabilities.security_resources.add(security_resource)
-
-        capabilities.save()
-        return capabilities
-
-
-''' A player's set of vulnerabilities '''
-
-
-class Vulnerabilities(models.Model):
-    security_resources = models.ManyToManyField(SecurityResource)
-    player = models.OneToOneField(Player, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __unicode__(self):
-        if hasattr(Vulnerabilities, 'player'):
-            return u'%s\'s Vulnerabilities' % (self.player.name)
-
-    @classmethod
-    def create(cls, player):
-        vulnerabilities = cls(player=player)
-        vulnerabilities.save()
-        for (x, y) in RESOURCE_CLASSIFICATIONS:
-            if not x == LAB:
-                security_resource = SecurityResource.create(x)
-                vulnerabilities.security_resources.add(security_resource)
-
-        vulnerabilities.save()
-        return vulnerabilities
+    @property
+    def classification_display_two(self):
+        return RESOURCE_CLASSIFICATIONS[self.classification_two - 1][1]
 
 
 ''' An Attack Resource for issuing an attack against a Research Resource '''
@@ -492,29 +414,6 @@ class AttackResource(models.Model):
         return u'%s Attack Resource' % (self.get_classification_display().capitalize())
 
     @classmethod
-    def deactivate_security(cls, player, attack_class):
-        v = player.vulnerabilities
-        r = v.security_resources.get(classification=attack_class)
-        if r.active:
-            r.active = False
-            r.save()
-            return True
-        else:
-            c = Capabilities.objects.get(player=player).security_resources.get(classification=attack_class)
-            c.active = False
-            c.save()
-            return False
-
-    @classmethod
-    def incomplete_research(cls, player, attack_class):
-        for ro in player.researchobjective_set.filter(complete=False):
-            for r in ro.research_resources.all():
-                if r.classification == attack_class:
-                    r.complete = False
-                    r.save()
-        return True
-
-    @classmethod
     def create(cls, game):
         # If it's not the first round of the game (we don't want to attack on the first round...)
         if game.tick_set.count() > 0:
@@ -523,59 +422,56 @@ class AttackResource(models.Model):
             if random.randint(0, 100) < game.attack_frequency:
 
                 # Check first to see if a LAB attack occurs
-                # A lab attack will occur only as frequent as any other attack (i.e. is dictated by attack_frequency)
-                # Querying all players' vulnerabilities to compare active v. inactive
-                num_inactive = 0
-                total = 0
-                for player in game.player_set.all():
-                    vulnerabilities = player.vulnerabilities.security_resources.all()
-                    num_inactive += vulnerabilities.filter(active=False).count()
-                    total += vulnerabilities.count()
+                # Probability of lab attack happening is one third the probability of normal lab attack
 
-                # The probability of a LAB attack is the total number of inactive vulnerabilities
-                # of all players over the total number of vulnerabilities of all players
-                prob_LAB_attack = float(num_inactive) / float(total) * 100
+                num_ticks = game.tick_set.count()
+                attack_probability = game.tick_set.get(number=num_ticks).next_attack_probability
+                blue, yellow, red = attack_probability.blue, attack_probability.yellow, attack_probability.red
+                attack_probability = [(0, blue, BLUE),
+                                      (blue, blue + red, RED),
+                                      (blue + red, blue + red + yellow, YELLOW),
+                                      (blue + red + yellow, 99, LAB)
+                                      ]
 
-                # If random number between 1 and 100 is less than probability of LAB attack, then LAB attack occurs
-                if random.randint(0, 100) < prob_LAB_attack:
-                    attack_resource = cls(classification=LAB)
-                    attack_resource.save()
-                    content = "lab attack occurred at tick:{}".format(game.ticks)
-                    message = Message(content=content, game=game, tick=game.current_tick, created_by=None)
-                    message.save()
+                rand = random.randint(1, 99)
+                for lo, hi, classification in attack_probability:
+                    if lo <= rand < hi:
+                        attack_resource = cls(classification=classification)
+                        attack_resource.save()
+                        content = "{} attack occurred at tick:{}".format(
+                            RESOURCE_CLASSIFICATIONS[classification - 1][1], game.ticks - 1)
+                        message = Message(content=content, game=game, tick=game.current_tick, created_by=None)
+                        message.save()
+                        break
 
-                    # If attack occurs, perform the attack.
-                    for player in game.player_set.all():
-                        if not player.sanctioned and not player.manager_sanctioned:
-                            for resource in player.vulnerabilities.security_resources.all():
-                                if not cls.deactivate_security(player, resource.classification):
-                                    cls.incomplete_research(player, resource.classification)
+                # Once the color of the attack is determined, perform the attack on the player
+                if attack_resource.classification == RED:
+                    Player.objects.filter(game=game.id, red_status_security=False).update(red_status_capability=False)
+                    Player.objects.filter(game=game.id, red_status_security=True).update(last_tick_red=game.ticks - 1)
+                    Player.objects.filter(game=game.id).update(red_status_security=False)
+                elif attack_resource.classification == YELLOW:
+                    Player.objects.filter(game=game.id, yellow_status_security=False).update(
+                        yellow_status_capability=False)
+                    Player.objects.filter(game=game.id, yellow_status_security=True).update(
+                        last_tick_yellow=game.ticks - 1)
+                    Player.objects.filter(game=game.id).update(yellow_status_security=False)
+                elif attack_resource.classification == BLUE:
+                    Player.objects.filter(game=game.id, blue_status_security=False).update(blue_status_capability=False)
+                    Player.objects.filter(game=game.id, blue_status_security=True).update(last_tick_blue=game.ticks - 1)
+                    Player.objects.filter(game=game.id).update(blue_status_security=False)
+                elif attack_resource.classification == LAB:
+                    Player.objects.filter(game=game.id, red_status_security=False).update(red_status_capability=False)
 
-                # Else, a regular attack occurs, and now we determine which color
-                # Each color has a probabillity of occurring that was established the previous round
-                else:
-                    num_ticks = game.tick_set.count()
-                    attack_probability = game.tick_set.get(number=num_ticks).next_attack_probability
-                    blue, yellow, red = attack_probability.blue, attack_probability.yellow, attack_probability.red
-                    attack_probability = [(0, blue, BLUE),
-                                          (blue, blue + red, RED),
-                                          (blue + red, blue + red + yellow, YELLOW)]
-                    rand = random.randint(1, 99)
-                    for lo, hi, classification in attack_probability:
-                        if lo <= rand < hi:
-                            attack_resource = cls(classification=classification)
-                            attack_resource.save()
-                            content = "{} attack occurred at tick:{}".format(
-                                RESOURCE_CLASSIFICATIONS[classification - 1][1], game.ticks)
-                            message = Message(content=content, game=game, tick=game.current_tick, created_by=None)
-                            message.save()
-                            break
+                    Player.objects.filter(game=game.id, red_status_security=True).update(last_tick_red=game.ticks - 1)
+                    Player.objects.filter(game=game.id, yellow_status_security=True).update(
+                        last_tick_yellow=game.ticks - 1)
+                    Player.objects.filter(game=game.id, blue_status_security=True).update(last_tick_blue=game.ticks - 1)
 
-                    # Once the color of the attack is determined, perform the attack on the player
-                    for player in game.player_set.all():
-                        if not player.sanctioned and not player.manager_sanctioned:
-                            if not cls.deactivate_security(player, attack_resource.classification):
-                                cls.incomplete_research(player, attack_resource.classification)
+                    Player.objects.filter(game=game.id, yellow_status_security=False).update(
+                        yellow_status_capability=False)
+                    Player.objects.filter(game=game.id, blue_status_security=False).update(blue_status_capability=False)
+                    Player.objects.filter(game=game.id).update(blue_status_security=False, yellow_status_security=False,
+                                                               red_status_security=False)
 
                 return attack_resource
 
@@ -587,18 +483,20 @@ class AttackProbability(models.Model):
     blue = models.IntegerField()
     yellow = models.IntegerField()
     red = models.IntegerField()
+    lab = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __unicode__(self):
-        return u'blue: %s, red: %s, yellow: %s' % (self.blue, self.red, self.yellow)
+        return u'blue: %s, red: %s, yellow: %s lab %s' % (self.blue, self.red, self.yellow, self.lab)
 
     @classmethod
     def create(cls):
         blue = random.randint(0, 100)
         yellow = random.randint(0, 100 - blue)
-        red = (100 - yellow - blue)
-        attack_probability = cls(blue=blue, yellow=yellow, red=red)
+        red = random.randint(0, 100 - yellow - blue)
+        lab = (100 - yellow - blue - red)
+        attack_probability = cls(blue=blue, yellow=yellow, red=red, lab=lab)
         attack_probability.save()
         return attack_probability
 
@@ -632,52 +530,29 @@ class Tick(models.Model):
             players = Player.objects.filter(game=self.game)
 
             for player in players:
-
-                # if status == False, corresponding security task satisfy the condition of being counted in the prob. of manager sanction
-                # blue
-                resource = player.vulnerabilities.security_resources.get(classification=1)
-                if resource.active:
-                    player.last_tick_blue = self.number
-
-                # red
-                resource = player.vulnerabilities.security_resources.get(classification=2)
-                if resource.active:
-                    player.last_tick_red = self.number
-
-                    # yellow
-                resource = player.vulnerabilities.security_resources.get(classification=3)
-                if resource.active:
-                    player.last_tick_yellow = self.number
-
-                player.save()
-
                 if not player.manager_sanctioned and not player.sanctioned:
-                    t_blue_status = True
-                    t_red_status = True
-                    t_yellow_status = True
+                    # t_blue_status = True
+                    # t_red_status = True
+                    # t_yellow_status = True
 
                     count = 0
-                    # blue
-                    resource = player.vulnerabilities.security_resources.get(classification=1)
-                    if not resource.active:
+                    # Blue
+                    if not player.blue_status_security:
                         # to record the status of blue security task
-                        t_blue_status = False
-                        if self.number - player.last_tick_blue >= THRESHOLD:
+                        if player.deadline_sanction_blue <= 0:
+                            count += 1
+
+                    # Red
+                    if not player.red_status_security:
+                        if player.deadline_sanction_red <= 0:
+                            count += 1
+
+                    # Yellow
+                    if not player.yellow_status_security:
+                        if player.deadline_sanction_yellow <= 0:
                             count = count + 1
 
-                    # red
-                    resource = player.vulnerabilities.security_resources.get(classification=2)
-                    if not resource.active:
-                        t_red_status = False
-                        if self.number - player.last_tick_red >= THRESHOLD:
-                            count = count + 1
-
-                    # yellow
-                    resource = player.vulnerabilities.security_resources.get(classification=3)
-                    if not resource.active:
-                        t_yellow_status = False
-                        if self.number - player.last_tick_yellow >= THRESHOLD:
-                            count = count + 1
+                    print "Count:{}".format(count)
 
                     sanction_prob = 1.0 * count / num_of_resource
                     # manager_obs_random = random.random()
@@ -685,25 +560,22 @@ class Tick(models.Model):
 
                     if x < sanction_prob:
                         # sanction the player for "2 * count" number of ticks
-                        num_of_vul = player.number_of_vulnerabilities()
+
                         diff = self.game._ticks - self.number
 
-                        ManagerSanction.create(player, self, num_of_vul * 2)
-                        player.blue_status = t_blue_status
-                        player.red_status = t_red_status
-                        player.yellow_status = t_yellow_status
-                        player.counter_sum = 2 * num_of_vul
-                        player.save()
+                        ManagerSanction.create(player, self, count * 2)
+                        # player.counter_sum = 2 * count
 
                         message_text = "%s is sanctioned by the lab manager for %s tick(s) at tick" % (
-                            player.user.username, num_of_vul * 2)
+                            player.user.username, count * 2)
 
-                        for i in range(1, num_of_vul * 2 + 1):
+                        for i in range(1, count * 2 + 1):
                             if diff - i >= 0:
                                 message_text += " %s" % (diff - i)
 
                         message = Message(content=message_text, created_by=None, game=self.game, tick=self)
                         message.save()
+                        # player.save()
 
         elif self.game.manager_sanc == 2:
             players = Player.objects.filter(game=self.game)
@@ -799,61 +671,22 @@ class Tick(models.Model):
         tick.save()
 
         # Notifying all the players of tick complete
-        attack_classification = ""
         players = Player.objects.filter(game=tick.game)
 
-        if tick.attack:
-            attack_classification = tick.attack.get_classification_display()
-            for player in players:
-                attack_items = {"immunity": [], "capability": []}
-                for immnunity in player.vulnerabilities.security_resources.all():
-                    if not immnunity.active:
-                        attack_items["immunity"].append(immnunity.get_classification_display())
-                for capability in player.capabilities.security_resources.all():
-                    if not capability.active:
-                        attack_items["capability"].append(capability.get_classification_display())
-                attack_dictionary = {"type": "attack_type_update", "attack_item": attack_items}
-                # print attack_dictionary
-                Group(str(player.pk)).send({"text": json.dumps(attack_dictionary)})
-
-        tick.manager_sanction()
-        tick_object = {"type": "tick_complete", "new_tick_count": game.ticks, "attack": attack_classification}
-        Group("players").send({"text": json.dumps(tick_object)})
-
-        # For every tick player specific updates
-        player_tick_dictionary_list = []
         for player in players:
-            sanction_threshold = [0, 0, 0]
-            immunity_ids = [-1, -1, -1]
-            immunity_status = [-1, -1, -1]
-            resource = player.vulnerabilities.security_resources.get(classification=BLUE)
-            if not resource.active:
-                sanction_threshold[0] = player.deadline_sanction_blue
-                immunity_status[0] = 1
-            immunity_ids[0] = resource.pk
+            player_payload = {}
+            player.update_player_payload(player_payload)
 
-            resource = player.vulnerabilities.security_resources.get(classification=RED)
-            if not resource.active:
-                sanction_threshold[1] = player.deadline_sanction_red
-                immunity_status[1] = 1
-            immunity_ids[1] = resource.pk
+            player_payload["sanctioned"] = player.sanctioned
+            if tick.attack:
+                player_payload["attack"] = tick.attack.get_classification_display()
+            else:
+                player_payload["attack"] = ""
 
-            resource = player.vulnerabilities.security_resources.get(classification=YELLOW)
-            if not resource.active:
-                sanction_threshold[2] = player.deadline_sanction_yellow
-                immunity_status[2] = 1
-            immunity_ids[2] = resource.pk
+            player_payload["new_tick_count"] = game.ticks
 
-            player_tick_dictionary = {"sanctioned": str(player.manager_sanctioned or player.sanctioned),
-                                      "sanction_threshold": sanction_threshold,
-                                      "immunity_status": immunity_status,
-                                      "immunity_ids": immunity_ids, "player_id": player.pk}
-            # print player_tick_dictionary
-            player_tick_dictionary_list.append(player_tick_dictionary)
-
-        player_tick_dictionarys = {"type": "sanction_status", "sanction_dict": player_tick_dictionary_list}
-        Group("players").send({"text": json.dumps(player_tick_dictionarys)})
-
+            player_payload["type"] = "tick_complete"
+            Group(str(player.pk)).send({"text": json.dumps(player_payload)})
         return tick
 
     @classmethod

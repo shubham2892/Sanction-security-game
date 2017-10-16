@@ -5,11 +5,11 @@
 .game-header {
     width: 100%;
     margin-left: auto;
-    margin-right:auto;
+    margin-right: auto;
     padding: 10px;
-    margin-bottom:10px;
+    margin-bottom: 10px;
     border-bottom: 1px solid #eeeeee;
-    display :inline-block;
+    display: inline-block;
 }
 
 .game-header #game-number {
@@ -17,14 +17,14 @@
 }
 
 .game-header .response {
-    float:center;
+    float: center;
     text-align: center;
     width: 100%;
     height: 1em;
 }
 
 .game-header #time-remaining {
-    float:right;
+    float: right;
 }
 
 /*===END Game Header Style===*/
@@ -32,7 +32,7 @@
 /*========================================*/
 
 /*===START Game Vulnerability Information Header===*/
-.game-vulnerability-info{
+.game-vulnerability-info {
     text-align: center;
     font-size: 200%;
 }
@@ -42,7 +42,7 @@
 /*========================================*/
 
 /*===START Player Statistics Information Header===*/
-.player-stat-info{
+.player-stat-info {
     text-align: center;
     font-size: 150%;
 }
@@ -54,7 +54,7 @@
 /*===START Bootstrap Override Style===*/
 
 .progress {
-    margin:auto;
+    margin: auto;
 }
 
 /*===END Bootstrap Override Style===*/
@@ -68,19 +68,19 @@
 }
 
 .section-header {
-    width:100%;
+    width: 100%;
     margin-top: 20px;
     margin-bottom: 20px;
-    display:inline-block;
+    display: inline-block;
 }
 
 .section-header h3 {
-    margin:0;
-    float:left;
+    margin: 0;
+    float: left;
 }
 
-.section-header .new-task{
-    float:right;
+.section-header .new-task {
+    float: right;
 }
 
 .gameboard {
@@ -88,7 +88,7 @@
 }
 
 .objectives {
-    min-height:180px;
+    min-height: 180px;
 }
 
 /*=== END Playe Pane Style ===*/
@@ -101,7 +101,7 @@
     background-color: red;
 }
 
-.panel-heading .sanction,  .panel-heading .props {
+.panel-heading .sanction, .panel-heading .props {
     position: relative;
     top: -5px;
     margin-left: 4px;
@@ -112,12 +112,12 @@
 }
 
 .info-text td {
-    font-weight:bold;
-    padding-right:1em;
+    font-weight: bold;
+    padding-right: 1em;
 }
 
 .info-text #score > td {
-    padding-bottom:1em;
+    padding-bottom: 1em;
 }
 
 .info-text .progressbar {
@@ -140,7 +140,7 @@
 }
 
 .attack-warning {
-    text-align:center;
+    text-align: center;
 }
 
 .panel-heading.attack-heading {
@@ -154,20 +154,20 @@
 /*=== START Attack Information Style ===*/
 
 .attack-active {
-    height:84px;
+    height: 84px;
 }
 
- .attack-threat {
+.attack-threat {
     height: 400px;
- }
+}
 
 .outer {
     width: 40px;
     height: 100%;
     border: 2px solid #ccc;
     overflow: hidden;
-    margin-left:auto;
-    margin-right:auto;
+    margin-left: auto;
+    margin-right: auto;
 
     position: relative;
 
@@ -182,37 +182,36 @@
     position: absolute;
 }
 
-.inner.blue{
+.inner.blue {
     border: 2px solid blue;
     border-top-width: 0;
     background-color: blue;
 
     bottom: 0;
     height: 0%;
-    z-index:3;
+    z-index: 3;
 }
 
-.inner.red{
+.inner.red {
     border: 2px solid red;
     border-top-width: 0;
     background-color: red;
 
     bottom: 0;
     height: 0%;
-    z-index:2;
+    z-index: 2;
 
 }
 
-.inner.yellow{
+.inner.yellow {
     border: 2px solid yellow;
     border-top-width: 0;
     background-color: yellow;
 
     bottom: 0;
     height: 0%;
-    z-index:1;
+    z-index: 1;
 }
-
 
 /*=== END Attack Information Style ===*/
 
@@ -224,17 +223,17 @@
     margin-left: 1em;
 }
 
-.category-list  td{
+.category-list td {
     padding-bottom: 1em;
-    padding-right:1em;
-    text-align:left;
+    padding-right: 1em;
+    text-align: left;
 }
 
 .category-list .objective-category {
-    float:left;
-    display:inline-block;
+    float: left;
+    display: inline-block;
     padding-right: 1em;
-    vertical-align:middle;
+    vertical-align: middle;
 }
 
 /*=== END Resource List Style ===*/
@@ -273,6 +272,30 @@
     border: 3px solid #5cb85c;
 }
 
+.clickable.resource-container.incomplete.blue {
+    background: rgba(0, 0, 255, 0.5);
+}
+
+.clickable.resource-container.complete.blue {
+    background: rgb(0, 0, 255);
+}
+
+.clickable.resource-container.incomplete.red {
+    background: rgba(255, 0, 0, 0.5);
+}
+
+.clickable.resource-container.complete.red{
+    background: rgb(255, 0, 0);
+}
+
+.clickable.resource-container.incomplete.yellow {
+    background: rgba(255, 255, 0, 0.5);
+}
+
+.clickable.resource-container.complete.yellow {
+    background: rgb(255, 255, 0);
+}
+
 #attack .complete {
     border: none;
     border: 2px solid #ccc;
@@ -287,51 +310,99 @@
 }
 
 .red_attack {
-    background: rgb(255,0,0);
+    background: rgb(255, 0, 0);
 }
 
 .blue_attack {
-    background: rgb(0,0,255);
+    background: rgb(0, 0, 255);
 }
 
 .yellow_attack {
-    background: rgb(255,255,0);
+    background: rgb(255, 255, 0);
 }
 
 .lab_attack {
     background: black;
 }
 
-.incomplete .centered, .inactive .centered{
+#red_security {
+    background: rgb(255, 0, 0);
+}
+
+#blue_security {
+    background: rgb(0, 0, 255);
+}
+
+#yellow_security {
+    background: rgb(255, 255, 0);
+}
+
+#red_capability {
+    background: rgb(255, 0, 0);
+}
+
+#blue_capability {
+    background: rgb(0, 0, 255);
+}
+
+#yellow_capability {
+    background: rgb(255, 255, 0);
+}
+
+.incomplete .centered, .inactive .centered {
     color: black;
 }
 
 #blue.incomplete, #blue.inactive {
-    background: rgba(0,0,255, 0.5);
+    background: rgba(0, 0, 255, 0.5);
 }
 
-#red.incomplete, #red.inactive{
-    background: rgba(255,0,0, 0.5);
+#blue_security.incomplete, #blue_security.inactive {
+    background: rgba(0, 0, 255, 0.5);
+}
+
+#blue_capability.incomplete, #blue_capability.inactive {
+    background: rgba(0, 0, 255, 0.5);
+}
+
+#red.incomplete, #red.inactive {
+    background: rgba(255, 0, 0, 0.5);
+}
+
+#red_security.incomplete, #red_security.inactive {
+    background: rgba(255, 0, 0, 0.5);
+}
+
+#red_capability.incomplete, #red_capability.inactive {
+    background: rgba(255, 0, 0, 0.5);
 }
 
 #yellow.incomplete, #yellow.inactive {
-    background: rgba(255,255,0, 0.5);
+    background: rgba(255, 255, 0, 0.5);
+}
+
+#yellow_security.incomplete, #yellow_security.inactive {
+    background: rgba(255, 255, 0, 0.5);
+}
+
+#yellow_capability.incomplete, #yellow_capability.inactive {
+    background: rgba(255, 255, 0, 0.5);
 }
 
 #blue.complete, #blue.active {
-    background: rgb(0,0,255);
+    background: rgb(0, 0, 255);
 }
 
 #red.complete, #red.active {
-    background: rgb(255,0,0);
+    background: rgb(255, 0, 0);
 }
 
 #yellow.complete, #yellow.active {
-    background: rgb(255,255,0);
+    background: rgb(255, 255, 0);
 }
 
 #lab.complete, #lab.active {
-    background: rgb(0,0,0);
+    background: rgb(0, 0, 0);
 }
 
 /*=== END  Resource Container Style ===*/
@@ -365,7 +436,6 @@ ul.chat {
     margin-right: 60px;
 }
 
-
 .chat li .chat-body p {
     margin: 0;
     color: #777777;
@@ -376,7 +446,7 @@ ul.chat {
 }
 
 ::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
     background-color: #F5F5F5;
 }
 
@@ -386,10 +456,9 @@ ul.chat {
 }
 
 ::-webkit-scrollbar-thumb {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .3);
     background-color: #555;
 }
-
 
 #orangeBox {
     background: #f90;
@@ -402,6 +471,7 @@ ul.chat {
     height: 50px;
     border-radius: 5px;
 }
+
 /*=== END Group Chat Style ===*/
 
 /*========================================*/

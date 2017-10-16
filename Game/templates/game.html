@@ -205,7 +205,7 @@
                 <div class="panel-body">
 
                     <!-- START Resource Objectives -->
-                    <div id = "projects">
+                    <div id="projects">
                         <h4><u>Projects</u>:</h4>
 
                         <table class="category-list">
@@ -216,20 +216,18 @@
                                 <td>
                                     <h4 class="objective-category">Workshop ($10):</h4>
                                 </td>
-                                {% for resource in me.workshop.research_resources.all %}
-                                    <td>
-                                        {% if resource.complete %}
-                                            <div id="{{ resource.get_classification_display }}"
-                                                 class="clickable resource-container complete">
-                                        {% else %}
-                                            <div id="{{ resource.get_classification_display }}"
-                                                 class="clickable resource-container incomplete"
-                                                 value="{{ resource.pk }}">
-                                        {% endif %}
-                                        <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-                                {% endfor %}
+                                <td>
+                                    {% if me.workshop.first.complete %}
+                                        <div id="workshop_resource"
+                                             class="clickable resource-container complete {{ me.workshop.first.classification_display }}">
+                                    {% else %}
+                                        <div id="workshop_resource"
+                                             class="clickable resource-container incomplete {{ me.workshop.first.classification_display }}">
+                                    {% endif %}
+
+                                    <span class="centerer"></span><span class='centered'></span>
+                                    </div>
+                                </td>
                             </tr>
                             <!-- END Workshop Objective -->
 
@@ -238,20 +236,30 @@
                                 <td>
                                     <h4 class="objective-category">Conference ($25):</h4>
                                 </td>
-                                {% for resource in me.conference.research_resources.all %}
-                                    <td>
-                                        {% if resource.complete %}
-                                            <div id="{{ resource.get_classification_display }}"
-                                                 class="clickable resource-container complete">
-                                        {% else %}
-                                            <div id="{{ resource.get_classification_display }}"
-                                                 class="clickable resource-container incomplete"
-                                                 value="{{ resource.pk }}">
-                                        {% endif %}
-                                        <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-                                {% endfor %}
+
+                                <td>
+                                    {% if me.conference.first.complete_one %}
+                                        <div id="conference_one"
+                                             class="clickable resource-container complete {{ me.conference.first.classification_display_one }}">
+                                    {% else %}
+                                        <div id="conference_one"
+                                             class="clickable resource-container incomplete {{ me.conference.first.classification_display_one }}">
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if me.conference.first.complete_two %}
+                                        <div id="conference_two"
+                                             class="clickable resource-container complete {{ me.conference.first.classification_display_two }}">
+                                    {% else %}
+                                        <div id="conference_two"
+                                             class="clickable resource-container incomplete {{ me.conference.first.classification_display_two }}">
+                                    {% endif %}
+
+
+                                    <span class="centerer"></span><span class='centered'></span>
+                                    </div>
+                                </td>
+
                             </tr>
                             <!-- END Conference Objective -->
 
@@ -260,20 +268,39 @@
                                 <td>
                                     <h4 class="objective-category">Journal ($45):</h4>
                                 </td>
-                                {% for resource in me.journal.research_resources.all %}
-                                    <td>
-                                        {% if resource.complete %}
-                                            <div id="{{ resource.get_classification_display }}"
-                                                 class="clickable resource-container complete">
-                                        {% else %}
-                                            <div id="{{ resource.get_classification_display }}"
-                                                 class="clickable resource-container incomplete"
-                                                 value="{{ resource.pk }}">
-                                        {% endif %}
-                                        <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-                                {% endfor %}
+
+                                <td>
+                                    {% if me.journal.first.complete_one %}
+                                        <div id="journal_one"
+                                             class="clickable resource-container complete {{ me.journal.first.classification_display_one }}">
+                                    {% else %}
+                                        <div id="journal_one"
+                                             class="{{ me.journal.first.classification_display_one }} clickable resource-container incomplete">
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if me.journal.first.complete_two %}
+                                        <div id="journal_two"
+                                             class="clickable resource-container complete {{ me.journal.first.classification_display_two }}">
+                                    {% else %}
+                                        <div id="journal_two"
+                                             class="clickable resource-container incomplete {{ me.journal.first.classification_display_two }}">
+                                    {% endif %}
+                                </td>
+                                <td>
+
+                                    {% if me.journal.first.complete_three %}
+                                        <div id="journal_three"
+                                             class="clickable resource-container complete {{ me.journal.first.classification_display_three }}">
+                                    {% else %}
+                                        <div id="journal_three"
+                                             class="clickable resource-container incomplete {{ me.journal.first.classification_display_three }}">
+                                    {% endif %}
+
+                                    <span class="centerer"></span><span class='centered'></span>
+                                    </div>
+                                </td>
+
                             </tr>
                             <!-- END Journal Objective -->
 
@@ -287,7 +314,7 @@
 
                     <!-- START Security Features -->
 
-                    <div id = "security_objectives">
+                    <div id="security_objectives">
                         <h4><u>Security Objectives:</u></h4>
                         <table class="category-list">
                             <tbody>
@@ -295,43 +322,49 @@
                                 <td>
                                     <h4 class="objective-category">Immunities:</h4>
                                 </td>
-                                {% for vulnerability in me.vulnerabilities.security_resources.all %}
-                                    <td>
-                                        {% if vulnerability.active %}
-                                            <div id="{{ vulnerability.get_classification_display }}"
-                                                 class="resource-container active"
-                                                 value="{{ vulnerability.pk }}">
 
-                                        {% else %}
-                                            <div id="{{ vulnerability.get_classification_display }}"
-                                                 class="clickable resource-container inactive"
-                                                 value="{{ vulnerability.pk }}">
-                                            {% if vulnerability.classification == 1 %}
-                                                {% if me.deadline_sanction_blue > 0 %}
-                                                    {{ me.deadline_sanction_blue }}
-                                                {% else %}
-                                                    X
-                                                {% endif %}
-                                            {% elif vulnerability.classification == 2 %}
-                                                {% if me.deadline_sanction_red > 0 %}
-                                                    {{ me.deadline_sanction_red }}
-                                                {% else %}
-                                                    X
-                                                {% endif %}
-                                            {% elif vulnerability.classification == 3 %}
-                                                {% if me.deadline_sanction_yellow > 0 %}
-                                                    {{ me.deadline_sanction_yellow }}
-                                                {% else %}
-                                                    X
-                                                {% endif %}
-                                            {% endif %}
-                                        {% endif %}
-                                        {#                                        <p id="{{ vulnerability.get_classification_display }}"></p>#}
+                                <!---- Blue Security Resource ---->
+                                <td>
+                                    {% if me.blue_status_security %}
+                                        <div id="blue_security"
+                                             class="resource-container active">
+                                    {% else %}
+                                        <div id="blue_security"
+                                             class="clickable resource-container inactive">
+                                        {{ me.deadline_sanction_blue_rep }}
+                                    {% endif %}
+                                    </div>
+                                </td>
 
-                                        </div>
-                                    </td>
-                                {% endfor %}
+                                <!------ Red Security Resource ---->
+                                <td>
+                                    {% if me.red_status_security %}
+                                        <div id="red_security"
+                                             class="resource-container active">
+                                    {% else %}
+                                        <div id="red_security"
+                                             class="clickable resource-container inactive">
+                                        {{ me.deadline_sanction_red_rep }}
+                                    {% endif %}
+                                    </div>
 
+                                </td>
+
+                                <!------ Yellow Security Resource --->
+                                <td>
+                                    {% if me.yellow_status_security %}
+                                        <div id="yellow_security"
+                                             class="resource-container active">
+                                    {% else %}
+                                        <div id="yellow_security"
+                                             class="clickable resource-container inactive">
+                                        {{ me.deadline_sanction_yellow_rep }}
+                                    {% endif %}
+                                    </div>
+
+                                </td>
+
+                                <!--- Pass Button --->
                                 <td>
                                     {% if me.manager_sanctioned %}
                                         <button type="button" id="passbtn" class="btn btn-success">
@@ -360,20 +393,37 @@
                                 <td>
                                     <h4 class="objective-category">Capabilities:</h4>
                                 </td>
-                                {% for capability in me.capabilities.security_resources.all %}
-                                    <!-- Blue Security Resource -->
-                                    <td>
-                                        {% if capability.active %}
-                                            <div id="{{ capability.get_classification_display }}"
-                                                 class="resource-container active">
-                                        {% else %}
-                                            <div id="{{ capability.get_classification_display }}"
-                                                 class="resource-container inactive">
-                                        {% endif %}
-                                        <span class="centerer"></span><span class='centered'></span>
-                                        </div>
-                                    </td>
-                                {% endfor %}
+                                <!--- Blue --->
+                                <td>
+                                    {% if me.blue_status_capability %}
+                                        <div id="blue_capability" class="resource-container active">
+                                    {% else %}
+                                        <div id="blue_capability" class="resource-container inactive">
+                                    {% endif %}
+                                    </div>
+                                </td>
+
+                                <!--- Red ---->
+                                <td>
+                                    {% if me.red_status_capability %}
+                                        <div id="red_capability" class="resource-container active">
+                                    {% else %}
+                                        <div id="red_capability" class="resource-container inactive">
+                                    {% endif %}
+                                    </div>
+                                </td>
+
+
+                                <!--- Yellow --->
+                                <td>
+                                    {% if me.yellow_status_capability %}
+                                        <div id="yellow_capability" class="resource-container active">
+                                    {% else %}
+                                        <div id="yellow_capability" class="resource-container inactive">
+                                    {% endif %}
+                                    </div>
+                                </td>
+
                             </tr>
 
                             </tbody>

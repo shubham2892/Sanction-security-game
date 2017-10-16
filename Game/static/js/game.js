@@ -5,12 +5,6 @@
 //     return false;
 // });
 
-
-// var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-// var chat_socket = new WebSocket(ws_scheme + '://' + window.location.host + "/webs" + window.location.pathname);
-
-// Note that the path doesn't matter for routing; any WebSocket
-// connection gets bumped over to WebSocket consumers
 socket = new WebSocket("ws://" + window.location.host + "/chat/" + me_player.pk);
 
 socket.onmessage = function (message) {
@@ -38,8 +32,6 @@ socket.onmessage = function (message) {
         update_ticks(data);
     } else if (data['type'] === 'sanction_status') {
         player_sanction(data);
-    } else if (data['type'] === 'attack_type_update') {
-        attack_inactivate_resource(data["attack_item"])
     } else if (data['type'] === 'move_made') {
         $("#game-number").text("Status:Waiting on others...");
     }
@@ -56,24 +48,6 @@ socket.onopen = function () {
 };
 // Call onopen directly if socket is already open
 if (socket.readyState === WebSocket.OPEN) socket.onopen();
-
-// $('#chatform').on('submit', function(event) {
-//     var message = {
-//         handle: $('#handle').val(),
-//         message: $('#message').val(),
-//     }
-//     chat_socket.send(JSON.stringify(message));
-//     return false;
-// });
-//
-// chatsock.onmessage = function(message) {
-//     var data = JSON.parse(message.data);
-//     $('#chat').append('<tr>'
-//         + '<td>' + data.timestamp + '</td>'
-//         + '<td>' + data.handle + '</td>'
-//         + '<td>' + data.message + ' </td>'
-//     + '</tr>');
-// };
 
 function player_sanction(data) {
 
@@ -103,58 +77,165 @@ function player_sanction(data) {
     }
 }
 
-function attack_inactivate_resource(data) {
-    for (var resource = 0; resource < data["immunity"].length; resource++) {
-        if (data['immunity'][resource] === 'blue') {
-
-            $("#vulnerability-list").find("#blue").removeClass("active").addClass("inactive").addClass("clickable");
-        }
-        if (data['immunity'][resource] === 'yellow') {
-            $("#vulnerability-list").find("#yellow").removeClass("active").addClass("inactive").addClass("clickable");
-        }
-        if (data['immunity'][resource] === 'red') {
-            $("#vulnerability-list").find("#red").removeClass("active").addClass("inactive").addClass("clickable");
-        }
+function handle_capability(data) {
+    if (data["blue_capability"]) {
+        activate_blue_capability();
+    } else {
+        deactivate_blue_capability();
     }
 
-    for (resource = 0; resource < data["capability"].length; resource++) {
-        if (data['capability'][resource] === 'blue') {
-            $("#capability-list").find("#blue").removeClass("active").addClass("inactive")
-        }
-        if (data['capability'][resource] === 'yellow') {
-            $("#capability-list").find("#yellow").removeClass("active").addClass("inactive")
-        }
-        if (data['capability'][resource] === 'red') {
-            $("#capability-list").find("#red").removeClass("active").addClass("inactive")
-        }
+    if (data["red_capability"]) {
+        activate_red_capability();
+    } else {
+        deactivate_red_capability();
+    }
+
+    if (data["yellow_capability"]) {
+        activate_yellow_capability();
+    } else {
+        deactivate_yellow_capability();
     }
 
 }
 
+function handle_security(data) {
+
+    if (data["blue_security"]["active"]) {
+        activate_blue_security();
+    } else {
+        deactivate_blue_security(data["blue_security"]["deadline_sanction"]);
+    }
+
+    if (data["red_security"]["active"]) {
+        activate_red_security();
+    } else {
+        deactivate_red_security(data["red_security"]["deadline_sanction"]);
+    }
+
+    if (data["yellow_security"]["active"]) {
+        activate_yellow_security();
+    } else {
+        deactivate_yellow_security(data["yellow_security"]["deadline_sanction"]);
+    }
+
+}
+
+function activate_red_security() {
+    var securityObjectUpdate = document.getElementById("red_security");
+    securityObjectUpdate.classList.remove("inactive");
+    securityObjectUpdate.classList.remove("clickable");
+    securityObjectUpdate.classList.add("active");
+    securityObjectUpdate.textContent = "";
+}
+
+function deactivate_red_security(deadline) {
+    var securityObjectUpdate = document.getElementById("red_security");
+    securityObjectUpdate.classList.add("inactive");
+    securityObjectUpdate.classList.remove("active");
+    securityObjectUpdate.classList.add("clickable");
+    securityObjectUpdate.textContent = deadline;
+}
+
+function activate_red_capability() {
+    var securityObjectUpdate = document.getElementById("red_capability");
+    securityObjectUpdate.classList.remove("inactive");
+    securityObjectUpdate.classList.add("active");
+}
+
+function deactivate_red_capability() {
+    var securityObjectUpdate = document.getElementById("red_capability");
+    securityObjectUpdate.classList.add("inactive");
+    securityObjectUpdate.classList.remove("active");
+}
+
+function activate_yellow_capability() {
+    var securityObjectUpdate = document.getElementById("yellow_capability");
+    securityObjectUpdate.classList.remove("inactive");
+    securityObjectUpdate.classList.add("active");
+}
+
+function activate_yellow_security() {
+    var securityObjectUpdate = document.getElementById("yellow_security");
+    securityObjectUpdate.classList.remove("inactive");
+    securityObjectUpdate.classList.remove("clickable");
+    securityObjectUpdate.classList.add("active");
+    securityObjectUpdate.textContent = "";
+}
+
+function deactivate_yellow_capability() {
+    var securityObjectUpdate = document.getElementById("yellow_capability");
+    securityObjectUpdate.classList.add("inactive");
+    securityObjectUpdate.classList.remove("active");
+}
+
+function deactivate_yellow_security(deadline) {
+    var securityObjectUpdate = document.getElementById("yellow_security");
+    securityObjectUpdate.classList.add("inactive");
+    securityObjectUpdate.classList.remove("active");
+    securityObjectUpdate.classList.add("clickable");
+    securityObjectUpdate.textContent = deadline;
+}
+
+function activate_blue_capability() {
+    var securityObjectUpdate = document.getElementById("blue_capability");
+    securityObjectUpdate.classList.remove("inactive");
+    securityObjectUpdate.classList.add("active");
+}
+
+
+function activate_blue_security() {
+    var securityObjectUpdate = document.getElementById("blue_security");
+    securityObjectUpdate.classList.remove("inactive");
+    securityObjectUpdate.classList.remove("clickable");
+    securityObjectUpdate.classList.add("active");
+    securityObjectUpdate.textContent = "";
+}
+
+function deactivate_blue_capability() {
+    var securityObjectUpdate = document.getElementById("blue_capability");
+    securityObjectUpdate.classList.add("inactive");
+    securityObjectUpdate.classList.remove("active");
+}
+
+
+function deactivate_blue_security(deadline) {
+    var securityObjectUpdate = document.getElementById("blue_security");
+    securityObjectUpdate.classList.add("inactive");
+    securityObjectUpdate.classList.remove("active");
+    securityObjectUpdate.classList.add("clickable");
+    securityObjectUpdate.textContent = deadline;
+}
 
 function update_player(player_object) {
     var tableObject = document.getElementById(player_object["id"]);
     if (tableObject !== null) {
         tableObject.rows[0].cells[1].textContent = "$" + player_object["score"];
         tableObject.rows[1].cells[1].textContent = player_object["status"];
-        if (player_object["vulnerabilities"][0].active) {
-            tableObject.rows[2].cells[1].children[0].className = "resource-container active"
-        } else {
-            tableObject.rows[2].cells[1].children[0].className = "resource-container inactive"
-        }
-
-        if (player_object["vulnerabilities"][1].active) {
-            tableObject.rows[2].cells[2].children[0].className = "resource-container active"
-        } else {
-            tableObject.rows[2].cells[2].children[0].className = "resource-container inactive"
-        }
-
-        if (player_object["vulnerabilities"][2].active) {
-            tableObject.rows[2].cells[3].children[0].className = "resource-container active"
-        } else {
-            tableObject.rows[2].cells[3].children[0].className = "resource-container inactive"
-        }
+        handle_security(player_object);
+        handle_capability(player_object);
     }
+}
+
+function update_attack(attack_type) {
+
+    $("#attack_resource").removeClass("lab_attack").removeClass("yellow_attack").removeClass("red_attack").removeClass("blue_attack");
+
+    if (attack_type === 'red') {
+        $("#attack_resource").addClass("red_attack");
+    }
+
+    if (attack_type === 'blue') {
+        $("#attack_resource").addClass("blue_attack");
+    }
+
+    if (attack_type === 'yellow') {
+        $("#attack_resource").addClass("yellow_attack");
+    }
+
+    if (attack_type === 'lab') {
+        $("#attack_resource").addClass("lab_attack");
+    }
+
 }
 
 function update_ticks(tick_data) {
@@ -168,24 +249,10 @@ function update_ticks(tick_data) {
         $('#game-over-modal').modal({backdrop: "static", keyboard: false});
     }
 
-    if (tick_data["attack"] === 'red') {
-        $("#attack_resource").addClass("red_attack");
-    }
+    update_attack(tick_data["attack"]);
+    handle_security(tick_data);
+    handle_capability(tick_data);
 
-    if (tick_data["attack"] === 'blue') {
-        $("#attack_resource").addClass("blue_attack");
-    }
-
-    if (tick_data["attack"] === 'yellow') {
-        $("#attack_resource").addClass("yellow_attack");
-    }
-
-    if (tick_data["attack"] === 'lab') {
-        $("#attack_resource").addClass("lab_attack");
-    }
-    if (tick_data["attack"] === '') {
-        $("#attack_resource").removeClass("lab_attack").removeClass("yellow_attack").removeClass("red_attack").removeClass("blue_attack");
-    }
 
 }
 
@@ -262,13 +329,12 @@ function updatePage() {
 
 // activate security resource
 $('#security_objectives').on('click', '.clickable.inactive', function (event) {
-    console.log("Security Resource clicked: " + $(this).attr('value'));
     alertSuccess("Response Recorded");
     event.preventDefault();
     var message = {
         type: 'security_resource_activate',
         player_pk: $("#player").text(),
-        security_resource_pk: $(this).attr('value')
+        security_resource_pk: $(this).attr('id')
     };
     socket.send(JSON.stringify(message));
     return false;
@@ -277,25 +343,28 @@ $('#security_objectives').on('click', '.clickable.inactive', function (event) {
 // complete research resource
 $('#projects').on('click', '.clickable.incomplete', function (event) {
     alertSuccess("Response Recorded");
-    var clicked_resource = $(this);
     event.preventDefault();
+    var id = this.id;
+    var resource_type = id.split("_")[0];
+    var resource_position = id.split("_")[1];
     var message = {
-        resource_pk: $(clicked_resource).attr('value'),
+        resource_type: resource_type,
+        resource_position: resource_position,
         player_pk: $("#player").text(),
         type: 'resource_complete'
     };
+    console.log("Resource Clicked");
+    console.log(message);
     socket.send(JSON.stringify(message));
     return false;
 });
 
 
 function activate_security_resource_reply(response_message) {
+
     if (response_message["active"] === true) {
-        var querySelectorquery = 'div[value="' + response_message['pk'] + '"]';
-        document.querySelector(querySelectorquery).textContent = "";
-        document.querySelector(querySelectorquery).classList.remove("inactive");
-        document.querySelector(querySelectorquery).classList.add("active");
-        $("#capability-list").load(location.href + " #capability-list>*", "");
+        handle_security(response_message);
+        handle_capability(response_message);
         alertSuccess(response_message["result"]);
     } else {
         alertFailure(response_message["result"]);
@@ -325,19 +394,47 @@ function sanction_player_reply(response_message) {
     }
 }
 
+function change_resource_classification(resource_object, new_classification) {
+    resource_object.className = '';
+    resource_object.classList.add("clickable");
+    resource_object.classList.add("resource-container");
+    resource_object.classList.add("incomplete");
+    resource_object.classList.add(new_classification)
+
+}
+
 function complete_research_resource_reply(response_message) {
-    if ("resource_complete" in response_message && response_message["resource_complete"] === true) {
-        var querySelectorquery = 'div[value="' + response_message['clicked_resource'] + '"]';
-        document.querySelector(querySelectorquery).classList.remove("incomplete");
-        document.querySelector(querySelectorquery).classList.add("complete");
+    if (response_message['objective_complete'] === true) {
+        if (response_message['resource_type'] === 'workshop') {
+            var querySelectorquery = document.getElementById('workshop_resource');
+            change_resource_classification(querySelectorquery, response_message['new_classifications'][0]);
+        } else if (response_message['resource_type'] === 'conference') {
+            var querySelectorquery = document.getElementById('conference_one');
+            change_resource_classification(querySelectorquery, response_message['new_classifications'][0]);
+            querySelectorquery = document.getElementById('conference_two');
+            change_resource_classification(querySelectorquery, response_message['new_classifications'][1]);
+
+        } else {
+            var querySelectorquery = document.getElementById('journal_one');
+            change_resource_classification(querySelectorquery, response_message['new_classifications'][0]);
+            querySelectorquery = document.getElementById('journal_two');
+            change_resource_classification(querySelectorquery, response_message['new_classifications'][1]);
+            querySelectorquery = document.getElementById('journal_three');
+            change_resource_classification(querySelectorquery, response_message['new_classifications'][2]);
+
+        }
+        $("#my-score").text("$" + response_message['score']);
+        alertSuccess(response_message["result"]);
+    } else if ("resource_complete" in response_message && response_message["resource_complete"] === true) {
+        var idName = response_message['resource_type'] + '_' + response_message['resource_position'];
+        var querySelectorquery = document.getElementById(idName);
+        querySelectorquery.classList.remove("incomplete");
+        querySelectorquery.classList.add("complete");
 
         $("#my-score").text("$" + response_message['score']);
         alertSuccess(response_message["result"]);
     } else {
         alertFailure(response_message["result"]);
-    }
-    if ("objective_complete" in response_message && response_message["objective_complete"] === true) {
-        $("#research-objectives").load(location.href + " #research-objectives>*", "");
     }
 }
 
@@ -359,25 +456,21 @@ $(document).on('click', '#passbtn', function (event) {
 function pass_round_reply(response_message) {
     if ("resource" in response_message) {
         if (response_message["resource"].includes("blue")) {
-
-            $("#vulnerability-list").find("#blue").removeClass("inactive").addClass("active").removeClass("clickable");
-            $("#vulnerability-list").find("#blue").text("");
-            $("#capability-list").find("#blue").removeClass("inactive").addClass("active");
+            activate_blue_security();
+            activate_blue_capability();
             $("#passbtn").hide();
             alertSuccess(response_message["result"]);
         }
         if (response_message["resource"].includes("red")) {
-            $("#vulnerability-list").find("#red").removeClass("inactive").addClass("active").removeClass("clickable");
-            $("#vulnerability-list").find("#red").text("");
-            $("#capability-list").find("#red").removeClass("inactive").addClass("active");
+            activate_red_security();
+            activate_red_capability();
             $("#passbtn").hide();
 
             alertSuccess(response_message["result"]);
         }
         if (response_message["resource"].includes("yellow")) {
-            $("#vulnerability-list").find("#yellow").removeClass("inactive").addClass("active").removeClass("clickable");
-            $("#vulnerability-list").find("#yellow").text("");
-            $("#capability-list").find("#yellow").removeClass("inactive").addClass("active");
+            activate_yellow_security();
+            activate_blue_capability();
             $("#passbtn").hide();
             alertSuccess(response_message["result"]);
         }
