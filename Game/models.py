@@ -254,6 +254,7 @@ class Player(models.Model):
     @property
     def manager_sanctioned(self):
         current_tick = self.game.current_tick.number
+        print "checking for tick:{}".format(current_tick)
         if self.sanctionee_by_manager.exists() and (
                 self.sanctionee_by_manager.filter(tick_number=current_tick, game=self.game).exists()):
             return True
@@ -293,6 +294,7 @@ class Player(models.Model):
         player_payload["blue_capability"] = self.blue_status_capability
         player_payload["red_capability"] = self.red_status_capability
         player_payload["yellow_capability"] = self.yellow_status_capability
+
 
         print player_payload
 
@@ -351,9 +353,6 @@ class Workshop(models.Model):
     count = models.IntegerField(default=0)
     complete = models.BooleanField(default=False)
     score = models.IntegerField(default=10)
-
-    def __unicode__(self):
-        return u'%s Resource' % (self.get_classification_display().capitalize())
 
     @property
     def classification_display(self):
@@ -539,16 +538,20 @@ class Tick(models.Model):
                     # Blue
                     if not player.blue_status_security:
                         # to record the status of blue security task
+                        print "Player {} Blue Deadline:{}".format(player.user.username, player.deadline_sanction_blue)
                         if player.deadline_sanction_blue <= 0:
                             count += 1
 
                     # Red
                     if not player.red_status_security:
+                        print "Player {} Red Deadline:{}".format(player.user.username, player.deadline_sanction_red)
                         if player.deadline_sanction_red <= 0:
                             count += 1
 
                     # Yellow
                     if not player.yellow_status_security:
+                        print "Player {} Yellow Deadline:{}".format(player.user.username,
+                                                                    player.deadline_sanction_yellow)
                         if player.deadline_sanction_yellow <= 0:
                             count = count + 1
 
@@ -669,6 +672,7 @@ class Tick(models.Model):
         tick.attack = AttackResource.create(game)
         tick.next_attack_probability = AttackProbability.create()
         tick.save()
+        tick.manager_sanction()
 
         # Notifying all the players of tick complete
         players = Player.objects.filter(game=tick.game)
@@ -676,15 +680,13 @@ class Tick(models.Model):
         for player in players:
             player_payload = {}
             player.update_player_payload(player_payload)
-
-            player_payload["sanctioned"] = player.sanctioned
+            player_payload["sanctioned"] = player.sanctioned or player.manager_sanctioned
             if tick.attack:
                 player_payload["attack"] = tick.attack.get_classification_display()
             else:
                 player_payload["attack"] = ""
 
             player_payload["new_tick_count"] = game.ticks
-
             player_payload["type"] = "tick_complete"
             Group(str(player.pk)).send({"text": json.dumps(player_payload)})
         return tick
@@ -817,9 +819,12 @@ class ManagerSanction(models.Model):
     @classmethod
     def create(cls, sanctionee, tick, num_of_ticks_sanc):
         # a player gets sanctioned by the manager twice the time of what his unfinished vulnerabilities are
-        for i in range(1, num_of_ticks_sanc + 1):
+        sanctions = []
+        for i in range(0, num_of_ticks_sanc):
             sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + i), game=tick.game)
-            sanction.save()
+            sanctions.append(sanction)
+        ManagerSanction.objects.bulk_create(sanctions)
+
 
 
 WORKSHOP_TASK = 0

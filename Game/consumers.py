@@ -47,7 +47,9 @@ def resource_complete(player_pk, resource_type, resource_position):
                     response_message['result'] = NOT_CAPABLE_ERROR_MESSAGE
                     return response_message
                 random_number = random.randint(1, 3)
-                Workshop.objects.filter(player=player_pk).update(classification=random_number, count=F('count') + 1)
+                workshop.classification = random_number
+                workshop.count = workshop.count + 1
+                workshop.save()
                 player.score += workshop.score
                 objective_completed = True
                 research_resource = resource_classification
@@ -133,12 +135,12 @@ def resource_complete(player_pk, resource_type, resource_position):
             response_message['result'] = str(research_resource) + ' Completed!'
 
             if objective_completed:
-                player_tick.action = RESEARCH_OBJ
                 response_message['result'] = resource_type + " Completed!"
-                player_tick.save()
 
             # End players move
             player.save()
+            player_tick.action = RESEARCH_OBJ
+            player_tick.save()
 
             if objective_completed:
                 # update Statistics table data; note the number corresponding to the one in the model
@@ -183,7 +185,7 @@ def security_resource_activate(player_pk, security_resource_pk, message):
 
             message.reply_channel.send({"text": json.dumps(response_complete_json)})
 
-        if player.sanctioned:
+        elif player.sanctioned:
             response_message[
                 "result"] = "You have been peer sanctioned. You can only click on the 'Pass' button to pass this round."
             response_complete_json = {"type": "{}_response".format("security_resource_activate"),
@@ -194,19 +196,19 @@ def security_resource_activate(player_pk, security_resource_pk, message):
             # update the number of finished security tasks; note the number corresponding to the one in the model
             if security_resource_pk == "blue_security":
                 player.nf_blue += 1
-                player.last_tick_blue = player.game.current_tick.number + 1
+                # player.last_tick_blue = player.game.current_tick.number + 1
                 player.blue_status_security = True
                 player.blue_status_capability = True
 
             elif security_resource_pk == "red_security":
                 player.nf_red += 1
-                player.last_tick_red = player.game.current_tick.number + 1
+                # player.last_tick_red = player.game.current_tick.number + 1
                 player.red_status_capability = True
                 player.red_status_security = True
 
             else:  # for yellow, classification = 3; there is no need to consider "lab" resource_classifications
                 player.nf_yellow += 1
-                player.last_tick_yellow = player.game.current_tick.number + 1
+                # player.last_tick_yellow = player.game.current_tick.number + 1
                 player.yellow_status_security = True
                 player.yellow_status_capability = True
 
@@ -270,17 +272,20 @@ def player_sanction(sanctioner_pk, sanctionee_pk):
             # TODO: Add check if sanctionee has been already peer sanctioned or manager sanctioned
             # TODO: Notify other players about status and score update
 
-            player_tick = PlayerTick(player=sanctioner, tick=sanctioner.game.current_tick)
-            player_tick.action = SANCTION
-            player_tick.save()
-            tick = sanctioner.game.current_tick
             sanctionee = Player.objects.get(pk=sanctionee_pk)
+
             if not sanctionee.manager_sanctioned:
-                sanction = Sanction.create(sanctioner, sanctionee, tick)
+                player_tick = PlayerTick(player=sanctioner, tick=sanctioner.game.current_tick)
+                player_tick.action = SANCTION
+                tick = sanctioner.game.current_tick
+
+                Sanction.create(sanctioner, sanctionee, tick)
                 response_message["sanctioned"] = True
-                response_message['result'] = "You have sanctioned Player " + apnumber(sanctionee.number).capitalize()
+                response_message['result'] = "You have sanctioned " + apnumber(
+                    sanctionee.user.username).capitalize()
+                player_tick.save()
                 content = "{} has sanctioned {} for tick:{}".format(sanctioner.name, sanctionee.name,
-                                                                    sanction.tick_number)
+                                                                    tick.number + 1)
                 message = Message(content=content, game=sanctioner.game, tick=sanctioner.game.current_tick,
                                   created_by=None)
                 message.save()

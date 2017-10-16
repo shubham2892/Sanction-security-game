@@ -55,9 +55,9 @@ function player_sanction(data) {
 
         if (data['sanction_dict'][indexOut]['player_id'] === me_player) {
             if (data['sanction_dict'][indexOut]['sanctioned'] === 'True') {
-                $("#passbtn").show();
+                show_pass_button();
             } else {
-                $("#passbtn").hide();
+                hide_pass_button();
             }
 
             for (var index = 0; index < data['sanction_dict'][indexOut]['sanction_threshold'].length; index++) {
@@ -238,6 +238,14 @@ function update_attack(attack_type) {
 
 }
 
+function show_pass_button() {
+    $("#passbtn").show();
+}
+
+function hide_pass_button() {
+    $("#passbtn").hide();
+}
+
 function update_ticks(tick_data) {
     // Update html of new rounds
     $("#game-number").text("Status: Your Move");
@@ -249,6 +257,11 @@ function update_ticks(tick_data) {
         $('#game-over-modal').modal({backdrop: "static", keyboard: false});
     }
 
+    if (tick_data['sanctioned']){
+        show_pass_button();
+    }else{
+        hide_pass_button();
+    }
     update_attack(tick_data["attack"]);
     handle_security(tick_data);
     handle_capability(tick_data);
@@ -458,20 +471,20 @@ function pass_round_reply(response_message) {
         if (response_message["resource"].includes("blue")) {
             activate_blue_security();
             activate_blue_capability();
-            $("#passbtn").hide();
+            hide_pass_button();
             alertSuccess(response_message["result"]);
         }
         if (response_message["resource"].includes("red")) {
             activate_red_security();
             activate_red_capability();
-            $("#passbtn").hide();
+            hide_pass_button();
 
             alertSuccess(response_message["result"]);
         }
         if (response_message["resource"].includes("yellow")) {
             activate_yellow_security();
             activate_blue_capability();
-            $("#passbtn").hide();
+            hide_pass_button();
             alertSuccess(response_message["result"]);
         }
         if (response_message["resource"] === "null") {
