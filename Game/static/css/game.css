@@ -272,27 +272,27 @@
     border: 3px solid #5cb85c;
 }
 
-.clickable.resource-container.incomplete.blue {
+.resource-container.incomplete.blue {
     background: rgba(0, 0, 255, 0.5);
 }
 
-.clickable.resource-container.complete.blue {
+.resource-container.complete.blue {
     background: rgb(0, 0, 255);
 }
 
-.clickable.resource-container.incomplete.red {
+.resource-container.incomplete.red {
     background: rgba(255, 0, 0, 0.5);
 }
 
-.clickable.resource-container.complete.red{
+.resource-container.complete.red{
     background: rgb(255, 0, 0);
 }
 
-.clickable.resource-container.incomplete.yellow {
+.resource-container.incomplete.yellow {
     background: rgba(255, 255, 0, 0.5);
 }
 
-.clickable.resource-container.complete.yellow {
+.resource-container.complete.yellow {
     background: rgb(255, 255, 0);
 }
 

@@ -295,7 +295,6 @@ class Player(models.Model):
         player_payload["red_capability"] = self.red_status_capability
         player_payload["yellow_capability"] = self.yellow_status_capability
 
-
         print player_payload
 
 
@@ -676,7 +675,8 @@ class Tick(models.Model):
 
         # Notifying all the players of tick complete
         players = Player.objects.filter(game=tick.game)
-
+        player_payload_list_json = {"type":"tick_complete"}
+        player_payload_list = []
         for player in players:
             player_payload = {}
             player.update_player_payload(player_payload)
@@ -687,8 +687,12 @@ class Tick(models.Model):
                 player_payload["attack"] = ""
 
             player_payload["new_tick_count"] = game.ticks
-            player_payload["type"] = "tick_complete"
-            Group(str(player.pk)).send({"text": json.dumps(player_payload)})
+            player_payload["player_id"] = player.id
+            player_payload_list.append(player_payload)
+
+        print "sending tick data to all players"
+        player_payload_list_json["tick_payload"] = player_payload_list
+        Group("players").send({"text": json.dumps(player_payload_list_json)})
         return tick
 
     @classmethod
@@ -824,7 +828,6 @@ class ManagerSanction(models.Model):
             sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + i), game=tick.game)
             sanctions.append(sanction)
         ManagerSanction.objects.bulk_create(sanctions)
-
 
 
 WORKSHOP_TASK = 0

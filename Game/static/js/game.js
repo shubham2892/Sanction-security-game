@@ -9,7 +9,7 @@ socket = new WebSocket("ws://" + window.location.host + "/chat/" + me_player.pk)
 
 socket.onmessage = function (message) {
     var data = JSON.parse(message.data);
-
+    console.log(message);
     if (data['type'] === 'resource_complete_response') {
         // Research resource complete action reply
         complete_research_resource_reply(data['response_message']);
@@ -29,7 +29,8 @@ socket.onmessage = function (message) {
     } else if (data['type'] === 'game_complete') {
 
     } else if (data['type'] === 'tick_complete') {
-        update_ticks(data);
+        console.log("here");
+        update_ticks(data["tick_payload"]);
     } else if (data['type'] === 'sanction_status') {
         player_sanction(data);
     } else if (data['type'] === 'move_made') {
@@ -94,6 +95,44 @@ function handle_capability(data) {
         activate_yellow_capability();
     } else {
         deactivate_yellow_capability();
+    }
+
+}
+
+function handle_security_other(data, player_id) {
+
+    if (data["blue_security"]["active"]) {
+        var securityObjectUpdate = document.getElementById("blue_security_" + player_id);
+        securityObjectUpdate.classList.remove("incomplete");
+        securityObjectUpdate.classList.add("complete");
+    } else {
+        var securityObjectUpdate = document.getElementById("blue_security_" + player_id);
+        securityObjectUpdate.classList.add("incomplete");
+        securityObjectUpdate.classList.remove("complete");
+
+    }
+
+    if (data["red_security"]["active"]) {
+        var securityObjectUpdate = document.getElementById("red_security_" + player_id);
+        securityObjectUpdate.classList.remove("incomplete");
+        securityObjectUpdate.classList.add("complete");
+
+    } else {
+        var securityObjectUpdate = document.getElementById("red_security_" + player_id);
+        securityObjectUpdate.classList.add("incomplete");
+        securityObjectUpdate.classList.remove("complete");
+
+    }
+
+    if (data["yellow_security"]["active"]) {
+        var securityObjectUpdate = document.getElementById("yellow_security_" + player_id);
+        securityObjectUpdate.classList.remove("incomplete");
+        securityObjectUpdate.classList.add("complete");
+
+    } else {
+        var securityObjectUpdate = document.getElementById("yellow_security_" + player_id);
+        securityObjectUpdate.classList.add("incomplete");
+        securityObjectUpdate.classList.remove("complete");
     }
 
 }
@@ -244,9 +283,10 @@ function show_pass_button() {
 
 function hide_pass_button() {
     $("#passbtn").hide();
+
 }
 
-function update_ticks(tick_data) {
+function updatetickme(tick_data) {
     // Update html of new rounds
     $("#game-number").text("Status: Your Move");
 
@@ -257,14 +297,33 @@ function update_ticks(tick_data) {
         $('#game-over-modal').modal({backdrop: "static", keyboard: false});
     }
 
-    if (tick_data['sanctioned']){
+    if (tick_data['sanctioned']) {
         show_pass_button();
-    }else{
+    } else {
         hide_pass_button();
     }
     update_attack(tick_data["attack"]);
     handle_security(tick_data);
     handle_capability(tick_data);
+
+}
+
+function updatetickotherplayer(tick_data) {
+    console.log(tick_data["player_id"]);
+    var score_other_player = document.getElementById("score_" + tick_data["player_id"]);
+    score_other_player.text = tick_data["score"];
+    handle_security_other(tick_data, tick_data["player_id"]);
+}
+
+function update_ticks(tick_data_players) {
+    console.log(tick_data_players);
+    for (index = 0; index < tick_data_players.length; index++) {
+        if (tick_data_players[index]["player_id"] === me_player) {
+            updatetickme(tick_data_players[index]);
+        } else {
+            updatetickotherplayer(tick_data_players[index]);
+        }
+    }
 
 
 }

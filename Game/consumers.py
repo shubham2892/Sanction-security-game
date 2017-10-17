@@ -317,19 +317,7 @@ def pass_round(player_pk):
                     response_message["resource"] = "blue"
                     player.blue_status_security = True
                     player.blue_status_capability = True
-                    # for vulnerability in player.vulnerabilities.security_resources.filter(classification=1):
-                    #     vulnerability.active = True
-                    #     vulnerability.save()
-                    # player.nf_blue += 1
-                    # player.last_tick_blue = player.game.current_tick.number + 1
                     player.save()
-                    # update_player(player)
-                    # for capability in player.capabilities.security_resources.filter(classification=1):
-                    #     capability.active = True
-                    #     capability.save()
-
-                    # stats.nf_finished_task = player.nf_blue
-                    # stats.type_of_task = 5
                     vulnerabilities_fixed += "blue"
                     response_message['result'] = "You've fixed {} vulnerability".format(vulnerabilities_fixed)
                     response_message['resource'] = vulnerabilities_fixed
@@ -337,21 +325,7 @@ def pass_round(player_pk):
                     response_message["resource"] = "red"
                     player.red_status_security = True
                     player.red_status_capability = True
-                    # for vulnerability in player.vulnerabilities.security_resources.filter(classification=2):
-                    #     vulnerability.active = True
-                    #     vulnerability.save()
-                    #
-                    # player.nf_red += 1
-                    # player.last_tick_red = player.game.current_tick.number + 1
                     player.save()
-                    # update_player(player)
-
-                    # for capability in player.capabilities.security_resources.filter(classification=2):
-                    #     capability.active = True
-                    #     capability.save()
-                    #
-                    # stats.nf_finished_task = player.nf_red
-                    # stats.type_of_task = 3
                     vulnerabilities_fixed += " red"
                     response_message['result'] = "You've fixed {} vulnerability".format(vulnerabilities_fixed)
                     response_message['resource'] = vulnerabilities_fixed
@@ -359,36 +333,16 @@ def pass_round(player_pk):
                     response_message["resource"] = "yellow"
                     player.yellow_status_security = True
                     player.yellow_status_capability = True
-                    # for vulnerability in player.vulnerabilities.security_resources.filter(classification=3):
-                    #     vulnerability.active = True
-                    #     vulnerability.save()
-                    # player.last_tick_yellow = player.game.current_tick.number + 1
-                    # player.nf_yellow += 1
                     player.save()
-                    # update_player(player)
-
-                    # for capability in player.capabilities.security_resources.filter(classification=3):
-                    #     capability.active = True
-                    #     capability.save()
-
-                    # stats.nf_finished_task = player.nf_yellow
-                    # stats.type_of_task = 4
                     vulnerabilities_fixed += " yellow"
                     response_message['result'] = "You've fixed {} vulnerability".format(vulnerabilities_fixed)
                     response_message['resource'] = vulnerabilities_fixed
-                    # stats.save()
-                    # print stats
             else:
                 response_message['resource'] = "null"
                 response_message['result'] = "You've clicked pass."
 
             player_tick.action = PASS
             player_tick.save()
-
-            # if player.counter == player.counter_sum:
-            #     player.counter = 0
-            #     player.counter_sum = 0
-            #     player.save()
 
             return response_message
         elif player.sanctioned:
