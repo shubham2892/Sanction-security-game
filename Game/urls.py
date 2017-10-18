@@ -1,4 +1,3 @@
-import debug_toolbar
 from django.conf.urls import url, include
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
@@ -19,5 +18,4 @@ urlpatterns = [
     url(r'^monitor/(?P<game_key>[\w]+)/$', login_required(views.MonitorView.as_view()), name='monitor'),
     url(r'^player/remove/$', login_required(views.remove_player), name='remove_player'),
     url(r'^onboarding/$', login_required(views.GameFlowView.as_view()), name='onboarding'),
-    url(r'^__debug__/', include(debug_toolbar.urls)),
 ]
