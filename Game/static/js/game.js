@@ -29,7 +29,6 @@ socket.onmessage = function (message) {
     } else if (data['type'] === 'game_complete') {
 
     } else if (data['type'] === 'tick_complete') {
-        console.log("here");
         update_ticks(data["tick_payload"]);
     } else if (data['type'] === 'sanction_status') {
         player_sanction(data);
@@ -309,14 +308,12 @@ function updatetickme(tick_data) {
 }
 
 function updatetickotherplayer(tick_data) {
-    console.log(tick_data["player_id"]);
     var score_other_player = document.getElementById("score_" + tick_data["player_id"]);
-    score_other_player.text = tick_data["score"];
+    score_other_player.textContent = tick_data["score"];
     handle_security_other(tick_data, tick_data["player_id"]);
 }
 
 function update_ticks(tick_data_players) {
-    console.log(tick_data_players);
     for (index = 0; index < tick_data_players.length; index++) {
         if (tick_data_players[index]["player_id"] === me_player) {
             updatetickme(tick_data_players[index]);
