@@ -9,7 +9,7 @@ from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 
-from Game.models import Player, Game, Message, PlayerTick, Tick, Sanction, SANCTION, PASS
+from Game.models import Player, Game, Message, PlayerTick, Tick, Sanction, SANCTION, PASS, GameSet
 
 ''' The user's homepage which displays user game information '''
 
@@ -64,7 +64,7 @@ class GameFlowView(TemplateView):
         context = super(GameFlowView, self).get_context_data(**kwargs)
 
         try:
-            game_set = GameSets.objects.get(user=self.request.user)
+            game_set = GameSet.objects.get(user=self.request.user)
             demo_game_url = "/game/" + str(game_set.demo_id.game_key)
             game_url_1 = "/game/" + str(game_set.game_id1.game_key)
             game_url_2 = "/game/" + str(game_set.game_id2.game_key)
