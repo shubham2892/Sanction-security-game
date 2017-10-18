@@ -42,7 +42,6 @@ INSTALLED_APPS = (
     'django_extensions',
     'channels',
     'Game',
-    'debug_toolbar',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -55,7 +54,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     # 'querycount.middleware.QueryCountMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
 
 ROOT_URLCONF = 'P1.urls'
