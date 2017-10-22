@@ -3,10 +3,9 @@ import random
 
 from channels import Group
 from django.contrib.humanize.templatetags.humanize import apnumber
-from django.db.models import F
 
-from Game.models import Player, PlayerTick, RESEARCH_TASK, RESEARCH_OBJ, Statistics, SECURITY, \
-    Sanction, SANCTION, PASS, Message, BLUE, RED, YELLOW, Workshop, Conference, Journal
+from Game.models import Player, PlayerTick, RESEARCH_OBJ, Statistics, SECURITY, \
+    Sanction, SANCTION, PASS, Message, RED, YELLOW, Workshop, Conference, Journal
 
 
 def check_player_capability(workshop_classification, player):

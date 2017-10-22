@@ -350,7 +350,7 @@ class Workshop(models.Model):
     classification = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS, default=BLUE)
     count = models.IntegerField(default=0)
     complete = models.BooleanField(default=False)
-    score = models.IntegerField(default=10)
+    score = models.IntegerField(default=WORKSHOP_VALUE)
 
     @property
     def classification_display(self):
@@ -366,7 +366,7 @@ class Journal(models.Model):
     complete_one = models.BooleanField(default=False)
     complete_two = models.BooleanField(default=False)
     complete_three = models.BooleanField(default=False)
-    score = models.IntegerField(default=25)
+    score = models.IntegerField(default=JOURNAL_VALUE)
 
     @property
     def classification_display_one(self):
@@ -388,7 +388,7 @@ class Conference(models.Model):
     classification_two = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS, default=BLUE)
     complete_one = models.BooleanField(default=False)
     complete_two = models.BooleanField(default=False)
-    score = models.IntegerField(default=45)
+    score = models.IntegerField(default=WORKSHOP_VALUE)
 
     @property
     def classification_display_one(self):
