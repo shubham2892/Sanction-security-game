@@ -430,7 +430,7 @@ class AttackResource(models.Model):
 
                         # This might be ambiguous
                         content = "{} attack occurred at tick:{}".format(
-                            RESOURCE_CLASSIFICATIONS[classification - 1][1], tick_number)
+                            RESOURCE_CLASSIFICATIONS[classification - 1][1].title(), tick_number)
                         message = Message(content=content, game=game, tick=game.game_tick, created_by=None)
                         message.save()
                         break
@@ -537,10 +537,10 @@ class Tick(models.Model):
                     if x < sanction_prob:
 
                         ManagerSanction.create(player, self, count * 2)
-                        message_text = "%s is sanctioned by the lab manager for %s tick(s) at tick" % (
-                            player.user.username, count * 2)
+                        message_text = "{} is sanctioned by the Lab Manager for {} tick(s) at tick".format(
+                            player.user.username.title(), count * 2)
 
-                        for i in range(0, count * 2 ):
+                        for i in range(0, count * 2):
                             message_text += " %s" % (self.number + i)
 
                         message = Message(content=message_text, created_by=None, game=self.game, tick=self)
@@ -580,14 +580,13 @@ class Tick(models.Model):
             if is_a_player_sanctioned:
                 for player in players:
 
-
                     ManagerSanction.create(player, self, count * 2)
                     # player.counter_sum = 2 * count
 
                     message_text = "%s is sanctioned by the lab manager for %s tick(s) at tick" % (
                         player.user.username, count * 2)
 
-                    for i in range(0, count * 2 ):
+                    for i in range(0, count * 2):
                         message_text += " %s" % (self.number + i)
 
                     message = Message(content=message_text, created_by=None, game=self.game, tick=self)

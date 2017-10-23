@@ -185,19 +185,16 @@ def security_resource_activate(player_pk, security_resource_pk, message):
             # update the number of finished security tasks; note the number corresponding to the one in the model
             if security_resource_pk == "blue_security":
                 player.nf_blue += 1
-                # player.last_tick_blue = player.game.current_tick.number + 1
                 player.blue_status_security = True
                 player.blue_status_capability = True
 
             elif security_resource_pk == "red_security":
                 player.nf_red += 1
-                # player.last_tick_red = player.game.current_tick.number + 1
                 player.red_status_capability = True
                 player.red_status_security = True
 
             else:  # for yellow, classification = 3; there is no need to consider "lab" resource_classifications
                 player.nf_yellow += 1
-                # player.last_tick_yellow = player.game.current_tick.number + 1
                 player.yellow_status_security = True
                 player.yellow_status_capability = True
 
@@ -205,7 +202,7 @@ def security_resource_activate(player_pk, security_resource_pk, message):
             player.save()
 
             response_message[
-                'result'] = security_resource_pk + ' Activated!  ' + security_resource_pk + ' capability restored.'
+                'result'] = security_resource_pk.split("_")[0].title() + ' Security Resources Fixed!'
             response_message["active"] = True
             response_message['clicked_resource'] = security_resource_pk
             response_complete_json = {"type": "{}_response".format("security_resource_activate"),
