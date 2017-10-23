@@ -429,7 +429,7 @@ class AttackResource(models.Model):
                         attack_resource.save()
 
                         # This might be ambiguous
-                        content = "{} attack occurred at tick:{}".format(
+                        content = "{} Attack Occurred at Tick:{}".format(
                             RESOURCE_CLASSIFICATIONS[classification - 1][1].title(), tick_number)
                         message = Message(content=content, game=game, tick=game.game_tick, created_by=None)
                         message.save()
@@ -537,7 +537,7 @@ class Tick(models.Model):
                     if x < sanction_prob:
 
                         ManagerSanction.create(player, self, count * 2)
-                        message_text = "{} is sanctioned by the Lab Manager for {} tick(s) at tick".format(
+                        message_text = "{} is Sanctioned for {} Tick(s) at Tick".format(
                             player.user.username.title(), count * 2)
 
                         for i in range(0, count * 2):
@@ -550,6 +550,7 @@ class Tick(models.Model):
         elif self.game.manager_sanc == 2:
             players = Player.objects.filter(game=self.game)
             is_a_player_sanctioned = False
+            player_name = ""
             for player in players:
                 if not player.manager_sanctioned and not player.sanctioned:
                     count = 0
@@ -574,6 +575,7 @@ class Tick(models.Model):
                     x = random.random()
 
                     if x < sanction_prob:
+                        player_name = player.user.username
                         is_a_player_sanctioned = True
                         break
 
@@ -582,9 +584,8 @@ class Tick(models.Model):
 
                     ManagerSanction.create(player, self, count * 2)
                     # player.counter_sum = 2 * count
-
-                    message_text = "%s is sanctioned by the lab manager for %s tick(s) at tick" % (
-                        player.user.username, count * 2)
+                    message_text = "{} is Team Sanctioned because {} did not fix immunity(s) for {} tick(s) at tick".format(
+                        player.user.username.title(), player_name.title(), count * 2)
 
                     for i in range(0, count * 2):
                         message_text += " %s" % (self.number + i)
@@ -632,10 +633,8 @@ class Tick(models.Model):
         if game.ticks < game.total_ticks:
             return cls.update_game_tick(game)
         else:
-            # Game Over
-            game.complete = True
-            game.save()
 
+            Game.objects.filter(game_key=game.game_key).update(complete=True)
             players = Player.objects.filter(game=game)
             player_payload_list_json = {"type": "tick_complete"}
             player_payload_list = []

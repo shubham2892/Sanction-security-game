@@ -267,17 +267,17 @@ def player_sanction(sanctioner_pk, sanctionee_pk):
 
                 Sanction.create(sanctioner, sanctionee, game_tick)
                 response_message["sanctioned"] = True
-                response_message['result'] = "You have sanctioned " + apnumber(
+                response_message['result'] = "You have Sanctioned " + apnumber(
                     sanctionee.user.username).capitalize()
                 player_tick.save()
-                content = "{} has sanctioned {} for tick:{}".format(sanctioner.name, sanctionee.name,
+                content = "{} has Sanctioned {} for tick:{}".format(sanctioner.name.title(), sanctionee.name.title(),
                                                                     sanctioner.game.ticks + 1)
                 message = Message(content=content, game=sanctioner.game, tick=sanctioner.game.game_tick,
                                   created_by=None)
                 message.save()
             else:
                 response_message["sanctioned"] = False
-                response_message['result'] = "{} is already manager sanctioned".format(sanctionee.name)
+                response_message['result'] = "{} is Already Manager Sanctioned".format(sanctionee.name.title())
 
             return response_message
     else:
