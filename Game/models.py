@@ -33,7 +33,7 @@ MANAGER_SANC = (
 class Game(models.Model):
     GAME_KEY_LENGTH = 5
 
-    _ticks = models.IntegerField()
+    total_ticks = models.IntegerField(default=40)
     game_key = models.CharField(max_length=GAME_KEY_LENGTH * 2, unique=True, null=True, blank=True, editable=False)
     attack_frequency = IntegerRangeField(min_value=0, max_value=100)
     manager_sanc = models.IntegerField(choices=MANAGER_SANC, default=INDIVIDUAL_SANC)
@@ -49,46 +49,40 @@ class Game(models.Model):
     @property
     def results(self):
         s = 'Game #{}\n\n'.format(self.game_key)
-        for tick in self.tick_set.filter(complete=True):
-            s += "  #### Tick Number {} ####\n".format(tick.number)
-            s += "  Attack: {} \n".format(tick.attack)
-            s += "  Next Attack Probabilities: {}\n".format(tick.next_attack_probability)
+        tick = self.game_tick
+        s += "  #### Tick Number {} ####\n".format(tick.number)
+        s += "  Attack: {} \n".format(tick.attack)
+        s += "  Next Attack Probabilities: {}\n".format(tick.next_attack_probability)
 
-            s += "\n    ## Player Actions ##\n"
-            for player_tick in tick.playertick_set.all().order_by('player'):
-                s += "    Player: Player {} ({}) \n".format(apnumber(player_tick.player.number).capitalize(),
-                                                            player_tick.player.user.username)
-                s += "      - Action: {} \n".format(player_tick.get_action_display())
+        s += "\n    ## Player Actions ##\n"
+        #
+        # for player_tick in pla.playertick_set.all().order_by('player'):
+        #     s += "    Player: Player {} ({}) \n".format(apnumber(player_tick.player.number).capitalize(),
+        #                                                 player_tick.player.user.username)
+        #     s += "      - Action: {} \n".format(player_tick.get_action_display())
 
-            s += "\n    ## Messages ##\n"
-            if tick.message_set.all():
-                for message in tick.message_set.all():
-                    if message.created_by:
-                        s += "    Player {} says: \"{}\" at {} \n".format(
-                            apnumber(message.created_by.number).capitalize(), message.content, message.created_at)
-                    else:
-                        s += "    ***Announcement***: \"{}\"\n".format(message.content)
-            else:
-                s += "    No messages.\n"
+        s += "\n    ## Messages ##\n"
+        if tick.message_set.all():
+            for message in tick.message_set.all():
+                if message.created_by:
+                    s += "    Player {} says: \"{}\" at {} \n".format(
+                        apnumber(message.created_by.number).capitalize(), message.content, message.created_at)
+                else:
+                    s += "    ***Announcement***: \"{}\"\n".format(message.content)
+        else:
+            s += "    No messages.\n"
 
-            s += '\n'
+        s += '\n'
 
         return s
 
     @property
     def ticks(self):
-        return self._ticks - self.tick_set.latest('number').number
-
-    @property
-    def current_tick(self):
-        return self.tick_set.latest('number')
+        return self.game_tick.number
 
     @property
     def attack(self):
-        if self.tick_set.last().attack:
-            return self.tick_set.last().attack
-        else:
-            return None
+        return self.game_tick.attack
 
     @property
     def players(self):
@@ -118,9 +112,8 @@ class Game(models.Model):
             else:
                 success = True
 
-        # Create the first game tick
-        if not self.tick_set.all():
-            Tick.create_game_tick(game=self)
+        attack_probability = AttackProbability.create()
+        Tick.objects.create(game=self, next_attack_probability=attack_probability)
 
 
 ''' A Player object to hold player state '''
@@ -184,9 +177,9 @@ class Player(models.Model):
     @property
     def deadline_sanction_blue(self):
         if self.game.peer_sanc:
-            return 3 - (self.last_tick_blue - self.game.ticks)
+            return 3 - (self.game.ticks - self.last_tick_blue)
         else:
-            return 6 - (self.game.current_tick.number - self.last_tick_blue)
+            return 6 - (self.game.ticks - self.last_tick_blue)
 
     @property
     def deadline_sanction_blue_rep(self):
@@ -197,9 +190,9 @@ class Player(models.Model):
     @property
     def deadline_sanction_red(self):
         if self.game.peer_sanc:
-            return 3 - (self.last_tick_red - self.game.ticks)
+            return 3 - (self.game.ticks - self.last_tick_red)
         else:
-            return 6 - (self.game.current_tick.number - self.last_tick_red)
+            return 6 - (self.game.ticks - self.last_tick_red)
 
     @property
     def deadline_sanction_red_rep(self):
@@ -210,9 +203,9 @@ class Player(models.Model):
     @property
     def deadline_sanction_yellow(self):
         if self.game.peer_sanc:
-            return 3 - (self.last_tick_yellow - self.game.ticks)
+            return 3 - (self.game.ticks - self.last_tick_yellow)
         else:
-            return 6 - (self.game.current_tick.number - self.last_tick_yellow)
+            return 6 - (self.game.ticks - self.last_tick_yellow)
 
     @property
     def deadline_sanction_yellow_rep(self):
@@ -224,27 +217,27 @@ class Player(models.Model):
     @property
     def can_move(self):
         return not self.playertick_set.filter(
-            tick=self.game.current_tick).exists() and not self.game.complete
+            tick_number=self.game.ticks).exists() and not self.game.complete
 
     # Returns true if the player clicked the pass button
     @property
     def passed(self):
-        return self.playertick_set.filter(tick=self.game.current_tick, action=PASS) and not self.game.complete
+        return self.playertick_set.filter(tick_number=self.game.ticks, action=PASS) and not self.game.complete
 
     # Returns true if the manager just decided to sanction this player last tick
     @property
     def tick_just_sanctioned(self):
-        return self.last_tick + 1 == self.game.current_tick.number and not self.game.complete
+        return self.last_tick + 1 == self.game.ticks and not self.game.complete
 
     # Returns the total number of remaining  moves for a player with a game instance
     @property
     def remaining_moves(self):
-        return self.game._ticks - self.playertick_set.count()
+        return self.game.ticks - self.playertick_set.count()
 
     # Returns true if a player is peer sanctioned at a given instance
     @property
     def sanctioned(self):
-        current_tick = self.game.current_tick.number
+        current_tick = self.game.ticks
         if self.sanctionee.exists() and self.sanctionee.filter(tick_number=current_tick, game=self.game).exists():
             return True
         else:
@@ -253,7 +246,7 @@ class Player(models.Model):
     # Returns true if a player is sanctioned by the manager at a given instance
     @property
     def manager_sanctioned(self):
-        current_tick = self.game.current_tick.number
+        current_tick = self.game.ticks
         print "checking for tick:{}".format(current_tick)
         if self.sanctionee_by_manager.exists() and (
                 self.sanctionee_by_manager.filter(tick_number=current_tick, game=self.game).exists()):
@@ -411,9 +404,9 @@ class AttackResource(models.Model):
         return u'%s Attack Resource' % (self.get_classification_display().capitalize())
 
     @classmethod
-    def create(cls, game):
+    def create(cls, game, tick_number):
         # If it's not the first round of the game (we don't want to attack on the first round...)
-        if game.tick_set.count() > 0:
+        if tick_number > 1:
 
             # If an attack occurs, given the game's constant attack frequency (see Game.attack_frequency)
             if random.randint(0, 100) < game.attack_frequency:
@@ -421,8 +414,7 @@ class AttackResource(models.Model):
                 # Check first to see if a LAB attack occurs
                 # Probability of lab attack happening is one third the probability of normal lab attack
 
-                num_ticks = game.tick_set.count()
-                attack_probability = game.tick_set.get(number=num_ticks).next_attack_probability
+                attack_probability = game.game_tick.next_attack_probability
                 blue, yellow, red = attack_probability.blue, attack_probability.yellow, attack_probability.red
                 attack_probability = [(0, blue, BLUE),
                                       (blue, blue + red, RED),
@@ -435,34 +427,36 @@ class AttackResource(models.Model):
                     if lo <= rand < hi:
                         attack_resource = cls(classification=classification)
                         attack_resource.save()
+
+                        # This might be ambiguous
                         content = "{} attack occurred at tick:{}".format(
-                            RESOURCE_CLASSIFICATIONS[classification - 1][1], game.ticks - 1)
-                        message = Message(content=content, game=game, tick=game.current_tick, created_by=None)
+                            RESOURCE_CLASSIFICATIONS[classification - 1][1], tick_number)
+                        message = Message(content=content, game=game, tick=game.game_tick, created_by=None)
                         message.save()
                         break
 
                 # Once the color of the attack is determined, perform the attack on the player
                 if attack_resource.classification == RED:
                     Player.objects.filter(game=game.id, red_status_security=False).update(red_status_capability=False)
-                    Player.objects.filter(game=game.id, red_status_security=True).update(last_tick_red=game.ticks - 1)
+                    Player.objects.filter(game=game.id, red_status_security=True).update(last_tick_red=tick_number)
                     Player.objects.filter(game=game.id).update(red_status_security=False)
                 elif attack_resource.classification == YELLOW:
                     Player.objects.filter(game=game.id, yellow_status_security=False).update(
                         yellow_status_capability=False)
                     Player.objects.filter(game=game.id, yellow_status_security=True).update(
-                        last_tick_yellow=game.ticks - 1)
+                        last_tick_yellow=tick_number)
                     Player.objects.filter(game=game.id).update(yellow_status_security=False)
                 elif attack_resource.classification == BLUE:
                     Player.objects.filter(game=game.id, blue_status_security=False).update(blue_status_capability=False)
-                    Player.objects.filter(game=game.id, blue_status_security=True).update(last_tick_blue=game.ticks - 1)
+                    Player.objects.filter(game=game.id, blue_status_security=True).update(last_tick_blue=tick_number)
                     Player.objects.filter(game=game.id).update(blue_status_security=False)
                 elif attack_resource.classification == LAB:
                     Player.objects.filter(game=game.id, red_status_security=False).update(red_status_capability=False)
 
-                    Player.objects.filter(game=game.id, red_status_security=True).update(last_tick_red=game.ticks - 1)
+                    Player.objects.filter(game=game.id, red_status_security=True).update(last_tick_red=tick_number)
                     Player.objects.filter(game=game.id, yellow_status_security=True).update(
-                        last_tick_yellow=game.ticks - 1)
-                    Player.objects.filter(game=game.id, blue_status_security=True).update(last_tick_blue=game.ticks - 1)
+                        last_tick_yellow=tick_number)
+                    Player.objects.filter(game=game.id, blue_status_security=True).update(last_tick_blue=tick_number)
 
                     Player.objects.filter(game=game.id, yellow_status_security=False).update(
                         yellow_status_capability=False)
@@ -503,8 +497,7 @@ class AttackProbability(models.Model):
 
 class Tick(models.Model):
     number = models.IntegerField(default=1)
-    game = models.ForeignKey(Game)
-    complete = models.BooleanField(default=False)
+    game = models.OneToOneField(Game, related_name="game_tick")
     attack = models.OneToOneField(AttackResource, null=True, default=None, related_name="attack")
     next_attack_probability = models.OneToOneField(AttackProbability)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -542,15 +535,13 @@ class Tick(models.Model):
                     x = random.random()
 
                     if x < sanction_prob:
-                        diff = self.game._ticks - self.number
 
                         ManagerSanction.create(player, self, count * 2)
                         message_text = "%s is sanctioned by the lab manager for %s tick(s) at tick" % (
                             player.user.username, count * 2)
 
-                        for i in range(1, count * 2 + 1):
-                            if diff - i >= 0:
-                                message_text += " %s" % (diff - i)
+                        for i in range(0, count * 2 ):
+                            message_text += " %s" % (self.number + i)
 
                         message = Message(content=message_text, created_by=None, game=self.game, tick=self)
                         message.save()
@@ -588,7 +579,7 @@ class Tick(models.Model):
 
             if is_a_player_sanctioned:
                 for player in players:
-                    diff = self.game._ticks - self.number
+
 
                     ManagerSanction.create(player, self, count * 2)
                     # player.counter_sum = 2 * count
@@ -596,9 +587,8 @@ class Tick(models.Model):
                     message_text = "%s is sanctioned by the lab manager for %s tick(s) at tick" % (
                         player.user.username, count * 2)
 
-                    for i in range(1, count * 2 + 1):
-                        if diff - i >= 0:
-                            message_text += " %s" % (diff - i)
+                    for i in range(0, count * 2 ):
+                        message_text += " %s" % (self.number + i)
 
                     message = Message(content=message_text, created_by=None, game=self.game, tick=self)
                     message.save()
@@ -608,17 +598,16 @@ class Tick(models.Model):
             pass
 
     @classmethod
-    def create_game_tick(cls, game):
-        tick = cls(game=game)
-        if game.tick_set.all():
-            tick.number = game.tick_set.latest('number').number + 1
-        tick.attack = AttackResource.create(game)
+    def update_game_tick(cls, game):
+        tick = Tick.objects.get(game=game)
+        tick.number = tick.number + 1
+        tick.attack = AttackResource.create(game, tick.number)
         tick.next_attack_probability = AttackProbability.create()
         tick.save()
         tick.manager_sanction()
 
         # Notifying all the players of tick complete
-        players = Player.objects.filter(game=tick.game)
+        players = Player.objects.filter(game=game)
         player_payload_list_json = {"type": "tick_complete"}
         player_payload_list = []
         for player in players:
@@ -630,7 +619,7 @@ class Tick(models.Model):
             else:
                 player_payload["attack"] = ""
 
-            player_payload["new_tick_count"] = game.ticks
+            player_payload["new_tick_count"] = tick.number
             player_payload["player_id"] = player.id
             player_payload["score"] = player.score
             player_payload_list.append(player_payload)
@@ -641,8 +630,8 @@ class Tick(models.Model):
 
     @classmethod
     def create(cls, game):
-        if game.ticks > 0:
-            return cls.create_game_tick(game)
+        if game.ticks < game.total_ticks:
+            return cls.update_game_tick(game)
         else:
             # Game Over
             game.complete = True
@@ -686,11 +675,9 @@ ACTIONS = (
 
 
 class PlayerTick(models.Model):
-    tick = models.ForeignKey(Tick)
+    tick_number = models.IntegerField(null=False, default=0)
     player = models.ForeignKey(Player)
     action = models.IntegerField(choices=ACTIONS, default=REST)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
 
 def update_tick(sender, instance, **kwargs):
@@ -704,10 +691,7 @@ def update_tick(sender, instance, **kwargs):
         if player.can_move:
             return
 
-    t = game.tick_set.last()
-    t.complete = True
-    t.save()
-    Tick.create(game=game)
+    game.game_tick.create(game=game)
 
 
 post_save.connect(update_tick, sender=PlayerTick)
@@ -817,5 +801,5 @@ class Statistics(models.Model):
     def __unicode__(self):
         return u'In game %s, %s finished %s at tick %s. Total number of finished task of this type is %s' % (
             self.game.game_key, self.player.user.username, self.get_type_of_task_display(),
-            self.player_tick.tick.number,
+            self.game.ticks,
             self.nf_finished_task)

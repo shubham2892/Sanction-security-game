@@ -5,7 +5,7 @@ from channels import Group
 from django.contrib.humanize.templatetags.humanize import apnumber
 
 from Game.models import Player, PlayerTick, RESEARCH_OBJ, Statistics, SECURITY, \
-    Sanction, SANCTION, PASS, Message, RED, YELLOW, Workshop, Conference, Journal
+    Sanction, SANCTION, PASS, Message, RED, YELLOW, Workshop, Conference, Journal, RESOURCE_CLASSIFICATIONS
 
 
 def check_player_capability(workshop_classification, player):
@@ -23,7 +23,7 @@ def check_player_capability(workshop_classification, player):
 
 def resource_complete(player_pk, resource_type, resource_position):
     player = Player.objects.select_related('game').get(id=player_pk)
-    player_tick = PlayerTick(player=player, tick=player.game.current_tick)
+    player_tick = PlayerTick(player=player, tick_number=player.game.ticks)
     response_message = {}
     if player.can_move:
         if player.manager_sanctioned:
@@ -35,7 +35,6 @@ def resource_complete(player_pk, resource_type, resource_position):
                 "result"] = "You have been peer sanctioned. You can only click on the 'Pass' button to pass this round."
             return response_message
         else:
-            research_resource = ""
             objective_completed = False
             new_classifications = []
             NOT_CAPABLE_ERROR_MESSAGE = "You are not capable of completing this task. Make sure you patch your vulnerabilities."
@@ -51,21 +50,16 @@ def resource_complete(player_pk, resource_type, resource_position):
                 workshop.save()
                 player.score += workshop.score
                 objective_completed = True
-                research_resource = resource_classification
                 new_classifications.append(workshop.classification_display)
                 player.nf_workshop += 1
 
             elif resource_type == 'conference':
                 conference = Conference.objects.get(player=player_pk)
 
-                print "resource position:{}".format(resource_position)
-                print "Player Pk:{}".format(player.user.username)
                 if resource_position == 'one':
                     resource_classification = conference.classification_one
                 else:
                     resource_classification = conference.classification_two
-
-                print "resource classificiation:{}".format(resource_classification)
 
                 if not check_player_capability(resource_classification, player):
                     response_message['result'] = NOT_CAPABLE_ERROR_MESSAGE
@@ -86,7 +80,6 @@ def resource_complete(player_pk, resource_type, resource_position):
                     conference.count = conference.count + 1
                     player.score += conference.score
                     objective_completed = True
-                    research_resource = resource_classification
                     player.nf_conference += 1
                 else:
                     objective_completed = False
@@ -123,7 +116,6 @@ def resource_complete(player_pk, resource_type, resource_position):
                     journal.complete_three = False
                     player.score += journal.score
                     objective_completed = True
-                    research_resource = resource_classification
                     player.nf_journal += 1
                     new_classifications.append(journal.classification_display_one)
                     new_classifications.append(journal.classification_display_two)
@@ -131,10 +123,11 @@ def resource_complete(player_pk, resource_type, resource_position):
 
                 journal.save()
 
-            response_message['result'] = str(research_resource) + ' Completed!'
 
             if objective_completed:
-                response_message['result'] = resource_type + " Completed!"
+                response_message['result'] = resource_type.title() + " Completed!"
+            else:
+                response_message['result'] = RESOURCE_CLASSIFICATIONS[resource_classification - 1][1].title() + " Completed!"
 
             # End players move
             player.save()
@@ -162,9 +155,6 @@ def resource_complete(player_pk, resource_type, resource_position):
             response_message['resource_type'] = resource_type
             response_message['resource_position'] = resource_position
             response_message['score'] = player.score
-
-            print response_message
-            # TODO Notify other players about updated score and status
             return response_message
     else:
         response_message["result"] = "You have already moved this round"
@@ -174,7 +164,7 @@ def resource_complete(player_pk, resource_type, resource_position):
 def security_resource_activate(player_pk, security_resource_pk, message):
     response_message = {}
     player = Player.objects.get(id=player_pk)
-    player_tick = PlayerTick(player=player, tick=player.game.current_tick)
+    player_tick = PlayerTick(player=player, tick_number=player.game.ticks)
     if player.can_move:
         if player.manager_sanctioned:
             response_message[
@@ -274,18 +264,18 @@ def player_sanction(sanctioner_pk, sanctionee_pk):
             sanctionee = Player.objects.get(pk=sanctionee_pk)
 
             if not sanctionee.manager_sanctioned:
-                player_tick = PlayerTick(player=sanctioner, tick=sanctioner.game.current_tick)
+                player_tick = PlayerTick(player=sanctioner, tick_number=sanctioner.game.ticks)
                 player_tick.action = SANCTION
-                tick = sanctioner.game.current_tick
+                game_tick = sanctioner.game.game_tick
 
-                Sanction.create(sanctioner, sanctionee, tick)
+                Sanction.create(sanctioner, sanctionee, game_tick)
                 response_message["sanctioned"] = True
                 response_message['result'] = "You have sanctioned " + apnumber(
                     sanctionee.user.username).capitalize()
                 player_tick.save()
                 content = "{} has sanctioned {} for tick:{}".format(sanctioner.name, sanctionee.name,
-                                                                    tick.number + 1)
-                message = Message(content=content, game=sanctioner.game, tick=sanctioner.game.current_tick,
+                                                                    sanctioner.game.ticks + 1)
+                message = Message(content=content, game=sanctioner.game, tick=sanctioner.game.game_tick,
                                   created_by=None)
                 message.save()
             else:
@@ -302,7 +292,7 @@ def pass_round(player_pk):
     # TODO: Notify other players about status and score update
 
     player = Player.objects.get(id=player_pk)
-    player_tick = PlayerTick(player=player, tick=player.game.current_tick)
+    player_tick = PlayerTick(player=player, tick_number=player.game.ticks)
     response_message = {}
     if player.can_move:
         if player.manager_sanctioned:
@@ -311,7 +301,7 @@ def pass_round(player_pk):
             # stats = Statistics(game=player.game, player=player, player_tick=player_tick)
             # player.counter += 1
             vulnerabilities_fixed = ""
-            if player.sanctionee_by_manager.latest("tick_number").tick_number == player.game.current_tick.number:
+            if player.sanctionee_by_manager.latest("tick_number").tick_number == player.game.ticks:
                 if not player.blue_status_security:
                     response_message["resource"] = "blue"
                     player.blue_status_security = True

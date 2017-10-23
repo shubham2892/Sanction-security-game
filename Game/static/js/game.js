@@ -290,7 +290,7 @@ function updatetickme(tick_data) {
     $("#game-number").text("Status: Your Move");
 
     if (tick_data["new_tick_count"] >= 0) {
-        $("#time-remaining").text("Remaining Rounds: " + tick_data["new_tick_count"]);
+        $("#time-remaining").text("Current Round: " + tick_data["new_tick_count"]);
     } else {
         $("#time-remaining").text("Game over!");
         $('#game-over-modal').modal({backdrop: "static", keyboard: false});

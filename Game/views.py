@@ -219,7 +219,7 @@ def player_peer_sanctioned(request):
                 # TODO: Add check if sanctionee has been already peer sanctioned or manager sanctioned
                 # TODO: Notify other players about status and score update
 
-                player_tick = PlayerTick(player=sanctioner, tick=sanctioner.game.current_tick)
+                player_tick = PlayerTick(player=sanctioner, tick_number=sanctioner.game.current_tick)
                 player_tick.action = SANCTION
                 player_tick.save()
                 tick = Tick.objects.get(pk=request.POST.get("tick_pk"))
@@ -269,7 +269,7 @@ def pass_round(request):
         # TODO: Notify other players about status and score update
 
         player = Player.objects.get(pk=request.POST.get('player_pk'))
-        player_tick = PlayerTick(player=player, tick=player.game.current_tick)
+        player_tick = PlayerTick(player=player, tick_number=player.game.current_tick)
         if player.can_move:
             if player.manager_sanctioned:
                 response_data = {}
