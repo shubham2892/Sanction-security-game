@@ -15,28 +15,28 @@
     <ul class="nav nav-tabs" role="tablist">
 
         <li role="presentation"><a href="#tab1" aria-controls="bravo" role="tab" data-toggle="tab">
-            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="14.28" id="firstButton"
+            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="11.11" id="firstButton"
                     class="btn btn-default orange-active">
                 Step 1
             </button>
         </a></li>
 
         <li role="presentation"><a href="#tab2" aria-controls="matrix" role="tab" data-toggle="tab">
-            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="28.56"
+            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="22.22"
                     class="btn btn-default orange-active">
                 Step 2
             </button>
         </a></li>
 
         <li role="presentation"><a href="#tab3" aria-controls="technica" role="tab" data-toggle="tab">
-            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="42.84"
+            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="33.33"
                     class="btn btn-default orange-active">
                 Step 3
             </button>
         </a></li>
 
         <li role="presentation"><a href="#tab4" aria-controls="rw4" role="tab" data-toggle="tab">
-            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="57.12"
+            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="44.44"
                     class="btn btn-default orange-active">
                 Step 4
             </button>
@@ -44,7 +44,7 @@
 
 
         <li role="presentation"><a href="#tab5" aria-controls="podhod5" role="tab" data-toggle="tab">
-            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="71.4"
+            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="55.55"
                     class="btn btn-default orange-active">
                 Step 5
             </button>
@@ -52,7 +52,7 @@
 
 
         <li role="presentation"><a href="#tab6" aria-controls="podhod5" role="tab" data-toggle="tab">
-            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="85.86"
+            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="66.66"
                     class="btn btn-default orange-active">
                 Step 6
             </button>
@@ -60,9 +60,24 @@
 
 
         <li role="presentation"><a href="#tab7" aria-controls="podhod5" role="tab" data-toggle="tab">
-            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="100"
+            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="77.77"
                     class="btn btn-default orange-active">
                 Step 7
+            </button>
+        </a></li>
+
+
+        <li role="presentation"><a href="#tab8" aria-controls="podhod5" role="tab" data-toggle="tab">
+            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="88.88"
+                    class="btn btn-default orange-active">
+                Step 8
+            </button>
+        </a></li>
+
+        <li role="presentation"><a href="#tab9" aria-controls="podhod5" role="tab" data-toggle="tab">
+            <button data-toggle="progressbar" data-target="#myProgressbar" data-value="100"
+                    class="btn btn-default orange-active">
+                Step 9
             </button>
         </a></li>
 
@@ -79,13 +94,22 @@
         <div role="tabpanel" class="tab-pane" id="tab1">
             <ul>
                 {% if game_chat_link %}
-                    <li> Join the chat: <br/> <b>{{ game_chat_link }}</b> <br/> and say Hello!. This will acknowledge your
-                        presence to the admin. This chat will
-                        used by admin for coordination among all the players.
+
+                    <li style="width: 100%">
+                        Acknowledge your presence to the Admin. Join the chat using the chat link below:
+
+                        <ul>
+                            <li>
+                                <a href="{{ game_chat_link }}" target="_blank"> Chat Link</a>
+                            </li>
+                            <li>
+                                Password: "welcome"
+                            </li>
+                        </ul>
                     </li>
                 {% endif %}
-                <li>
-                    Please fill the pre-game survey.<br/> <br/>
+                <li style="width: 100%">
+                    Please fill the pre-game survey:<br/> <br/>
                     <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdIlvX1xnzjZOESVsETGvyIsYqTsc-8layvgD9ZK3Vt3lvirw/viewform?embedded=true"
                             width="760" height="500" frameborder="0" marginheight="0" marginwidth="0">Loading...
                     </iframe>
@@ -114,6 +138,21 @@
 
                 This is a demo round to familiarize yourself with the game. Feel free to play around and try out
                 different parts of the game in this round.
+                The demo game will be of 15 rounds. Do not click on resource or security task multiple times. Your move
+                will
+                be registered after clicking once and you will get a notification of "Response Recorded".
+                In case you face any technical problem, communicate the same to the game
+                admin over the chat. In most cases, simply refreshing the web page will work.
+            </p>
+
+            <a href="{{ demo_game_url_1 }}" target="_blank">Start the Demo</a>
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="tab4">
+            <p>
+
+                This is a demo round to familiarize yourself with the game. Feel free to play around and try out
+                different parts of the game in this round.
                 The demo game will be of 25 rounds. Do not click on resource or security task multiple times. Your move
                 will
                 be registered after clicking once and you will get a notification of "Response Recorded".
@@ -121,11 +160,11 @@
                 admin over the chat. In most cases, simply refreshing the web page will work.
             </p>
 
-            <a href="{{ demo_game_url }}" target="_blank">Start the Demo</a>
+            <a href="{{ demo_game_url_2 }}" target="_blank">Start the Demo</a>
         </div>
 
 
-        <div role="tabpanel" class="tab-pane" id="tab4">
+        <div role="tabpanel" class="tab-pane" id="tab5">
             <p>
 
                 This game will be of 40 rounds.
@@ -144,7 +183,7 @@
 
         </div>
 
-        <div role="tabpanel" class="tab-pane" id="tab5">
+        <div role="tabpanel" class="tab-pane" id="tab6">
             <p>
 
                 This game will be of 40 rounds.
@@ -161,7 +200,7 @@
 
         </div>
 
-        <div role="tabpanel" class="tab-pane" id="tab6">
+        <div role="tabpanel" class="tab-pane" id="tab7">
             <p>
 
                 This game will be of 40 rounds.
@@ -179,8 +218,23 @@
         </div>
 
 
-        <div role="tabpanel" class="tab-pane" id="tab7">
+        <div role="tabpanel" class="tab-pane" id="tab8">
             <p>
+
+                This game will be of 40 rounds.
+                In this game, manager will group sanction(punish) all the players even if one player fails to finish the
+                security tasks on time. One way to ensure that your peers complete the security task on time is to
+                utilise "Peer Sanction".
+
+                In case manager decides to sanction, there will be a notification regarding the same in Announcement
+                section on the right side. For the rounds a player is sanctioned he/she can click only on pass button.
+            </p>
+
+            <a href="{{ game_url_4 }}" target="_blank">Game 3</a>
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="tab9">
+            <p style="width: 100%">
 
                 Please complete the post game survey below. After completing the survey, you will be shown a code. Enter
                 the code in the mTurk HIT and finish it.
@@ -191,6 +245,7 @@
             </iframe>
 
         </div>
+
 
     </div>
 

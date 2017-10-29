@@ -4,8 +4,9 @@ import random
 from channels import Group
 from django.contrib.humanize.templatetags.humanize import apnumber
 
-from Game.models import Player, PlayerTick, RESEARCH_OBJ, Statistics, SECURITY, \
-    Sanction, SANCTION, PASS, Message, RED, YELLOW, Workshop, Conference, Journal, RESOURCE_CLASSIFICATIONS
+from Game.models import Player, PlayerTick, Sanction, SANCTION, PASS, Message, RED, YELLOW, \
+    Workshop, Conference, Journal, RESOURCE_CLASSIFICATIONS, \
+    SECURITY_BLUE, SECURITY_RED, SECURITY_YELLOW, RESEARCH_TASK
 
 
 def check_player_capability(workshop_classification, player):
@@ -21,7 +22,7 @@ def check_player_capability(workshop_classification, player):
     return True
 
 
-def resource_complete(player_pk, resource_type, resource_position):
+def resource_complete(player_pk, resource_type, resource_position, message):
     player = Player.objects.select_related('game').get(id=player_pk)
     player_tick = PlayerTick(player=player, tick_number=player.game.ticks)
     response_message = {}
@@ -29,29 +30,48 @@ def resource_complete(player_pk, resource_type, resource_position):
         if player.manager_sanctioned:
             response_message[
                 "result"] = "You have been sanctioned by the manager. You can only click on the 'Pass' button to pass this round."
-            return response_message
+            response_complete_json = {"type": "resource_complete_response",
+                                      "response_message": response_message}
+            message.reply_channel.send({"text": json.dumps(response_complete_json)})
+
         elif player.sanctioned:
             response_message[
                 "result"] = "You have been peer sanctioned. You can only click on the 'Pass' button to pass this round."
-            return response_message
+            response_complete_json = {"type": "resource_complete_response",
+                                      "response_message": response_message}
+            message.reply_channel.send({"text": json.dumps(response_complete_json)})
         else:
             objective_completed = False
             new_classifications = []
-            NOT_CAPABLE_ERROR_MESSAGE = "You are not capable of completing this task. Make sure you patch your vulnerabilities."
+            NOT_CAPABLE_ERROR_MESSAGE = "You are not capable of completing this task. Make sure you patch your capabilities."
             if resource_type == "workshop":
                 workshop = Workshop.objects.get(player=player_pk)
                 resource_classification = workshop.classification
                 if not check_player_capability(resource_classification, player):
                     response_message['result'] = NOT_CAPABLE_ERROR_MESSAGE
-                    return response_message
+                    response_complete_json = {"type": "resource_complete_response",
+                                              "response_message": response_message}
+                    message.reply_channel.send({"text": json.dumps(response_complete_json)})
+
+                    return
+
+                player.nf_workshop += 1
+                player.score += workshop.score
+
+                if workshop.classification == RED:
+                    player.nf_red += 1
+                elif workshop.classification == YELLOW:
+                    player.nf_yellow += 1
+                else:
+                    player.nf_red += 1
+
                 random_number = random.randint(1, 3)
                 workshop.classification = random_number
                 workshop.count = workshop.count + 1
                 workshop.save()
-                player.score += workshop.score
                 objective_completed = True
                 new_classifications.append(workshop.classification_display)
-                player.nf_workshop += 1
+
 
             elif resource_type == 'conference':
                 conference = Conference.objects.get(player=player_pk)
@@ -63,12 +83,23 @@ def resource_complete(player_pk, resource_type, resource_position):
 
                 if not check_player_capability(resource_classification, player):
                     response_message['result'] = NOT_CAPABLE_ERROR_MESSAGE
-                    return response_message
+                    response_complete_json = {"type": "resource_complete_response",
+                                              "response_message": response_message}
+                    message.reply_channel.send({"text": json.dumps(response_complete_json)})
+
+                    return
 
                 if resource_position == 'one':
                     conference.complete_one = True
                 else:
                     conference.complete_two = True
+
+                if resource_classification == RED:
+                    player.nf_red += 1
+                elif resource_classification == YELLOW:
+                    player.nf_yellow += 1
+                else:
+                    player.nf_red += 1
 
                 if conference.complete_one and conference.complete_two:
                     conference.complete_two = False
@@ -98,7 +129,11 @@ def resource_complete(player_pk, resource_type, resource_position):
 
                 if not check_player_capability(resource_classification, player):
                     response_message['result'] = NOT_CAPABLE_ERROR_MESSAGE
-                    return response_message
+                    response_complete_json = {"type": "resource_complete_response",
+                                              "response_message": response_message}
+                    message.reply_channel.send({"text": json.dumps(response_complete_json)})
+
+                    return
 
                 if resource_position == 'one':
                     journal.complete_one = True
@@ -106,6 +141,13 @@ def resource_complete(player_pk, resource_type, resource_position):
                     journal.complete_two = True
                 else:
                     journal.complete_three = True
+
+                if resource_classification == RED:
+                    player.nf_red += 1
+                elif resource_classification == YELLOW:
+                    player.nf_yellow += 1
+                else:
+                    player.nf_red += 1
 
                 if journal.complete_one and journal.complete_two and journal.complete_three:
                     journal.classification_one = random.randint(1, 3)
@@ -123,31 +165,14 @@ def resource_complete(player_pk, resource_type, resource_position):
 
                 journal.save()
 
-
             if objective_completed:
                 response_message['result'] = resource_type.title() + " Completed!"
             else:
-                response_message['result'] = RESOURCE_CLASSIFICATIONS[resource_classification - 1][1].title() + " Completed!"
+                response_message['result'] = RESOURCE_CLASSIFICATIONS[resource_classification - 1][
+                                                 1].title() + " Completed!"
 
             # End players move
             player.save()
-            player_tick.action = RESEARCH_OBJ
-            player_tick.save()
-
-            if objective_completed:
-                # update Statistics table data; note the number corresponding to the one in the model
-                stats = Statistics(game=player.game, player=player, player_tick=player_tick)
-                if resource_type == "workshop":  # workshop
-                    stats.nf_finished_task = player.nf_workshop
-                    stats.type_of_task = 0
-                elif resource_type == "conference":  # conference
-                    stats.nf_finished_task = player.nf_conference
-                    stats.type_of_task = 1
-                else:
-                    stats.nf_finished_task = player.nf_journal
-                    stats.type_of_task = 2
-                # print stats
-                stats.save()
 
             response_message['resource_complete'] = True
             response_message['objective_complete'] = objective_completed
@@ -155,10 +180,20 @@ def resource_complete(player_pk, resource_type, resource_position):
             response_message['resource_type'] = resource_type
             response_message['resource_position'] = resource_position
             response_message['score'] = player.score
-            return response_message
+
+            response_complete_json = {"type": "resource_complete_response",
+                                      "response_message": response_message}
+            message.reply_channel.send({"text": json.dumps(response_complete_json)})
+
+            player_tick.action = RESEARCH_TASK
+            player_tick.save()
+
+
     else:
         response_message["result"] = "You have already moved this round"
-        return response_message
+        response_complete_json = {"type": "resource_complete_response",
+                                  "response_message": response_message}
+        message.reply_channel.send({"text": json.dumps(response_complete_json)})
 
 
 def security_resource_activate(player_pk, security_resource_pk, message):
@@ -187,16 +222,19 @@ def security_resource_activate(player_pk, security_resource_pk, message):
                 player.nf_blue += 1
                 player.blue_status_security = True
                 player.blue_status_capability = True
+                player_tick.action = SECURITY_BLUE
 
             elif security_resource_pk == "red_security":
                 player.nf_red += 1
                 player.red_status_capability = True
                 player.red_status_security = True
+                player_tick.action = SECURITY_RED
 
             else:  # for yellow, classification = 3; there is no need to consider "lab" resource_classifications
                 player.nf_yellow += 1
                 player.yellow_status_security = True
                 player.yellow_status_capability = True
+                player_tick.action = SECURITY_YELLOW
 
             player.update_player_payload(response_message)
             player.save()
@@ -210,28 +248,9 @@ def security_resource_activate(player_pk, security_resource_pk, message):
 
             message.reply_channel.send({"text": json.dumps(response_complete_json)})
 
-            # update_player(player)
-            player_tick.action = SECURITY
-
             # End players move
             player_tick.save()
 
-            # update Statistics table data; note the number corresponding to the one in the model
-            stats = Statistics(game=player.game, player=player, player_tick=player_tick)
-            if security_resource_pk == "blue_security":  # blue
-                stats.nf_finished_task = player.nf_blue
-                stats.type_of_task = 5
-            elif security_resource_pk == "red_security":  # red
-                stats.nf_finished_task = player.nf_red
-                stats.type_of_task = 3
-            else:  # for yellow, classification = 3
-                stats.nf_finished_task = player.nf_yellow
-                stats.type_of_task = 4
-            # print stats
-            stats.save()
-
-
-            # return response_message
     else:
         response_message["result"] = "You have already moved this round"
         # return response_message
@@ -286,17 +305,12 @@ def player_sanction(sanctioner_pk, sanctionee_pk):
 
 
 def pass_round(player_pk):
-    # TODO: Notify other players about status and score update
-
     player = Player.objects.get(id=player_pk)
     player_tick = PlayerTick(player=player, tick_number=player.game.ticks)
     response_message = {}
     if player.can_move:
         if player.manager_sanctioned:
 
-            # fix security tasks if counter is odd; since we fix a security task when clicked twice
-            # stats = Statistics(game=player.game, player=player, player_tick=player_tick)
-            # player.counter += 1
             vulnerabilities_fixed = ""
             if player.sanctionee_by_manager.latest("tick_number").tick_number == player.game.ticks:
                 if not player.blue_status_security:
@@ -304,24 +318,24 @@ def pass_round(player_pk):
                     player.blue_status_security = True
                     player.blue_status_capability = True
                     player.save()
-                    vulnerabilities_fixed += "blue"
-                    response_message['result'] = "You've fixed {} vulnerability".format(vulnerabilities_fixed)
+                    vulnerabilities_fixed += "Blue"
+                    response_message['result'] = "You've fixed {} Immunity".format(vulnerabilities_fixed)
                     response_message['resource'] = vulnerabilities_fixed
                 if not player.red_status_security:
                     response_message["resource"] = "red"
                     player.red_status_security = True
                     player.red_status_capability = True
                     player.save()
-                    vulnerabilities_fixed += " red"
-                    response_message['result'] = "You've fixed {} vulnerability".format(vulnerabilities_fixed)
+                    vulnerabilities_fixed += " Red"
+                    response_message['result'] = "You've fixed {} Immunity".format(vulnerabilities_fixed)
                     response_message['resource'] = vulnerabilities_fixed
                 if not player.yellow_status_security:
                     response_message["resource"] = "yellow"
                     player.yellow_status_security = True
                     player.yellow_status_capability = True
                     player.save()
-                    vulnerabilities_fixed += " yellow"
-                    response_message['result'] = "You've fixed {} vulnerability".format(vulnerabilities_fixed)
+                    vulnerabilities_fixed += " Yellow"
+                    response_message['result'] = "You've fixed {} Immunity".format(vulnerabilities_fixed)
                     response_message['resource'] = vulnerabilities_fixed
             else:
                 response_message['resource'] = "null"
@@ -349,34 +363,6 @@ def ws_add(message):
     Group("players").add(message.reply_channel)
 
 
-def update_player(player):
-    player_update_dict = {"id": player.id, "score": player.score}
-    if player.sanctioned:
-        player_update_dict["status"] = "Sanctioned"
-    else:
-        player_update_dict["status"] = "Thinking.."
-
-    # Append Blue Security
-    player_update_dict["blue_security"] = {"active": player.blue_status_security,
-                                           "deadline_sanction": player.deadline_sanction_blue}
-
-    # Append Red Security
-    player_update_dict["red_security"] = {"active": player.red_status_security,
-                                          "deadline_sanction": player.deadline_sanction_red}
-
-    # Append Yellow Security
-    player_update_dict["yellow_security"] = {"active": player.yellow_status_security,
-                                             "deadline_sanction": player.deadline_sanction_yellow}
-
-    player_update_dict["blue_capability"] = player.blue_status_capability
-    player_update_dict["red_capability"] = player.red_status_capability
-    player_update_dict["yellow_capability"] = player.yellow_status_capability
-
-    player_update_dict["type"] = "player_update"
-
-    Group("players").send({"text": json.dumps(player_update_dict)})
-
-
 # Connected to websocket.receive
 # @enforce_ordering
 def ws_message(message):
@@ -391,9 +377,7 @@ def ws_message(message):
         player_pk = message_text.get("player_pk")
         resource_type = message_text.get("resource_type")
         resource_position = message_text.get("resource_position")
-        response_message = resource_complete(player_pk, resource_type, resource_position)
-        response_complete_json = {"type": "{}_response".format(type_of_request), "response_message": response_message}
-        message.reply_channel.send({"text": json.dumps(response_complete_json)})
+        resource_complete(player_pk, resource_type, resource_position, message)
 
     elif type_of_request == 'security_resource_activate':
         player_pk = message_text.get("player_pk")

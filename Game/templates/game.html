@@ -13,9 +13,9 @@
                 <div class="row">
 
                     <h4>
-                        Money Earned:
+                        Points Earned:
                         <b>
-                            <span id="my-score"> ${{ me.score }}</span>
+                            <span id="my-score"> {{ me.score }}</span>
                         </b>
                     </h4>
 
@@ -23,12 +23,12 @@
 
                 <div class="row">
 
-                    <h4 id="game-number">Status:
+                    <h4 id="game-number">Turn:
 
                         {% if me.can_move %}
                             Your Move
                         {% else %}
-                            Waiting on others...
+                            Waiting for others...
                         {% endif %}
 
 
@@ -92,7 +92,7 @@
                     <tr>
 
                         <td class="title">
-                            Money Earned($):
+                            Points Earned:
                         </td>
                         <td id="score_{{ player.id }}"> {{ player.score }}</td>
                     </tr>
@@ -176,12 +176,12 @@
                             <!-- START Workshop Objective -->
                             <tr class="resource-list">
                                 <td>
-                                    <h4 class="objective-category">Workshop ($10):</h4>
+                                    <h4 class="objective-category">Small <br> (10 Points):</h4>
                                 </td>
                                 <td>
                                     {% if me.workshop.first.complete %}
                                         <div id="workshop_resource"
-                                             class="clickable resource-container complete {{ me.workshop.first.classification_display }}">
+                                             class="resource-container complete {{ me.workshop.first.classification_display }}">
                                     {% else %}
                                         <div id="workshop_resource"
                                              class="clickable resource-container incomplete {{ me.workshop.first.classification_display }}">
@@ -196,13 +196,13 @@
                             <!-- START Conference Objective -->
                             <tr class="resource-list">
                                 <td>
-                                    <h4 class="objective-category">Conference ($25):</h4>
+                                    <h4 class="objective-category">Medium <br> (25 Points):</h4>
                                 </td>
 
                                 <td>
                                     {% if me.conference.first.complete_one %}
                                         <div id="conference_one"
-                                             class="clickable resource-container complete {{ me.conference.first.classification_display_one }}">
+                                             class="resource-container complete {{ me.conference.first.classification_display_one }}">
                                     {% else %}
                                         <div id="conference_one"
                                              class="clickable resource-container incomplete {{ me.conference.first.classification_display_one }}">
@@ -211,7 +211,7 @@
                                 <td>
                                     {% if me.conference.first.complete_two %}
                                         <div id="conference_two"
-                                             class="clickable resource-container complete {{ me.conference.first.classification_display_two }}">
+                                             class="resource-container complete {{ me.conference.first.classification_display_two }}">
                                     {% else %}
                                         <div id="conference_two"
                                              class="clickable resource-container incomplete {{ me.conference.first.classification_display_two }}">
@@ -228,13 +228,13 @@
                             <!-- START Journal Objective -->
                             <tr class="resource-list">
                                 <td>
-                                    <h4 class="objective-category">Journal ($45):</h4>
+                                    <h4 class="objective-category">Large    <br>(45 Points):</h4>
                                 </td>
 
                                 <td>
                                     {% if me.journal.first.complete_one %}
                                         <div id="journal_one"
-                                             class="clickable resource-container complete {{ me.journal.first.classification_display_one }}">
+                                             class="resource-container complete {{ me.journal.first.classification_display_one }}">
                                     {% else %}
                                         <div id="journal_one"
                                              class="{{ me.journal.first.classification_display_one }} clickable resource-container incomplete">
@@ -243,7 +243,7 @@
                                 <td>
                                     {% if me.journal.first.complete_two %}
                                         <div id="journal_two"
-                                             class="clickable resource-container complete {{ me.journal.first.classification_display_two }}">
+                                             class="resource-container complete {{ me.journal.first.classification_display_two }}">
                                     {% else %}
                                         <div id="journal_two"
                                              class="clickable resource-container incomplete {{ me.journal.first.classification_display_two }}">
@@ -253,7 +253,7 @@
 
                                     {% if me.journal.first.complete_three %}
                                         <div id="journal_three"
-                                             class="clickable resource-container complete {{ me.journal.first.classification_display_three }}">
+                                             class="resource-container complete {{ me.journal.first.classification_display_three }}">
                                     {% else %}
                                         <div id="journal_three"
                                              class="clickable resource-container incomplete {{ me.journal.first.classification_display_three }}">

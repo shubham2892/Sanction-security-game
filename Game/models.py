@@ -143,12 +143,11 @@ class Player(models.Model):
     nf_blue = models.IntegerField(default=0, editable=False)
     nf_yellow = models.IntegerField(default=0, editable=False)
     nf_red = models.IntegerField(default=0, editable=False)
+
     nf_workshop = models.IntegerField(default=0, editable=False)
     nf_conference = models.IntegerField(default=0, editable=False)
     nf_journal = models.IntegerField(default=0, editable=False)
 
-    # security tasks that are not finished when the manager decided to sanction they player (value == False);
-    # unfinished tasks are modified to be finished after manager sanction
     blue_status_security = models.BooleanField(default=True, editable=False)
     yellow_status_security = models.BooleanField(default=True, editable=False)
     red_status_security = models.BooleanField(default=True, editable=False)
@@ -156,8 +155,6 @@ class Player(models.Model):
     blue_status_capability = models.BooleanField(default=True, editable=False)
     yellow_status_capability = models.BooleanField(default=True, editable=False)
     red_status_capability = models.BooleanField(default=True, editable=False)
-
-    # objects = PlayerManager()
 
     def __unicode__(self):
         return u'%s in %s' % (self.user.username, self.game)
@@ -288,8 +285,6 @@ class Player(models.Model):
         player_payload["red_capability"] = self.red_status_capability
         player_payload["yellow_capability"] = self.yellow_status_capability
 
-        print player_payload
-
 
 # Set's a player's default values, called as a post_save signal
 def set_player_defaults(sender, instance, **kwargs):
@@ -304,10 +299,12 @@ def set_player_defaults(sender, instance, **kwargs):
 
 class GameSet(models.Model):
     user = models.ForeignKey(User)
-    game_id1 = models.ForeignKey(Game, related_name="game_id1")
-    game_id2 = models.ForeignKey(Game, related_name="game_id2")
-    game_id3 = models.ForeignKey(Game, related_name="game_id3")
-    demo_id = models.ForeignKey(Game, related_name="game_demo")
+    game_1 = models.ForeignKey(Game, related_name="game_1")
+    game_2 = models.ForeignKey(Game, related_name="game_2")
+    game_3 = models.ForeignKey(Game, related_name="game_3")
+    game_4 = models.ForeignKey(Game, related_name="game_4")
+    demo_game_1 = models.ForeignKey(Game, related_name="game_demo_1")
+    demo_game_2 = models.ForeignKey(Game, related_name="game_demo_2")
     consent_check = models.BooleanField(default=False)
     video_check = models.BooleanField(default=False)
     demo_check = models.BooleanField(default=False)
@@ -584,7 +581,7 @@ class Tick(models.Model):
 
                     ManagerSanction.create(player, self, count * 2)
                     # player.counter_sum = 2 * count
-                    message_text = "{} is Team Sanctioned because {} did not fix immunity(s) for {} tick(s) at tick".format(
+                    message_text = "{} is Group Sanctioned because {} did not fix immunity(s) for {} tick(s) at tick".format(
                         player.user.username.title(), player_name.title(), count * 2)
 
                     for i in range(0, count * 2):
@@ -655,17 +652,19 @@ class Tick(models.Model):
 ''' PLAYER ACTIONS '''
 REST = 0
 SANCTION = 1
-SECURITY = 2
+SECURITY_BLUE = 6
+SECURITY_YELLOW = 7
+SECURITY_RED = 8
 RESEARCH_TASK = 3
-RESEARCH_OBJ = 4
 PASS = 5
 
 ACTIONS = (
     (REST, "The player did not move."),
     (SANCTION, "sanctioned player"),
-    (SECURITY, "activated security resource"),
-    (RESEARCH_TASK, "completed research task"),
-    (RESEARCH_OBJ, "completed research objective"),
+    (SECURITY_BLUE, "activated security resource blue"),
+    (SECURITY_RED, "activated security resource red"),
+    (SECURITY_YELLOW, "activated security resource yellow"),
+    (RESEARCH_TASK, "completed research objective"),
     (PASS, "clicked the pass button")
 )
 
@@ -764,40 +763,10 @@ class ManagerSanction(models.Model):
     def create(cls, sanctionee, tick, num_of_ticks_sanc):
         # a player gets sanctioned by the manager twice the time of what his unfinished vulnerabilities are
         sanctions = []
+        Conference.objects.filter(player=sanctionee).update(complete_one=False, complete_two=False)
+        Journal.objects.filter(player=sanctionee).update(complete_one=False, complete_two=False, complete_three=False)
+
         for i in range(0, num_of_ticks_sanc):
             sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + i), game=tick.game)
             sanctions.append(sanction)
         ManagerSanction.objects.bulk_create(sanctions)
-
-
-WORKSHOP_TASK = 0
-CONFERENCE_TASK = 1
-JOURNAL_TASK = 2
-RED_TASK = 3
-YELLOW_TASK = 4
-BLUE_TASK = 5
-
-TASK_TYPES = (
-    (WORKSHOP_TASK, "Workshop Research Task"),
-    (CONFERENCE_TASK, "Conference Research Task"),
-    (JOURNAL_TASK, "Journal Research Task"),
-    (RED_TASK, "Red Security Task"),
-    (YELLOW_TASK, "Yellow Security Task"),
-    (BLUE_TASK, "Blue Security Task")
-)
-
-
-class Statistics(models.Model):
-    game = models.ForeignKey(Game)
-    player = models.ForeignKey(Player, default=None)
-    player_tick = models.ForeignKey(PlayerTick, default=None)
-    # number of finished tasks
-    nf_finished_task = models.IntegerField(default=0)
-    # type of task
-    type_of_task = models.IntegerField(choices=TASK_TYPES, default=None)
-
-    def __unicode__(self):
-        return u'In game %s, %s finished %s at tick %s. Total number of finished task of this type is %s' % (
-            self.game.game_key, self.player.user.username, self.get_type_of_task_display(),
-            self.game.ticks,
-            self.nf_finished_task)

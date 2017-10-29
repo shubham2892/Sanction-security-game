@@ -9,7 +9,6 @@ socket = new WebSocket("ws://" + window.location.host + "/chat/" + me_player.pk)
 
 socket.onmessage = function (message) {
     var data = JSON.parse(message.data);
-    console.log(message);
     if (data['type'] === 'resource_complete_response') {
         // Research resource complete action reply
         complete_research_resource_reply(data['response_message']);
@@ -22,18 +21,14 @@ socket.onmessage = function (message) {
     } else if (data['type'] === 'pass_button_response') {
         // Pass button reply
         pass_round_reply(data['response_message']);
-    } else if (data['type'] === 'player_update') {
-        update_player(data)
     } else if (data['type'] === 'update_message_board') {
         update_message_board(data);
-    } else if (data['type'] === 'game_complete') {
-
     } else if (data['type'] === 'tick_complete') {
         update_ticks(data["tick_payload"]);
     } else if (data['type'] === 'sanction_status') {
         player_sanction(data);
     } else if (data['type'] === 'move_made') {
-        $("#game-number").text("Status:Waiting on others...");
+        $("#game-number").text("Turn: Waiting for others...");
     }
 
 };
@@ -243,17 +238,6 @@ function deactivate_blue_security(deadline) {
     securityObjectUpdate.classList.add("clickable");
     securityObjectUpdate.textContent = deadline;
 }
-
-function update_player(player_object) {
-    var tableObject = document.getElementById(player_object["id"]);
-    if (tableObject !== null) {
-        tableObject.rows[0].cells[1].textContent = "$" + player_object["score"];
-        tableObject.rows[1].cells[1].textContent = player_object["status"];
-        handle_security(player_object);
-        handle_capability(player_object);
-    }
-}
-
 function update_attack(attack_type) {
 
     $("#attack_resource").removeClass("lab_attack").removeClass("yellow_attack").removeClass("red_attack").removeClass("blue_attack");
@@ -287,7 +271,7 @@ function hide_pass_button() {
 
 function updatetickme(tick_data) {
     // Update html of new rounds
-    $("#game-number").text("Status: Your Move");
+    $("#game-number").text("Turn: Your Move");
 
     if (tick_data["new_tick_count"] >= 0) {
         $("#time-remaining").text("Current Round: " + tick_data["new_tick_count"]);
@@ -298,12 +282,18 @@ function updatetickme(tick_data) {
 
     if (tick_data['sanctioned']) {
         show_pass_button();
+        deactivate_resource_classification(document.getElementById("conference_one"));
+        deactivate_resource_classification(document.getElementById("conference_two"));
+        deactivate_resource_classification(document.getElementById("journal_one"));
+        deactivate_resource_classification(document.getElementById("journal_two"));
+        deactivate_resource_classification(document.getElementById("journal_three"));
     } else {
         hide_pass_button();
     }
     update_attack(tick_data["attack"]);
     handle_security(tick_data);
     handle_capability(tick_data);
+
 
 }
 
@@ -375,27 +365,6 @@ function scrollChat() {
     return false;
 }
 
-// Updates Chat and the Left Panel
-function updatePage() {
-    $.ajax({
-        url: location.href,
-        success: function (json) {
-            // Update left panel
-            var gameInfo = $(json).find("#game-info").html();
-            $('#game-info').html(gameInfo);
-
-            // Update Chat
-            var old_talk = $("#talk").html();
-            var new_talk = $(json).find("#talk").html();
-            if (old_talk !== new_talk) {
-                $('#talk').html(new_talk);
-                scrollChat();
-            }
-        }
-    });
-    return false;
-}
-
 // activate security resource
 $('#security_objectives').on('click', '.clickable.inactive', function (event) {
     alertSuccess("Response Recorded");
@@ -422,8 +391,6 @@ $('#projects').on('click', '.clickable.incomplete', function (event) {
         player_pk: $("#player").text(),
         type: 'resource_complete'
     };
-    console.log("Resource Clicked");
-    console.log(message);
     socket.send(JSON.stringify(message));
     return false;
 });
@@ -464,11 +431,22 @@ function sanction_player_reply(response_message) {
 }
 
 function change_resource_classification(resource_object, new_classification) {
+    remove_resource_classification(resource_object);
+    resource_object.classList.add(new_classification)
+
+}
+
+function remove_resource_classification(resource_object) {
     resource_object.className = '';
     resource_object.classList.add("clickable");
     resource_object.classList.add("resource-container");
     resource_object.classList.add("incomplete");
-    resource_object.classList.add(new_classification)
+}
+
+function deactivate_resource_classification(resource_object){
+    resource_object.classList.remove("complete");
+    resource_object.classList.add("clickable");
+    resource_object.classList.add("incomplete");
 
 }
 
@@ -492,7 +470,7 @@ function complete_research_resource_reply(response_message) {
             change_resource_classification(querySelectorquery, response_message['new_classifications'][2]);
 
         }
-        $("#my-score").text("$" + response_message['score']);
+        $("#my-score").text(response_message['score']);
         alertSuccess(response_message["result"]);
     } else if ("resource_complete" in response_message && response_message["resource_complete"] === true) {
         var idName = response_message['resource_type'] + '_' + response_message['resource_position'];
@@ -500,7 +478,7 @@ function complete_research_resource_reply(response_message) {
         querySelectorquery.classList.remove("incomplete");
         querySelectorquery.classList.add("complete");
 
-        $("#my-score").text("$" + response_message['score']);
+        $("#my-score").text(response_message['score']);
         alertSuccess(response_message["result"]);
     } else {
         alertFailure(response_message["result"]);
