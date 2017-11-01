@@ -244,7 +244,6 @@ class Player(models.Model):
     @property
     def manager_sanctioned(self):
         current_tick = self.game.ticks
-        print "checking for tick:{}".format(current_tick)
         if self.sanctionee_by_manager.exists() and (
                 self.sanctionee_by_manager.filter(tick_number=current_tick, game=self.game).exists()):
             return True

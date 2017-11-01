@@ -70,6 +70,10 @@ class GameFlowView(TemplateView):
         context['game_url_2'] = game_url_2
         context['game_url_3'] = game_url_3
         context['game_url_4'] = game_url_4
+        context['game_key_1'] = game_set.game_1.game_key
+        context['game_key_2'] = game_set.game_2.game_key
+        context['game_key_3'] = game_set.game_3.game_key
+        context['game_key_4'] = game_set.game_4.game_key
         context['game_chat_link'] = game_set.chat_link
 
         return context
