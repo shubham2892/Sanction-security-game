@@ -112,7 +112,7 @@ def remove_player(request):
         try:
             if request.user.is_superuser:
                 # TODO Change this hard coding to the dummy game
-                game = Game.objects.get(id='30')
+                game = Game.objects.get(id=9)
                 Player.objects.filter(id=request.POST.get("player_id")).update(game=game)
             else:
                 return HttpResponse(

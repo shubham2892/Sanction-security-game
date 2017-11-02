@@ -226,11 +226,6 @@ class Player(models.Model):
     def tick_just_sanctioned(self):
         return self.last_tick + 1 == self.game.ticks and not self.game.complete
 
-    # Returns the total number of remaining  moves for a player with a game instance
-    @property
-    def remaining_moves(self):
-        return self.game.ticks - self.playertick_set.count()
-
     # Returns true if a player is peer sanctioned at a given instance
     @property
     def sanctioned(self):

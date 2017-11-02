@@ -373,7 +373,6 @@ def ws_message(message):
         Group(str(player_pk)).add(message.reply_channel)
 
     if type_of_request == 'resource_complete':
-        print "Request Received"
         player_pk = message_text.get("player_pk")
         resource_type = message_text.get("resource_type")
         resource_position = message_text.get("resource_position")
