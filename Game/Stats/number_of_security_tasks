@@ -1,0 +1,56 @@
+from Game.models import PlayerTick, INDIVIDUAL_SANC, SECURITY_RED, SECURITY_BLUE, SECURITY_YELLOW, GROUP_SANC, Game, \
+    SANCTION
+
+
+def number_of_security_tasks():
+    red_security_tasks_individual = PlayerTick.objects.filter(player__game__manager_sanc=INDIVIDUAL_SANC,
+                                                              action=SECURITY_RED).count()
+    blue_security_tasks_individual = PlayerTick.objects.filter(player__game__manager_sanc=INDIVIDUAL_SANC,
+                                                               action=SECURITY_BLUE).count()
+    yellow_security_tasks_individual = PlayerTick.objects.filter(player__game__manager_sanc=INDIVIDUAL_SANC,
+                                                                 action=SECURITY_YELLOW).count()
+
+    red_security_tasks_group = PlayerTick.objects.filter(player__game__manager_sanc=GROUP_SANC,
+                                                         action=SECURITY_RED).count()
+    blue_security_tasks_group = PlayerTick.objects.filter(player__game__manager_sanc=GROUP_SANC,
+                                                          action=SECURITY_BLUE).count()
+    yellow_security_tasks_group = PlayerTick.objects.filter(player__game__manager_sanc=GROUP_SANC,
+                                                            action=SECURITY_YELLOW).count()
+
+    peer_sanction_individual = PlayerTick.objects.filter(player__game__manager_sanc=INDIVIDUAL_SANC,
+                                                         action=SANCTION).count()
+
+    peer_sanction_group = PlayerTick.objects.filter(player__game__manager_sanc=GROUP_SANC, action=SANCTION).count()
+
+    individual_sanction_game = Game.objects.filter(manager_sanc=INDIVIDUAL_SANC).count()
+    group_sanction_game = Game.objects.filter(manager_sanc=GROUP_SANC).count()
+
+
+    print red_security_tasks_individual
+    print yellow_security_tasks_individual
+    print blue_security_tasks_individual
+
+
+    print red_security_tasks_group
+    print yellow_security_tasks_group
+    print blue_security_tasks_group
+
+    print "No. of games of individual sanctions:{}".format(individual_sanction_game)
+    print "No. of games of group sanctions:{}".format(group_sanction_game)
+
+    print "No. of security tasks fixed in individual sanction game:{}".format(
+        red_security_tasks_individual + blue_security_tasks_individual + yellow_security_tasks_individual)
+    print "No. of security tasks fixed in group sanction game:{}".format(
+        red_security_tasks_group + yellow_security_tasks_group + blue_security_tasks_group)
+    print "No. of security tasks fixed per individual sanction game:{}".format((
+                                                                                   red_security_tasks_individual + blue_security_tasks_individual + yellow_security_tasks_individual) / individual_sanction_game)
+
+    print "No. of security tasks fixed per group sanction game:{}".format(
+        (red_security_tasks_group + yellow_security_tasks_group + blue_security_tasks_group) / group_sanction_game)
+
+    print "No. of peer sanction in individual sanction:{}".format(peer_sanction_individual)
+    print "No. of peer sanction in group sanction:{}".format(peer_sanction_group)
+
+    print "No. of peer sanction in individual sanction per game:{}".format(
+        peer_sanction_individual / individual_sanction_game)
+    print "No. of peer sanction in group sanction per game:{}".format(peer_sanction_group / group_sanction_game)

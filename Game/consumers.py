@@ -186,6 +186,8 @@ def resource_complete(player_pk, resource_type, resource_position, message):
             message.reply_channel.send({"text": json.dumps(response_complete_json)})
 
             player_tick.action = RESEARCH_TASK
+
+            player_tick.update_player_tick_data()
             player_tick.save()
 
 
@@ -249,6 +251,7 @@ def security_resource_activate(player_pk, security_resource_pk, message):
             message.reply_channel.send({"text": json.dumps(response_complete_json)})
 
             # End players move
+            player_tick.update_player_tick_data()
             player_tick.save()
 
     else:
@@ -288,6 +291,7 @@ def player_sanction(sanctioner_pk, sanctionee_pk):
                 response_message["sanctioned"] = True
                 response_message['result'] = "You have Sanctioned " + apnumber(
                     sanctionee.user.username).capitalize()
+                player_tick.update_player_tick_data()
                 player_tick.save()
                 content = "{} has Sanctioned {} for tick:{}".format(sanctioner.name.title(), sanctionee.name.title(),
                                                                     sanctioner.game.ticks + 1)
@@ -342,6 +346,7 @@ def pass_round(player_pk):
                 response_message['result'] = "You've clicked pass."
 
             player_tick.action = PASS
+            player_tick.update_player_tick_data()
             player_tick.save()
 
             return response_message

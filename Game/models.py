@@ -669,6 +669,33 @@ class PlayerTick(models.Model):
     tick_number = models.IntegerField(null=False, default=0)
     player = models.ForeignKey(Player)
     action = models.IntegerField(choices=ACTIONS, default=REST)
+    is_red_security = models.BooleanField(default=True)
+    is_blue_security = models.BooleanField(default=True)
+    is_yellow_security = models.BooleanField(default=True)
+    is_blue_capability = models.BooleanField(default=True)
+    is_yellow_capability = models.BooleanField(default=True)
+    is_red_capability = models.BooleanField(default=True)
+    is_attack = models.BooleanField(default=False)
+    is_peer_sanction = models.BooleanField(default=False)
+    is_manager_sanction = models.BooleanField(default=False)
+
+    def update_player_tick_data(self):
+        self.is_red_security = self.player.red_status_security
+        self.is_blue_security = self.player.blue_status_security
+        self.is_yellow_security = self.player.yellow_status_security
+
+        self.is_blue_capability = self.player.blue_status_capability
+        self.is_yellow_capability = self.player.yellow_status_capability
+        self.is_red_capability = self.player.red_status_capability
+
+        if self.player.game.game_tick.attack:
+            self.is_attack = True
+
+        if self.player.manager_sanctioned:
+            self.is_manager_sanction = True
+
+        if self.player.sanctioned:
+            self.is_peer_sanction = True
 
 
 def update_tick(sender, instance, **kwargs):
