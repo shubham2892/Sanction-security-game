@@ -4,3 +4,4 @@ Game/*.pyc
 .idea/*
 P1/*.pyc
 .DS_Store
+*.pyc
