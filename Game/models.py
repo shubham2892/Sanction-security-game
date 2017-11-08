@@ -690,12 +690,18 @@ class PlayerTick(models.Model):
 
         if self.player.game.game_tick.attack:
             self.is_attack = True
+        else:
+            self.is_attack = False
 
         if self.player.manager_sanctioned:
             self.is_manager_sanction = True
+        else:
+            self.is_manager_sanction = False
 
         if self.player.sanctioned:
             self.is_peer_sanction = True
+        else:
+            self.is_peer_sanction = False
 
 
 def update_tick(sender, instance, **kwargs):
