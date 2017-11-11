@@ -60,7 +60,7 @@ def parse_messages_for_peer_sanction(messages, username):
 
 
 def pertick_player_data():
-    games = Game.objects.all()
+    games = Game.objects.filter(id__lte=42)
     for game in games:
         message = Message.objects.filter(game=game)
         attack_dict = parse_messages_for_attack(message)

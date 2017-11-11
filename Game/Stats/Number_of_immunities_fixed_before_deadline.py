@@ -7,4 +7,3 @@ def number_of_immuinities_fixed_before_deadline():
         playerticks = PlayerTick.objects.filter(player = player)
         for playertick in playerticks:
             if playertick.is_attack:
-                
