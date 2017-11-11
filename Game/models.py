@@ -372,7 +372,7 @@ class Conference(models.Model):
     classification_two = models.IntegerField(choices=RESOURCE_CLASSIFICATIONS, default=BLUE)
     complete_one = models.BooleanField(default=False)
     complete_two = models.BooleanField(default=False)
-    score = models.IntegerField(default=WORKSHOP_VALUE)
+    score = models.IntegerField(default=CONFERENCE_VALUE)
 
     @property
     def classification_display_one(self):
@@ -663,6 +663,20 @@ ACTIONS = (
 )
 
 ''' An object for synchronizing players' moves within a round '''
+
+class PlayerTickDup(models.Model):
+    tick_number = models.IntegerField(null=False, default=0)
+    player = models.ForeignKey(Player)
+    action = models.IntegerField(choices=ACTIONS, default=REST)
+    is_red_security = models.BooleanField(default=True)
+    is_blue_security = models.BooleanField(default=True)
+    is_yellow_security = models.BooleanField(default=True)
+    is_blue_capability = models.BooleanField(default=True)
+    is_yellow_capability = models.BooleanField(default=True)
+    is_red_capability = models.BooleanField(default=True)
+    is_attack = models.IntegerField(default = 0)
+    is_peer_sanction = models.BooleanField(default=False)
+    is_manager_sanction = models.BooleanField(default=False)
 
 
 class PlayerTick(models.Model):
