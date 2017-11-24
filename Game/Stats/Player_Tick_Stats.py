@@ -116,12 +116,18 @@ def pertick_player_data():
 
                 if not red_immunity:
                     red_capability = False
+                else:
+                    red_capability = True
 
                 if not yellow_immunity:
                     yellow_capability = False
+                else:
+                    yellow_capability = True
 
                 if not blue_immunity:
                     blue_capability = False
+                else:
+                    blue_capability = True
 
                 if player_tick.action == SECURITY_RED:
                     red_immunity = True
@@ -147,3 +153,27 @@ def pertick_player_data():
                                              is_red_capability=red_capability, is_attack=attack_number,
                                              is_peer_sanction=is_peer_sanction,
                                              is_manager_sanction=is_manager_sanction)
+
+
+def copy_player_ticks_dup():
+    pertick_player_data()
+    games = Game.objects.filter(id__gt=42)
+    for game in games:
+        message = Message.objects.filter(game=game)
+        attack_dict = parse_messages_for_attack(message)
+
+        players = Player.objects.filter(game=game)
+
+        for player in players:
+            player_ticks = PlayerTick.objects.filter(player=player).order_by("tick_number")
+            for player_tick in player_ticks:
+                PlayerTickDup.objects.create(tick_number=player_tick.tick_number, player=player,
+                                             action=player_tick.action, is_red_security=player_tick.is_red_security,
+                                             is_blue_security=player_tick.is_blue_security,
+                                             is_blue_capability=player_tick.is_blue_capability,
+                                             is_yellow_security=player_tick.is_yellow_security,
+                                             is_yellow_capability=player_tick.is_yellow_capability,
+                                             is_red_capability=player_tick.is_red_capability,
+                                             is_attack=attack_dict[player_tick.tick_number],
+                                             is_peer_sanction=player_tick.is_peer_sanction,
+                                             is_manager_sanction=player_tick.is_manager_sanction)

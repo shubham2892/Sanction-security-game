@@ -664,6 +664,7 @@ ACTIONS = (
 
 ''' An object for synchronizing players' moves within a round '''
 
+
 class PlayerTickDup(models.Model):
     tick_number = models.IntegerField(null=False, default=0)
     player = models.ForeignKey(Player)
@@ -674,7 +675,7 @@ class PlayerTickDup(models.Model):
     is_blue_capability = models.BooleanField(default=True)
     is_yellow_capability = models.BooleanField(default=True)
     is_red_capability = models.BooleanField(default=True)
-    is_attack = models.IntegerField(default = 0)
+    is_attack = models.IntegerField(default=0)
     is_peer_sanction = models.BooleanField(default=False)
     is_manager_sanction = models.BooleanField(default=False)
 
@@ -811,3 +812,17 @@ class ManagerSanction(models.Model):
             sanction = cls(sanctionee=sanctionee, tick_number=(tick.number + i), game=tick.game)
             sanctions.append(sanction)
         ManagerSanction.objects.bulk_create(sanctions)
+
+
+class PlayerTickDatabase(models.Model):
+    player_username = models.CharField(max_length=100)
+    game_key = models.CharField(max_length=100)
+    game_type = models.IntegerField(choices=MANAGER_SANC, default=INDIVIDUAL_SANC)
+    number_immnunities_fixed_before_deadline = models.IntegerField(default=0)
+    number_of_immunities_fixed = models.IntegerField(default=0)
+    number_of_manager_sanctions = models.IntegerField(default=0)
+    number_of_tasks_completed = models.IntegerField(default=0)
+    number_of_attacks = models.IntegerField(default=0)
+    time_to_fix_immunity = models.IntegerField(default=0)
+    time_to_fix_capability = models.IntegerField(default=0)
+    player_score = models.IntegerField(default=0)
