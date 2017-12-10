@@ -20,6 +20,6 @@ def create_game_set(player_ids):
         player_3 = Player.objects.create(user=user, game=game_3)
         player_4 = Player.objects.create(user=user, game=game_4)
 
-        game_set = GameSet.objects.create(user=user, demo_game_1=player_demo_1, demo_game_2=player_demo_2,
+        GameSet.objects.create(user=user, demo_game_1=game_1_demo, demo_game_2=game_2_demo,
                                           game_1=game_1, game_2=game_2, game_3=game_3, game_4=game_4)
 
