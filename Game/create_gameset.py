@@ -16,7 +16,7 @@ def create_game_set(player_ids):
     game_4 = Game.objects.create(total_ticks=TOTAL_TICKS, manager_sanc=GROUP_SANC, attack_frequency=ATTACK_FREQUENCY)
 
     for player_id in player_ids:
-        user = User.objects.create(username=player_id, password=player_id)
+        user = User.objects.create_user(player_id, password=player_id)
         player_demo_1 = Player.objects.create(user=user, game=game_1_demo)
         player_demo_2 = Player.objects.create(user=user, game=game_2_demo)
         player_1 = Player.objects.create(user=user, game=game_1)
