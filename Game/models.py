@@ -528,7 +528,7 @@ class Tick(models.Model):
                     if x < sanction_prob:
 
                         ManagerSanction.create(player, self, count * 2)
-                        message_text = "{} is Sanctioned for {} Tick(s) at Tick".format(
+                        message_text = "{} is Sanctioned for {} rounds:".format(
                             player.user.username.title(), count * 2)
 
                         for i in range(0, count * 2):
@@ -819,6 +819,7 @@ class PlayerTickDatabase(models.Model):
     game_key = models.CharField(max_length=100)
     game_type = models.IntegerField(choices=MANAGER_SANC, default=INDIVIDUAL_SANC)
     number_immnunities_fixed_before_deadline = models.IntegerField(default=0)
+    number_of_immunities_available = models.IntegerField(default=0)
     number_of_immunities_fixed = models.IntegerField(default=0)
     number_of_manager_sanctions = models.IntegerField(default=0)
     number_of_tasks_completed = models.IntegerField(default=0)
@@ -826,3 +827,9 @@ class PlayerTickDatabase(models.Model):
     time_to_fix_immunity = models.IntegerField(default=0)
     time_to_fix_capability = models.IntegerField(default=0)
     player_score = models.IntegerField(default=0)
+    dospert_score = models.IntegerField(default=0)
+    dospert_score_ethical = models.IntegerField(default=0)
+    dospert_score_social = models.IntegerField(default=0)
+    dospert_score_financial = models.IntegerField(default=0)
+    dospert_score_recreational = models.IntegerField(default=0)
+    dospert_score_health_safety = models.IntegerField(default=0)
