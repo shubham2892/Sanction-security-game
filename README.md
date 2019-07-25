@@ -4,18 +4,17 @@ Game Application for Science of Security Policy Group study
 
 ##Installation and Setup
 
-_P1-Game is an application-driven website running django 1.8 and python 2.7.x_
+The application is running django 1.8 and python 2.7.x_
 
 To begin, clone the repository into a directory of your choice. 
 
-> $ git clone https://github.ncsu.edu/bynarron/P1-Game.git
+> $ git clone https://github.shubham2892/Sanction-security-game.git
 
 Enter the project directory and create a virtual environment to manage the project's dependencies:
 
-> $ cd P1/ <br />
+> $ cd Game/ <br />
 > $ virtualenv [your_virtual_environment_name] <br />
 > $ source [your_virtual_environment_name]/bin/activate <br />
-> $ cd P1-Game/ <br />
   
 Now install the requirements:
 
