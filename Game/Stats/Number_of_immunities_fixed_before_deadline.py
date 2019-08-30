@@ -181,7 +181,9 @@ def player_total_dospert():
         dospert_manager_dict[player_entry['player_username']] = {
             "dospert": dosper_score_dict[player_entry['player_username']]['total'],
             "manager_sanctions": player_entry['manager_sanction_sum']}
+
         dospert_list.append(dosper_score_dict[player_entry['player_username']]['social'])
+
         sum_list.append(player_entry['manager_sanction_sum'])
     print dospert_manager_dict
     print "-----------------"
